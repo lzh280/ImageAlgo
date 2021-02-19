@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/img_apply.png</file>
+        <file>icons/img_back.png</file>
+        <file>icons/img_binary.png</file>
+        <file>icons/img_edge.png</file>
+        <file>icons/img_filter.png</file>
+        <file>icons/img_gray.png</file>
+        <file>icons/img_open.png</file>
+        <file>icons/img_save.png</file>
+        <file>icons/img_sharpen.png</file>
+        <file>icons/img_sobelEdge.png</file>
+        <file>icons/img_thinning.png</file>
+    </qresource>
+</RCC>
