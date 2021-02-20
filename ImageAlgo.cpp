@@ -2,10 +2,12 @@
 #include "ui_ImageAlgo.h"
 #include <QProgressDialog>
 #include <QPainter>
+#include <QLine>
 
 #include <QDebug>
 
 int Threshold = 128;
+#define DEG2RAD 0.017453293f
 
 ImageAlgo::ImageAlgo(QWidget *parent) :
     QWidget(parent),
@@ -449,66 +451,119 @@ QImage *ImageAlgo::Thinning(const QImage &img)
     return thinImage;
 }
 
-QPoint *ImageAlgo::Hough(const QImage &img)
+QImage *ImageAlgo::Hough(const QImage &img)
 {
-    // intersection position of image after Hough transform
-    QPoint *intersection = new QPoint(0,0);
-
     QImage *contourImg = FindContours(img);
     QImage *houghImg = new QImage(*contourImg);
     houghImg->toPixelFormat(QImage::Format_ARGB32);
 
-    int wid = img.width();
-    int hei = img.height();
-    int *accumulation = new int[wid * hei];
-
-    for(int i=0;i<wid;++i)
-        for(int j=0;j<hei;++j)
-            accumulation[i*hei+j] = 0;
-
-    int x0=0, y0=0;
-    int r=8;
     QRgb color;
+    int imgW = houghImg->width();
+    int imgH = houghImg->height();
+    // count the occurrences
+    unsigned int* countArray = 0;
+    int arrW = 0;
+    int arrH = 0;
 
-    for(int x = 0; x < wid; x++)
+    double hough_h = ((sqrt(2.0) * (double)(imgH>imgW?imgH:imgW)) / 2.0);
+    arrH = hough_h * 2.0; // -r -> +r
+    arrW = 180;
+
+    countArray = (unsigned int*)calloc(arrH * arrW, sizeof(unsigned int));
+
+    double center_x = imgW/2;
+    double center_y = imgH/2;
+
+    // 1.scan the image and add the accumulator
+    for(int y=0;y<imgH;y++)
     {
-        for(int y = 0; y < hei; y++)
+        for(int x=0;x<imgW;x++)
         {
-            color = contourImg->pixel(x,y);
-            if(qRed(color) == 0)
+            color = houghImg->pixel(x,y);
+            if( qRed(color) == 255 )
             {
-                for(int theta = 0; theta < 360; theta++)
+                for(int t=0;t<180;t++)
                 {
-                    double t = (theta * 3.1416) / 180;
-                    x0 = (int)(x - r * cos(t));
-                    y0 = (int)(y - r * sin(t));
-                    if(x0 < wid && x0 > 0 && y0 < hei && y0 > 0) {
-                        accumulation[x0 + (y0 * wid)] += 1;
-                    }
+                    double r = ( ((double)x - center_x) * cos((double)t * DEG2RAD)) + (((double)y - center_y) * sin((double)t * DEG2RAD));
+                    countArray[ (int)((round(r + hough_h) * 180.0)) + t]++;
                 }
             }
         }
     }
 
-    int max = 0;
-    int indexX=0;
-    int indexY=0;
-    for(int i=0;i<wid;++i)
+    // 2.get the lines
+    QVector<QLine> lines;
+    int dividing = 0;// dividing value to get the line
+    dividing = imgW>imgH?imgW/4:imgH/4;
+
+    if(countArray == 0)
+        return houghImg;
+
+    for(int r=0;r<arrH;r++)
     {
-        for(int j=0;j<hei;++j)
+        for(int t=0;t<arrW;t++)
         {
-            if(accumulation[i*hei+j] > max)
+            if((int)countArray[(r*arrW) + t] >= dividing)
             {
-                max = accumulation[i*hei+j];
-                indexX = i;
-                indexY = j;
+                //Is this point a local maxima (9x9)
+                int max = countArray[(r*arrW) + t];
+                for(int ly=-4;ly<=4;ly++)
+                {
+                    for(int lx=-4;lx<=4;lx++)
+                    {
+                        if( (ly+r>=0 && ly+r<arrH) && (lx+t>=0 && lx+t<arrW)  )
+                        {
+                            if( (int)countArray[( (r+ly)*arrW) + (t+lx)] > max )
+                            {
+                                max = countArray[( (r+ly)*arrW) + (t+lx)];
+                                ly = lx = 5;
+                            }
+                        }
+                    }
+                }
+                if(max > (int)countArray[(r*arrW) + t])
+                    continue;
+
+                int x1, y1, x2, y2;
+                x1 = y1 = x2 = y2 = 0;
+
+                if(t >= 45 && t <= 135)
+                {
+                    //y = (r - x cos(t)) / sin(t)
+                    x1 = 0;
+                    y1 = ((double)(r-(arrH/2)) - ((x1 - (imgW/2) ) * cos(t * DEG2RAD))) / sin(t * DEG2RAD) + (imgH / 2);
+                    x2 = imgW - 0;
+                    y2 = ((double)(r-(arrH/2)) - ((x2 - (imgW/2) ) * cos(t * DEG2RAD))) / sin(t * DEG2RAD) + (imgH / 2);
+                }
+                else
+                {
+                    //x = (r - y sin(t)) / cos(t);
+                    y1 = 0;
+                    x1 = ((double)(r-(arrH/2)) - ((y1 - (imgH/2) ) * sin(t * DEG2RAD))) / cos(t * DEG2RAD) + (imgW / 2);
+                    y2 = imgH - 0;
+                    x2 = ((double)(r-(arrH/2)) - ((y2 - (imgH/2) ) * sin(t * DEG2RAD))) / cos(t * DEG2RAD) + (imgW / 2);
+                }
+
+                lines.push_back(QLine(x1,y1,x2,y2));
+
             }
         }
     }
 
-    intersection->setX(indexX);
-    intersection->setY(indexY);qDebug()<<indexX<<indexY;
-    return intersection;
+    qDebug()<< "lines:" << lines.size() << " " << dividing;
+
+    // 3.draw the lines
+    if(lines.size() != 0)
+    {
+        QPainter aPainter(houghImg);
+        aPainter.drawLines(lines);
+    }
+
+    // 4.free the resources
+    if(countArray)
+        free(countArray);
+
+    return houghImg;
 }
 
 void ImageAlgo::on_pushButton_insert_clicked()
@@ -618,5 +673,7 @@ void ImageAlgo::on_pushButton_thinning_clicked()
 
 void ImageAlgo::on_pushButton_hough_clicked()
 {
-    Hough(*resultImg);
+    resultImg = Hough(*resultImg);
+    showResult(*resultImg);
+    undoList.append(resultImg);
 }

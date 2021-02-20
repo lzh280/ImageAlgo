@@ -73,7 +73,7 @@ private:
     QImage* Thinning(const QImage &img);
 
     //! Hough transform
-    QPoint* Hough(const QImage &img);
+    QImage* Hough(const QImage &img);
 
 signals:
     void insertBorder(const QList<QPoint*> &list);

@@ -14,7 +14,7 @@ SOURCES += \
 
 HEADERS += \
         ImageAlgo.h \
-        graphicsview.h
+        graphicsview.h \
 
 FORMS += \
         ImageAlgo.ui
