@@ -451,7 +451,7 @@ QImage *ImageAlgo::Thinning(const QImage &img)
     return thinImage;
 }
 
-QImage *ImageAlgo::Hough(const QImage &img)
+QImage *ImageAlgo::HoughLine(const QImage &img)
 {
     QImage *contourImg = FindContours(img);
     QImage *houghImg = new QImage(*contourImg);
@@ -673,7 +673,7 @@ void ImageAlgo::on_pushButton_thinning_clicked()
 
 void ImageAlgo::on_pushButton_hough_clicked()
 {
-    resultImg = Hough(*resultImg);
+    resultImg = HoughLine(*resultImg);
     showResult(*resultImg);
     undoList.append(resultImg);
 }

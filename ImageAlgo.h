@@ -72,8 +72,8 @@ private:
     //! thinnig
     QImage* Thinning(const QImage &img);
 
-    //! Hough transform
-    QImage* Hough(const QImage &img);
+    //! Hough transform for line detection
+    QImage* HoughLine(const QImage &img);
 
 signals:
     void insertBorder(const QList<QPoint*> &list);
