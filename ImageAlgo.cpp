@@ -337,7 +337,7 @@ QImage *ImageAlgo::FindContours(const QImage &img)
     QImage *binImg = Binary(img);
     QImage *contoursImage = new QImage(*binImg);
     contoursImage->toPixelFormat(QImage::Format_ARGB32);
-    contoursImage->fill(Qt::transparent);
+    contoursImage->fill(Qt::white);
 
     for(int y=1; y<height-1; y++)
     {
@@ -366,6 +366,28 @@ QImage *ImageAlgo::FindContours(const QImage &img)
                 }
             }
         }
+    }
+
+    for(int y=0;y<height;++y)
+    {
+        color = img.pixel(0,y);
+        color = QColor(255,255,255,qAlpha(color)).rgba();
+        contoursImage->setPixel(0,y,color);
+
+        color = img.pixel(width-1,y);
+        color = QColor(255,255,255,qAlpha(color)).rgba();
+        contoursImage->setPixel(width-1,y,color);
+    }
+
+    for(int x=0;x<width;++x)
+    {
+        color = img.pixel(x,0);
+        color = QColor(255,255,255,qAlpha(color)).rgba();
+        contoursImage->setPixel(x,0,color);
+
+        color = img.pixel(x,height-1);
+        color = QColor(255,255,255,qAlpha(color)).rgba();
+        contoursImage->setPixel(x,height-1,color);
     }
 
     return contoursImage;
@@ -495,7 +517,7 @@ QImage *ImageAlgo::HoughLine(const QImage &img)
         for(int x=0;x<imgW;x++)
         {
             color = houghImg->pixel(x,y);
-            if( qRed(color) == 255 )
+            if( qRed(color) == 0 )
             {
                 for(int t=0;t<180;t++)
                 {
@@ -509,7 +531,7 @@ QImage *ImageAlgo::HoughLine(const QImage &img)
     // 2.get the lines
     QVector<QLine> lines;
     int dividing = 0;// dividing value to get the line
-    dividing = imgW>imgH?imgW/3:imgH/3;
+    dividing = imgW>imgH?imgW/8:imgH/8;
 
     if(countArray == 0)
         return houghImg;
@@ -607,7 +629,7 @@ QVector<QCircle> ImageAlgo::HoughCircle(const QImage &img, const int &radius, co
         for(int x=0;x<imgW;x++)
         {
             color = houghImg->pixel(x,y);
-            if( qRed(color) == 255 )
+            if( qRed(color) == 0 )
             {
                 for(int t=1;t<=360;t++)
                 {
@@ -785,8 +807,8 @@ void ImageAlgo::on_pushButton_houghCirc_clicked()
     QVector<QCircle> circs;
     int wid = resultImg->width();
     int hei = resultImg->height();
-    int minRadius = 0.1* (wid>hei? hei:wid);
-    int maxRadius = 0.8* (wid>hei? wid:hei);
+    int minRadius = 0.05* (wid>hei? hei:wid);
+    int maxRadius = 0.45* (wid>hei? wid:hei);
     int step = (maxRadius-minRadius)/100;
     int dividing = 0.95 * (2.0 * (double)minRadius * M_PI);
 
