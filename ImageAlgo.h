@@ -12,6 +12,32 @@ namespace Ui {
 class ImageAlgo;
 }
 
+class QCircle
+{
+public:
+    QCircle(const QPoint &center, const int &radius)
+    {
+        this->center = center;
+        this->radius = radius;
+    }
+
+    QPoint center;
+    int radius;
+
+    QRect toRect()
+    {
+        QRect aRect(QPoint(center.x()-radius,center.y()-radius),
+                    QPoint(center.x()+radius,center.y()+radius));
+        return aRect;
+    };
+
+    int distance(const QCircle &circ) const
+    {
+        return sqrt( pow(abs(center.x() - circ.center.x()), 2)
+                     + pow(abs(center.y() - circ.center.y()), 2) );
+    }
+};
+
 class ImageAlgo : public QWidget
 {
     Q_OBJECT
@@ -34,7 +60,8 @@ private slots:
     void on_pushButton_binary_clicked();
     void on_spinBox_threshold_valueChanged(int arg1);
     void on_pushButton_thinning_clicked();
-    void on_pushButton_hough_clicked();
+    void on_pushButton_houghLine_clicked();
+    void on_pushButton_houghCirc_clicked();
 
 private:
     Ui::ImageAlgo *ui;
@@ -74,6 +101,9 @@ private:
 
     //! Hough transform for line detection
     QImage* HoughLine(const QImage &img);
+
+    //! Hough transform for circle detection
+    QVector<QCircle> HoughCircle(const QImage &img, const int &radius, const int &dividing);
 
 signals:
     void insertBorder(const QList<QPoint*> &list);

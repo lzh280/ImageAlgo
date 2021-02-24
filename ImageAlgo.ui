@@ -230,9 +230,16 @@
     </widget>
    </item>
    <item row="0" column="4">
-    <widget class="QPushButton" name="pushButton_hough">
+    <widget class="QPushButton" name="pushButton_houghLine">
      <property name="text">
-      <string>霍夫变换</string>
+      <string>检测直线</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="5">
+    <widget class="QPushButton" name="pushButton_houghCirc">
+     <property name="text">
+      <string>检测圆</string>
      </property>
     </widget>
    </item>

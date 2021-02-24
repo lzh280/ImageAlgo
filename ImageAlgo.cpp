@@ -3,11 +3,26 @@
 #include <QProgressDialog>
 #include <QPainter>
 #include <QLine>
+#include <QRect>
 
 #include <QDebug>
 
 int Threshold = 128;
 #define DEG2RAD 0.017453293f
+
+struct SortCirclesDistance
+{
+    bool operator()( const QCircle &a, const QCircle &b ) const
+    {
+        int d = a.distance(b);
+        if(d <= a.radius + b.radius)
+        {
+            //overlap
+            return a.radius > b.radius;
+        }
+        return false;
+    }
+};
 
 ImageAlgo::ImageAlgo(QWidget *parent) :
     QWidget(parent),
@@ -131,7 +146,7 @@ QImage *ImageAlgo::Filter(const QImage &img, const int &winSize)
     filterImg->toPixelFormat(QImage::Format_ARGB32);
 
     QProgressDialog dialog_writedata(tr("Calculating, please wait"),tr("cancle"),0,img.width(),this);
-    dialog_writedata.setWindowTitle(tr("Median Filtering"));
+    dialog_writedata.setWindowTitle(tr("Filtering"));
     dialog_writedata.setWindowModality(Qt::WindowModal);
     dialog_writedata.show();
 
@@ -494,7 +509,7 @@ QImage *ImageAlgo::HoughLine(const QImage &img)
     // 2.get the lines
     QVector<QLine> lines;
     int dividing = 0;// dividing value to get the line
-    dividing = imgW>imgH?imgW/4:imgH/4;
+    dividing = imgW>imgH?imgW/3:imgH/3;
 
     if(countArray == 0)
         return houghImg;
@@ -556,6 +571,8 @@ QImage *ImageAlgo::HoughLine(const QImage &img)
     if(lines.size() != 0)
     {
         QPainter aPainter(houghImg);
+        QPen aPen(Qt::red);
+        aPainter.setPen(aPen);
         aPainter.drawLines(lines);
     }
 
@@ -564,6 +581,91 @@ QImage *ImageAlgo::HoughLine(const QImage &img)
         free(countArray);
 
     return houghImg;
+}
+
+QVector<QCircle> ImageAlgo::HoughCircle(const QImage &img, const int &radius, const int &dividing)
+{
+    QImage *contourImg = FindContours(img);
+    QImage *houghImg = new QImage(*contourImg);
+    houghImg->toPixelFormat(QImage::Format_ARGB32);
+
+    QRgb color;
+    int imgW = houghImg->width();
+    int imgH = houghImg->height();
+    // count the occurrences
+    unsigned int* countArray = 0;
+    int arrW = imgW;
+    int arrH = imgH;
+
+    if(countArray)
+        free(countArray);
+    countArray = (unsigned int*)calloc(arrH * arrW, sizeof(unsigned int));
+
+    // 1.scan the image and add the accumulator
+    for(int y=0;y<imgH;y++)
+    {
+        for(int x=0;x<imgW;x++)
+        {
+            color = houghImg->pixel(x,y);
+            if( qRed(color) == 255 )
+            {
+                for(int t=1;t<=360;t++)
+                {
+                    int a = ((double)x - ((double)radius * cos((double)t * DEG2RAD)));
+                    int b = ((double)y - ((double)radius * sin((double)t * DEG2RAD)));
+
+                    if( (b>=0 && b<arrH) && (a>=0 && a<arrW))
+                        countArray[(b * arrW) + a]++;
+                }
+            }
+        }
+    }
+
+    // 2.get the circles
+
+    QVector<QCircle> circs;
+
+    if(countArray == 0)
+        return QVector<QCircle>();
+
+    for(int b=0;b<arrH;b++)
+    {
+        for(int a=0;a<arrW;a++)
+        {
+            if((int)countArray[(b*arrW) + a] >= dividing)
+            {
+                //Is this point a local maxima (9x9)
+                int max = countArray[(b*arrW) + a];
+                for(int ly=-4;ly<=4;ly++)
+                {
+                    for(int lx=-4;lx<=4;lx++)
+                    {
+                        if( (ly+b>=0 && ly+b<arrH) && (lx+a>=0 && lx+a<arrW)  )
+                        {
+                            if( (int)countArray[( (b+ly)*arrW) + (a+lx)] > max )
+                            {
+                                max = countArray[( (b+ly)*arrW) + (a+lx)];
+                                ly = lx = 5;
+                            }
+                        }
+                    }
+                }
+                if(max > (int)countArray[(b*arrW) + a])
+                    continue;
+
+                QCircle aCirc(QPoint(a,b),radius);
+                circs.append(aCirc);
+            }
+        }
+    }
+
+    qDebug()<<"result:" << circs.size();
+
+    // 4.free the resources
+    if(countArray)
+        free(countArray);
+
+    return circs;
 }
 
 void ImageAlgo::on_pushButton_insert_clicked()
@@ -671,9 +773,72 @@ void ImageAlgo::on_pushButton_thinning_clicked()
     undoList.append(resultImg);
 }
 
-void ImageAlgo::on_pushButton_hough_clicked()
+void ImageAlgo::on_pushButton_houghLine_clicked()
 {
     resultImg = HoughLine(*resultImg);
+    showResult(*resultImg);
+    undoList.append(resultImg);
+}
+
+void ImageAlgo::on_pushButton_houghCirc_clicked()
+{
+    QVector<QCircle> circs;
+    int wid = resultImg->width();
+    int hei = resultImg->height();
+    int minRadius = 0.1* (wid>hei? hei:wid);
+    int maxRadius = 0.8* (wid>hei? wid:hei);
+    int step = (maxRadius-minRadius)/100;
+    int dividing = 0.95 * (2.0 * (double)minRadius * M_PI);
+
+    QProgressDialog dialog_writedata(tr("Calculating, please wait"),tr("cancle"),minRadius,maxRadius,this);
+    dialog_writedata.setWindowTitle(tr("Hough Circle"));
+    dialog_writedata.setWindowModality(Qt::WindowModal);
+    dialog_writedata.show();
+    for(int r=minRadius;r<maxRadius;r+=step)
+    {
+        circs.append(HoughCircle(*resultImg,r,dividing));
+        qApp->processEvents();
+        dialog_writedata.setValue(r);
+
+        if(dialog_writedata.wasCanceled())
+            break;
+    }
+
+    // filter the circles
+    if(circs.size() == 0)
+        return ;
+
+    std::sort(circs.begin(), circs.end(), SortCirclesDistance());
+    int a,b,r;
+    a=b=r=0;
+    QVector<QCircle> result;
+    QVector<QCircle>::iterator it;
+    for(it=circs.begin();it!=circs.end();it++)
+    {
+        int d = sqrt( pow(abs(it->center.x() - a), 2) + pow(abs(it->center.y() - b), 2) );
+        if( d > it->radius + r)
+        {
+            result.push_back(*it);
+            //ok
+            a = it->center.x();
+            b = it->center.y();
+            r = it->radius;
+        }
+    }
+
+    // draw the circles
+    resultImg = FindContours(*resultImg);
+    if(result.size() != 0)
+    {
+        QPainter aPainter(resultImg);
+        QPen aPen(Qt::red);
+        aPainter.setPen(aPen);
+        for(int i=0;i<result.size();++i)
+        {
+            aPainter.drawEllipse(result[i].toRect());
+        }
+    }
+
     showResult(*resultImg);
     undoList.append(resultImg);
 }
