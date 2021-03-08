@@ -31,6 +31,79 @@
      </property>
     </widget>
    </item>
+   <item row="0" column="1">
+    <widget class="QPushButton" name="pushButton_saveResult">
+     <property name="text">
+      <string>保存结果</string>
+     </property>
+     <property name="icon">
+      <iconset resource="ImageAlgo.qrc">
+       <normaloff>:/icons/img_save.png</normaloff>:/icons/img_save.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QPushButton" name="pushButton_back">
+     <property name="text">
+      <string>撤销上一步</string>
+     </property>
+     <property name="icon">
+      <iconset resource="ImageAlgo.qrc">
+       <normaloff>:/icons/img_back.png</normaloff>:/icons/img_back.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="3">
+    <widget class="QPushButton" name="pushButton_insert">
+     <property name="text">
+      <string>使用结果</string>
+     </property>
+     <property name="icon">
+      <iconset resource="ImageAlgo.qrc">
+       <normaloff>:/icons/img_apply.png</normaloff>:/icons/img_apply.png</iconset>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="4">
+    <widget class="QPushButton" name="pushButton_houghLine">
+     <property name="text">
+      <string>检测直线</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="5">
+    <widget class="QPushButton" name="pushButton_houghCirc">
+     <property name="text">
+      <string>检测圆</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="7">
+    <widget class="QLabel" name="label_threshold">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+       <horstretch>1</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>阈值：</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="8">
+    <widget class="QSpinBox" name="spinBox_threshold">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>2</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximum">
+      <number>255</number>
+     </property>
+    </widget>
+   </item>
    <item row="1" column="0">
     <widget class="QPushButton" name="pushButton_filter">
      <property name="sizePolicy">
@@ -100,6 +173,19 @@
     </widget>
    </item>
    <item row="1" column="4">
+    <widget class="QPushButton" name="pushButton_cannyContours">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>3</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>canny边缘</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="5">
     <widget class="QPushButton" name="pushButton_gray">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -116,7 +202,7 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="5">
+   <item row="1" column="6">
     <widget class="QPushButton" name="pushButton_binary">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
@@ -130,49 +216,6 @@
      <property name="icon">
       <iconset resource="ImageAlgo.qrc">
        <normaloff>:/icons/img_binary.png</normaloff>:/icons/img_binary.png</iconset>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="6">
-    <widget class="QLabel" name="label_threshold">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-       <horstretch>1</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>阈值：</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="7">
-    <widget class="QSpinBox" name="spinBox_threshold">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-       <horstretch>2</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="maximum">
-      <number>255</number>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="8">
-    <widget class="QPushButton" name="pushButton_thinning">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>3</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>细化</string>
-     </property>
-     <property name="icon">
-      <iconset resource="ImageAlgo.qrc">
-       <normaloff>:/icons/img_thinning.png</normaloff>:/icons/img_thinning.png</iconset>
      </property>
     </widget>
    </item>
@@ -196,50 +239,20 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
-    <widget class="QPushButton" name="pushButton_saveResult">
+   <item row="0" column="6">
+    <widget class="QPushButton" name="pushButton_thinning">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>3</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="text">
-      <string>保存结果</string>
+      <string>细化</string>
      </property>
      <property name="icon">
       <iconset resource="ImageAlgo.qrc">
-       <normaloff>:/icons/img_save.png</normaloff>:/icons/img_save.png</iconset>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="2">
-    <widget class="QPushButton" name="pushButton_back">
-     <property name="text">
-      <string>撤销上一步</string>
-     </property>
-     <property name="icon">
-      <iconset resource="ImageAlgo.qrc">
-       <normaloff>:/icons/img_back.png</normaloff>:/icons/img_back.png</iconset>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="3">
-    <widget class="QPushButton" name="pushButton_insert">
-     <property name="text">
-      <string>使用结果</string>
-     </property>
-     <property name="icon">
-      <iconset resource="ImageAlgo.qrc">
-       <normaloff>:/icons/img_apply.png</normaloff>:/icons/img_apply.png</iconset>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="4">
-    <widget class="QPushButton" name="pushButton_houghLine">
-     <property name="text">
-      <string>检测直线</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="5">
-    <widget class="QPushButton" name="pushButton_houghCirc">
-     <property name="text">
-      <string>检测圆</string>
+       <normaloff>:/icons/img_thinning.png</normaloff>:/icons/img_thinning.png</iconset>
      </property>
     </widget>
    </item>

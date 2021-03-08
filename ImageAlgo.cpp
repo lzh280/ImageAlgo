@@ -9,20 +9,7 @@
 
 int Threshold = 128;
 #define DEG2RAD 0.017453293f
-
-struct SortCirclesDistance
-{
-    bool operator()( const QCircle &a, const QCircle &b ) const
-    {
-        int d = a.distance(b);
-        if(d <= a.radius + b.radius)
-        {
-            //overlap
-            return a.radius > b.radius;
-        }
-        return false;
-    }
-};
+#define RAD2DEG 57.2957796f
 
 ImageAlgo::ImageAlgo(QWidget *parent) :
     QWidget(parent),
@@ -97,6 +84,49 @@ void ImageAlgo::showResult(const QImage &img)
     QPixmap tarmap = QPixmap::fromImage(img);
     resultPixmapItem->setPixmap(tarmap);
     resultScene->setSceneRect(QRectF(tarmap.rect()));
+}
+
+template<typename T>
+QImage *ImageAlgo::Convolution(const QImage &img, T *kernel[], const int &kernelSize)
+{
+    QImage * targetImage = new QImage(img);
+    targetImage->toPixelFormat(QImage::Format_ARGB32);
+
+    int sumR = 0;
+    int sumG = 0;
+    int sumB = 0;
+    double kernelVal = 0.0;
+    QRgb color;
+
+    for(int x=kernelSize/2; x<targetImage->width()-(kernelSize/2); x++)
+    {
+        for(int y=kernelSize/2; y<targetImage->height()-(kernelSize/2); y++)
+        {
+            sumR = 0;
+            sumG = 0;
+            sumB = 0;
+
+            for(int i = -kernelSize/2; i<= kernelSize/2; i++)
+            {
+                for(int j = -kernelSize/2; j<= kernelSize/2; j++)
+                {
+                    color = img.pixel(x+i, y+j);
+                    kernelVal = *((T*)kernel + kernelSize*(kernelSize/2+i) + kernelSize/2+j);
+                    sumR += qRed(color)*kernelVal;
+                    sumG += qGreen(color)*kernelVal;
+                    sumB += qBlue(color)*kernelVal;
+                }
+            }
+
+            sumR = qBound(0, sumR, 255);
+            sumG = qBound(0, sumG, 255);
+            sumB = qBound(0, sumB, 255);
+            color = img.pixel(x,y);
+            color = QColor(sumR,sumG,sumB,qAlpha(color)).rgba();
+            targetImage->setPixel(x,y,color);
+        }
+    }
+    return targetImage;
 }
 
 QImage *ImageAlgo::Gray(const QImage &img)
@@ -210,39 +240,7 @@ QImage * ImageAlgo::Sharpen(const QImage &img)
     int kernel [3][3]= {{0,-1,0},
                         {-1,5,-1},
                         {0,-1,0}};
-    int kernelSize = 3;
-    int sumR = 0;
-    int sumG = 0;
-    int sumB = 0;
-    QRgb color;
-
-    for(int x=kernelSize/2; x<sharpImage->width()-(kernelSize/2); x++)
-    {
-        for(int y=kernelSize/2; y<sharpImage->height()-(kernelSize/2); y++)
-        {
-            sumR = 0;
-            sumG = 0;
-            sumB = 0;
-
-            for(int i = -kernelSize/2; i<= kernelSize/2; i++)
-            {
-                for(int j = -kernelSize/2; j<= kernelSize/2; j++)
-                {
-                    color = img.pixel(x+i, y+j);
-                    sumR += qRed(color)*kernel[kernelSize/2+i][kernelSize/2+j];
-                    sumG += qGreen(color)*kernel[kernelSize/2+i][kernelSize/2+j];
-                    sumB += qBlue(color)*kernel[kernelSize/2+i][kernelSize/2+j];
-                }
-            }
-
-            sumR = qBound(0, sumR, 255);
-            sumG = qBound(0, sumG, 255);
-            sumB = qBound(0, sumB, 255);
-            color = img.pixel(x,y);
-            color = QColor(sumR,sumG,sumB,qAlpha(color)).rgba();
-            sharpImage->setPixel(x,y,color);
-        }
-    }
+    sharpImage = Convolution(*sharpImage,(int**)kernel,3);
     return sharpImage;
 }
 
@@ -284,10 +282,9 @@ QImage *ImageAlgo::SobelContours(const QImage &img)
     QImage *contoursImage = new QImage(*grayImage);
     contoursImage->toPixelFormat(QImage::Format_ARGB32);
 
-    int *sobel_norm = new int[width*height];
-    int max = 0.0;
-    int value_gx = 0;
-    int value_gy = 0;
+    int gray = 0;
+    double value_gx = 0;
+    double value_gy = 0;
     QRgb color;
 
     for (int x=0; x<width-3; x++)
@@ -296,7 +293,6 @@ QImage *ImageAlgo::SobelContours(const QImage &img)
         {
             value_gx = 0;
             value_gy = 0;
-            max = 0.0;
 
             for (int k=0; k<3;k++)
             {
@@ -307,23 +303,183 @@ QImage *ImageAlgo::SobelContours(const QImage &img)
                     value_gy += Gy[p*3+k] * qRed(color);
                 }
             }
-            sobel_norm[x+y*width] = abs(value_gx) + abs(value_gy);
-
-            max=sobel_norm[x+y*width]>max ? sobel_norm[x+y*width]:max;
-
+            gray = abs(value_gx) + abs(value_gy);
             // inverse the background and the foreground to set the background in white
-            max = qBound(0,255-max,255);
+            gray = qBound(0,int(255-gray),255);
 
             color=grayImage->pixel(x,y);
-            color = QColor(max,max,max,qAlpha(color)).rgba();
+            color = QColor(gray,gray,gray,qAlpha(color)).rgba();
 
             contoursImage->setPixel(x,y,color);
         }
     }
 
-    delete [] sobel_norm;
     delete [] Gy;
     delete [] Gx;
+    return contoursImage;
+}
+
+QImage *ImageAlgo::CannyContours(const QImage &img)
+{
+    int height = img.height();
+    int width = img.width();
+    QImage *grayImage = Gray(img);
+    QImage *contoursImage = new QImage(*grayImage);
+    contoursImage->toPixelFormat(QImage::Format_ARGB32);
+
+    // 1.Gauss filter
+    double kernel [3][3]= {{0.0625, 0.125, 0.0625},
+                           {0.125, 0.25, 0.125},
+                           {0.0625, 0.125, 0.0625}};
+    contoursImage = Convolution(*grayImage,(double**)kernel,3);
+
+    // 2.get the gradient of each pixel
+    double *Gx = new double[9];
+    double *Gy = new double[9];
+
+    Gx[0] = -1; Gx[1] = 0; Gx[2] = 1;
+    Gx[3] = -1.414; Gx[4] = 0; Gx[5] = 1.414;
+    Gx[6] = -1; Gx[7] = 0; Gx[8] = 1;
+
+    Gy[0] = 1; Gy[1] = 1.414; Gy[2] = 1;
+    Gy[3] = 0; Gy[4] = 0; Gy[5] = 0;
+    Gy[6] = -1; Gy[7] = -1.414; Gy[8] = -1;
+
+    double *sobel_gradient = new double[width*height];
+    double *sobel_theta = new double[width*height]; // range is (-pi,pi]
+    double value_gx = 0;
+    double value_gy = 0;
+    QRgb color;
+
+    for (int x=0; x<width-3; x++)
+    {
+        for( int y=0; y<height-3; y++)
+        {
+            value_gx = 0;
+            value_gy = 0;
+
+            for (int k=0; k<3;k++)
+            {
+                for(int p=0; p<3; p++)
+                {
+                    color=grayImage->pixel(x+k,y+p);
+                    value_gx += Gx[p*3+k] * qRed(color);
+                    value_gy += Gy[p*3+k] * qRed(color);
+                }
+            }
+            sobel_gradient[x+width*y] = abs(value_gx) + abs(value_gy);
+            sobel_theta[x+width*y] = atan2(value_gy,value_gx);
+        }
+    }
+
+    // 3.Non maximum suppression
+    double theta = 0;
+    double gradient = 0;
+    double dtmp1 = 0;
+    double dtmp2 = 0;
+    double k = 0;
+    int *gray_value = new int[width*height];
+    for (int x=1; x<width-3; x++)
+    {
+        for( int y=1; y<height-3; y++)
+        {
+            gradient = sobel_gradient[x+width*y];
+            theta = sobel_theta[x+width*y] * RAD2DEG;
+            k = tan(theta*DEG2RAD);
+
+            if((theta>-180 && theta<=-135)||(theta>0 && theta<=45))
+            {
+                dtmp1 = sobel_gradient[x+1+width*(y-1)] * (1-k)
+                        +sobel_gradient[x+1+width*y] * k;
+
+                dtmp2 = sobel_gradient[x-1+width*(y+1)] * (1-k)
+                        +sobel_gradient[x-1+width*y] * k;
+            }
+            else if((theta>-135 && theta<=-90)||(theta>45 && theta<=90))
+            {
+                dtmp1 = sobel_gradient[x+1+width*(y-1)] * (1-1/k)
+                        +sobel_gradient[x+width*(y-1)] * (1/k);
+
+                dtmp2 = sobel_gradient[x-1+width*(y+1)] * (1-1/k)
+                        +sobel_gradient[x+width*(y+1)] * (1/k);
+            }
+            else if((theta>-90 && theta<=-45)||(theta>90 && theta<=135))
+            {
+                dtmp1 = sobel_gradient[x+1+width*(y-1)] * (1-qAbs(k))
+                        +sobel_gradient[x+1+width*y] * qAbs(k);
+
+                dtmp2 = sobel_gradient[x-1+width*(y+1)] * (1-qAbs(k))
+                        +sobel_gradient[x-1+width*y] * qAbs(k);
+            }
+            else if((theta>-45 && theta<=0)||(theta>135 && theta<=180))
+            {
+                dtmp1 = sobel_gradient[x+1+width*(y-1)] * (1-qAbs(1/k))
+                        +sobel_gradient[x+1+width*y] * qAbs(1/k);
+
+                dtmp2 = sobel_gradient[x-1+width*(y+1)] * (1-qAbs(1/k))
+                        +sobel_gradient[x-1+width*y] * qAbs(1/k);
+            }
+
+            if(gradient<dtmp1 || gradient<dtmp2)
+                gradient = 0; //set as the background
+
+            gradient = qBound(0,int(255-gradient),255);
+            gray_value[x+width*y] = gradient;
+        }
+    }
+
+    // 4.use high and low threshold to limit image
+    int lowTh = 75;
+    int highTh = 2*lowTh;
+    for (int x=0; x<width-3; x++)
+    {
+        for( int y=0; y<height-3; y++)
+        {
+            if(gray_value[x+width*y] < lowTh)
+                gray_value[x+width*y] = 0;
+            else if(gray_value[x+width*y] > highTh)
+                gray_value[x+width*y] = 255;
+
+            color=grayImage->pixel(x,y);
+            color = QColor(gray_value[x+width*y],gray_value[x+width*y],gray_value[x+width*y],qAlpha(color)).rgba();
+            contoursImage->setPixel(x,y,color);
+        }
+    }
+    int gray = 0;
+    int pixel[8];
+    for (int x=1; x<width-3; x++)
+    {
+        for( int y=1; y<height-3; y++)
+        {
+            gray = gray_value[x+width*y];
+            if(gray == 0 || gray == 255)
+                continue;
+
+            memset(pixel,0,8);
+            pixel[0] = gray_value[x-1+width*(y-1)];
+            pixel[1] = gray_value[x-1+width*y];
+            pixel[2] = gray_value[x-1+width*(y+1)];
+            pixel[3] = gray_value[x+width*(y-1)];
+            pixel[4] = gray_value[x+width*(y+1)];
+            pixel[5] = gray_value[x+1+width*(y-1)];
+            pixel[6] = gray_value[x+1+width*y];
+            pixel[7] = gray_value[x+1+width*(y+1)];
+            if (pixel[0]+pixel[1]+pixel[2]+pixel[3]+pixel[4]+pixel[5]+pixel[6]+pixel[7] < 255*8)
+                gray = 0;
+            else
+                gray = 255;
+
+            color=grayImage->pixel(x,y);
+            color = QColor(gray,gray,gray,qAlpha(color)).rgba();
+            contoursImage->setPixel(x,y,color);
+        }
+    }
+
+    delete [] sobel_gradient;
+    delete [] sobel_theta;
+    delete [] Gy;
+    delete [] Gx;
+    delete [] gray_value;
     return contoursImage;
 }
 
@@ -339,6 +495,7 @@ QImage *ImageAlgo::FindContours(const QImage &img)
     contoursImage->toPixelFormat(QImage::Format_ARGB32);
     contoursImage->fill(Qt::white);
 
+    // Hollowing out the connected area
     for(int y=1; y<height-1; y++)
     {
         for(int x=1; x<width-1; x++)
@@ -769,6 +926,13 @@ void ImageAlgo::on_pushButton_solbelContours_clicked()
     undoList.append(resultImg);
 }
 
+void ImageAlgo::on_pushButton_cannyContours_clicked()
+{
+    resultImg = CannyContours(*resultImg);
+    showResult(*resultImg);
+    undoList.append(resultImg);
+}
+
 void ImageAlgo::on_pushButton_gray_clicked()
 {
     resultImg = Gray(*resultImg);
@@ -804,21 +968,20 @@ void ImageAlgo::on_pushButton_houghLine_clicked()
 
 void ImageAlgo::on_pushButton_houghCirc_clicked()
 {
-    QVector<QCircle> circs;
+    QVector<QCircle> result;
     int wid = resultImg->width();
     int hei = resultImg->height();
     int minRadius = 0.05* (wid>hei? hei:wid);
     int maxRadius = 0.45* (wid>hei? wid:hei);
-    int step = (maxRadius-minRadius)/100;
     int dividing = 0.95 * (2.0 * (double)minRadius * M_PI);
 
     QProgressDialog dialog_writedata(tr("Calculating, please wait"),tr("cancle"),minRadius,maxRadius,this);
     dialog_writedata.setWindowTitle(tr("Hough Circle"));
     dialog_writedata.setWindowModality(Qt::WindowModal);
     dialog_writedata.show();
-    for(int r=minRadius;r<maxRadius;r+=step)
+    for(int r=minRadius;r<maxRadius;++r)
     {
-        circs.append(HoughCircle(*resultImg,r,dividing));
+        result.append(HoughCircle(*resultImg,r,dividing));
         qApp->processEvents();
         dialog_writedata.setValue(r);
 
@@ -826,27 +989,7 @@ void ImageAlgo::on_pushButton_houghCirc_clicked()
             break;
     }
 
-    // filter the circles
-    if(circs.size() == 0)
-        return ;
-
-    std::sort(circs.begin(), circs.end(), SortCirclesDistance());
-    int a,b,r;
-    a=b=r=0;
-    QVector<QCircle> result;
-    QVector<QCircle>::iterator it;
-    for(it=circs.begin();it!=circs.end();it++)
-    {
-        int d = sqrt( pow(abs(it->center.x() - a), 2) + pow(abs(it->center.y() - b), 2) );
-        if( d > it->radius + r)
-        {
-            result.push_back(*it);
-            //ok
-            a = it->center.x();
-            b = it->center.y();
-            r = it->radius;
-        }
-    }
+    QCircle::filterCircles(result,10);
 
     // draw the circles
     resultImg = FindContours(*resultImg);

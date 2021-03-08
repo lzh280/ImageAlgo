@@ -36,6 +36,54 @@ public:
         return sqrt( pow(abs(center.x() - circ.center.x()), 2)
                      + pow(abs(center.y() - circ.center.y()), 2) );
     }
+
+    bool concentric(const QCircle &circ) const
+    {
+        return this->center == circ.center;
+    }
+
+    bool operator==(const QCircle &circ) const
+    {
+        if(!this->concentric(circ))
+            return false;
+
+        return this->radius == circ.radius;
+    }
+
+    static void filterCircles(QVector<QCircle> &circles, const int &delta)
+    {
+        if((circles.size() == 1)||(circles.isEmpty()))
+            return;
+
+        for(int i=0;i<circles.size();++i)
+        {
+            for(int j=circles.size()-1;j>i;--j)
+            {
+                int r1 = circles[i].radius;
+                int r2 = circles[j].radius;
+                int d = circles[i].distance(circles[j]);
+
+                if(circles[i].concentric(circles[j]))
+                {
+                    if(qAbs(r1-r2)<delta)
+                        circles.removeAt(j);
+                    continue;
+                }
+
+                if( d <= qAbs(r1-r2) )
+                {
+                    circles.removeAt(j);
+                    continue;
+                }
+
+                if( (d<delta)&&(qAbs(r1-r2)<delta) )
+                {
+                    circles.removeAt(j);
+                    continue;
+                }
+            }
+        }
+    }
 };
 
 class ImageAlgo : public QWidget
@@ -56,12 +104,13 @@ private slots:
     void on_pushButton_sharpen_clicked();
     void on_pushButton_findContours_clicked();
     void on_pushButton_solbelContours_clicked();
+    void on_pushButton_cannyContours_clicked();
     void on_pushButton_gray_clicked();
     void on_pushButton_binary_clicked();
     void on_spinBox_threshold_valueChanged(int arg1);
     void on_pushButton_thinning_clicked();
     void on_pushButton_houghLine_clicked();
-    void on_pushButton_houghCirc_clicked();
+    void on_pushButton_houghCirc_clicked();    
 
 private:
     Ui::ImageAlgo *ui;
@@ -78,6 +127,10 @@ private:
 
     void showResult(const QImage &img);
 
+    //! templet of dealing with image with a kernel
+    template<typename T>
+    QImage* Convolution(const QImage &img, T *kernel[], const int &kernelSize);
+
     //! changed into gray-scale images, calculate
     //! the threshold of binarization
     QImage* Gray(const QImage &img);
@@ -93,6 +146,8 @@ private:
 
     //! find contours
     QImage* SobelContours(const QImage &img);
+
+    QImage *CannyContours(const QImage &img);
 
     QImage* FindContours(const QImage &img);
 
