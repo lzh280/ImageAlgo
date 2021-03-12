@@ -11,5 +11,8 @@
         <file>icons/img_sharpen.png</file>
         <file>icons/img_sobelEdge.png</file>
         <file>icons/img_thinning.png</file>
+        <file>icons/img_cannyEdge.png</file>
+        <file>icons/hough_circle.png</file>
+        <file>icons/hough_line.png</file>
     </qresource>
 </RCC>

@@ -69,12 +69,20 @@
      <property name="text">
       <string>检测直线</string>
      </property>
+     <property name="icon">
+      <iconset resource="ImageAlgo.qrc">
+       <normaloff>:/icons/hough_line.png</normaloff>:/icons/hough_line.png</iconset>
+     </property>
     </widget>
    </item>
    <item row="0" column="5">
     <widget class="QPushButton" name="pushButton_houghCirc">
      <property name="text">
       <string>检测圆</string>
+     </property>
+     <property name="icon">
+      <iconset resource="ImageAlgo.qrc">
+       <normaloff>:/icons/hough_circle.png</normaloff>:/icons/hough_circle.png</iconset>
      </property>
     </widget>
    </item>
@@ -182,6 +190,10 @@
      </property>
      <property name="text">
       <string>canny边缘</string>
+     </property>
+     <property name="icon">
+      <iconset resource="ImageAlgo.qrc">
+       <normaloff>:/icons/img_cannyEdge.png</normaloff>:/icons/img_cannyEdge.png</iconset>
      </property>
     </widget>
    </item>

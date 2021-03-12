@@ -8,8 +8,6 @@
 #include <QDebug>
 
 int Threshold = 128;
-#define DEG2RAD 0.017453293f
-#define RAD2DEG 57.2957796f
 
 ImageAlgo::ImageAlgo(QWidget *parent) :
     QWidget(parent),
@@ -367,7 +365,7 @@ QImage *ImageAlgo::CannyContours(const QImage &img)
                     value_gy += Gy[p*3+k] * qRed(color);
                 }
             }
-            sobel_gradient[x+width*y] = abs(value_gx) + abs(value_gy);
+            sobel_gradient[x+width*y] = sqrt(pow(value_gx,2)+pow(value_gy,2));
             sobel_theta[x+width*y] = atan2(value_gy,value_gx);
         }
     }
@@ -431,9 +429,11 @@ QImage *ImageAlgo::CannyContours(const QImage &img)
     // 4.use high and low threshold to limit image
     int lowTh = 75;
     int highTh = 2*lowTh;
-    for (int x=0; x<width-3; x++)
+
+    // deal with the strong-edge and non-edge
+    for (int x=1; x<width-3; x++)
     {
-        for( int y=0; y<height-3; y++)
+        for( int y=1; y<height-3; y++)
         {
             if(gray_value[x+width*y] < lowTh)
                 gray_value[x+width*y] = 0;
@@ -445,6 +445,8 @@ QImage *ImageAlgo::CannyContours(const QImage &img)
             contoursImage->setPixel(x,y,color);
         }
     }
+
+    // deal with the weak edge
     int gray = 0;
     int pixel[8];
     for (int x=1; x<width-3; x++)
@@ -464,6 +466,7 @@ QImage *ImageAlgo::CannyContours(const QImage &img)
             pixel[5] = gray_value[x+1+width*(y-1)];
             pixel[6] = gray_value[x+1+width*y];
             pixel[7] = gray_value[x+1+width*(y+1)];
+            // if there is a foreground pixel of these 8 pixels
             if (pixel[0]+pixel[1]+pixel[2]+pixel[3]+pixel[4]+pixel[5]+pixel[6]+pixel[7] < 255*8)
                 gray = 0;
             else
@@ -686,7 +689,8 @@ QImage *ImageAlgo::HoughLine(const QImage &img)
     }
 
     // 2.get the lines
-    QVector<QLine> lines;
+    QVector<HLine> lines;
+    int lineID = 0;
     int dividing = 0;// dividing value to get the line
     dividing = imgW>imgH?imgW/8:imgH/8;
 
@@ -738,24 +742,81 @@ QImage *ImageAlgo::HoughLine(const QImage &img)
                     x2 = ((double)(r-(arrH/2)) - ((y2 - (imgH/2) ) * sin(t * DEG2RAD))) / cos(t * DEG2RAD) + (imgW / 2);
                 }
 
-                lines.push_back(QLine(x1,y1,x2,y2));
-
+                lines.push_back(HLine(x1,y1,x2,y2,lineID));
+                lineID++;
             }
         }
     }
 
     qDebug()<< "lines:" << lines.size() << " " << dividing;
 
-    // 3.draw the lines
-    if(lines.size() != 0)
+    // 3.filter the lines
+    int delta = 3; // the value to judge if two lines is similar
+    HLine::filterLines(lines,delta);
+
+    // 4.cut the lines
+    double offset;
+    QMap< HLine, QList<QPoint> > linePnts;
+    for(int i=0;i<lines.size();++i)
+    {
+        QList<QPoint> singleLine;
+        linePnts.insert(lines[i], singleLine);
+    }
+
+    // find the pixels which are close to the lines
+    for(int w=0;w<imgW;++w)
+    {
+        for(int h=0;h<imgH;++h)
+        {
+            color = houghImg->pixel(w,h);
+            if(qRed(color) != 0)// only for the foreground
+                continue;
+
+            for(int k=0;k<lines.size();++k)
+            {
+                HLine curL = lines[k];
+                QPoint curP(w,h);
+                offset = curL.distance(curP);
+
+                if(offset<1.4) // less than one pixel
+                {
+                    linePnts[curL].append(curP);
+                }
+            }
+        }
+    }
+
+    // iterator the map, get the range of each line
+    QPoint start,end;
+    QMap< HLine, QList<QPoint> >::iterator anIt = linePnts.begin();
+    QVector<HLine> result;
+    while(anIt!=linePnts.end())
+    {
+        filterPoints(anIt.value(),6);
+        for(int i=1;i<anIt.value().size();++i)
+        {
+            // thanks to the order of append, these points is already in order
+            start = anIt.value().first();
+            end = anIt.value().last();
+
+            if(sqrt(pow(start.x()-end.x(),2) +
+                    pow(start.y()-end.y(),2)) < dividing)
+                continue;
+        }
+        result.append(HLine(start,end,8848));
+        anIt++;
+    }
+
+    // 5.draw the lines
+    if(result.size() != 0)
     {
         QPainter aPainter(houghImg);
         QPen aPen(Qt::red);
         aPainter.setPen(aPen);
-        aPainter.drawLines(lines);
+        aPainter.drawLines(HLine::toQLines(result));
     }
 
-    // 4.free the resources
+    // 6.free the resources
     if(countArray)
         free(countArray);
 
@@ -838,7 +899,7 @@ QVector<QCircle> ImageAlgo::HoughCircle(const QImage &img, const int &radius, co
         }
     }
 
-    qDebug()<<"result:" << circs.size();
+    qDebug()<<"radius"<<radius<<"result:" << circs.size();
 
     // 4.free the resources
     if(countArray)
