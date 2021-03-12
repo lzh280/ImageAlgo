@@ -748,7 +748,7 @@ QImage *ImageAlgo::HoughLine(const QImage &img)
         }
     }
 
-    qDebug()<< "lines:" << lines.size() << " " << dividing;
+    qDebug()<< "line amount:" << lines.size() << " " << dividing;
 
     // 3.filter the lines
     int delta = 3; // the value to judge if two lines is similar
@@ -790,19 +790,25 @@ QImage *ImageAlgo::HoughLine(const QImage &img)
     QPoint start,end;
     QMap< HLine, QList<QPoint> >::iterator anIt = linePnts.begin();
     QVector<HLine> result;
+    double lineLen;
     while(anIt!=linePnts.end())
     {
-        filterPoints(anIt.value(),6);
-        for(int i=1;i<anIt.value().size();++i)
-        {
-            // thanks to the order of append, these points is already in order
-            start = anIt.value().first();
-            end = anIt.value().last();
+        filterPoints(anIt.value(),5);
 
-            if(sqrt(pow(start.x()-end.x(),2) +
-                    pow(start.y()-end.y(),2)) < dividing)
-                continue;
+        // thanks to the order of append, these points is already in order
+        start = anIt.value().first();
+        end = anIt.value().last();
+
+        lineLen = sqrt(pow(start.x()-end.x(),2) +
+                       pow(start.y()-end.y(),2));
+
+        qDebug()<<"line lenght:"<<lineLen;
+        if(lineLen < dividing)
+        {
+            anIt++;
+            continue;
         }
+
         result.append(HLine(start,end,8848));
         anIt++;
     }
@@ -899,7 +905,8 @@ QVector<QCircle> ImageAlgo::HoughCircle(const QImage &img, const int &radius, co
         }
     }
 
-    qDebug()<<"radius"<<radius<<"result:" << circs.size();
+    if(circs.size())
+        qDebug()<<"radius"<<radius<<"result:" << circs.size();
 
     // 4.free the resources
     if(countArray)

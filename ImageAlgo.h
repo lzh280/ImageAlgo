@@ -208,6 +208,8 @@ inline void filterPoints(QList<QPoint> &pnts, const double &delta)
 
         if(gap>delta)
         {
+            // must remove all the points before incase of
+            // the points is like this: ....  ......... ....
             while(dIter != aIter)
             {
                 pnts.removeOne(*dIter);
@@ -219,6 +221,7 @@ inline void filterPoints(QList<QPoint> &pnts, const double &delta)
         bIter++;
     }
 
+    // filter from the end
     QList<QPoint>::reverse_iterator raIter = pnts.rbegin();
     QList<QPoint>::reverse_iterator rbIter = raIter++;
     QList<QPoint>::reverse_iterator rdIter = pnts.rbegin();
