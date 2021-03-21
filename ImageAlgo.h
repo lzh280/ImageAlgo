@@ -269,6 +269,7 @@ private slots:
     void on_pushButton_thinning_clicked();
     void on_pushButton_houghLine_clicked();
     void on_pushButton_houghCirc_clicked();    
+    void on_pushButton_findThreshold_clicked();
 
 private:
     Ui::ImageAlgo *ui;
@@ -317,6 +318,12 @@ private:
 
     //! Hough transform for circle detection
     QVector<QCircle> HoughCircle(const QImage &img, const int &radius, const int &dividing);
+
+    //! auto get the threshold to binary the image
+    int ThresholdDetect(const QImage &img);
+
+    //! auto get the high threshold of Canny method
+    void CannyThresholdDetec(const QImage &img, int &ThL, int &ThH);
 
 signals:
     void insertBorder(const QList<QPoint*> &list);

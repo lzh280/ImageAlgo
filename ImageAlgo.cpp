@@ -7,7 +7,7 @@
 
 #include <QDebug>
 
-int Threshold = 128;
+int THRESHOLD = 128;
 
 ImageAlgo::ImageAlgo(QWidget *parent) :
     QWidget(parent),
@@ -16,7 +16,7 @@ ImageAlgo::ImageAlgo(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    ui->spinBox_threshold->setValue(Threshold);
+    ui->spinBox_threshold->setValue(THRESHOLD);
 
     sourceScene = new QGraphicsScene;
     resultScene = new QGraphicsScene;
@@ -58,6 +58,8 @@ void ImageAlgo::on_pushButton_openImg_clicked()
 
     sourceimage = new QImage(filename);
     resultImg = sourceimage;
+    THRESHOLD = ThresholdDetect(*sourceimage);
+    ui->spinBox_threshold->setValue(THRESHOLD);
 
     undoList.clear();
     undoList.append(resultImg);
@@ -160,7 +162,7 @@ QImage *ImageAlgo::Binary(const QImage &img)
         {
             color = img.pixel(x,y);
             grayVal =  qGray(color);
-            (grayVal>Threshold)?(grayVal=255):(grayVal=0);//binarization
+            (grayVal>THRESHOLD)?(grayVal=255):(grayVal=0);//binarization
             color = QColor(grayVal,grayVal,grayVal,qAlpha(color)).rgba();
             binaryImg->setPixel(x,y,color);
         }
@@ -427,8 +429,9 @@ QImage *ImageAlgo::CannyContours(const QImage &img)
     }
 
     // 4.use high and low threshold to limit image
-    int lowTh = 75;
-    int highTh = 2*lowTh;
+    int lowTh;
+    int highTh;
+    CannyThresholdDetec(*contoursImage,lowTh,highTh);
 
     // deal with the strong-edge and non-edge
     for (int x=1; x<width-3; x++)
@@ -915,6 +918,100 @@ QVector<QCircle> ImageAlgo::HoughCircle(const QImage &img, const int &radius, co
     return circs;
 }
 
+int ImageAlgo::ThresholdDetect(const QImage &img)
+{
+    int lThrehold = 0;
+
+    int height = img.height();
+    int width = img.width();
+
+    int F[256] = { 0 };
+    int grayVal;
+
+    int lNewThrehold=0;
+    int lMaxGrayValue = 0, lMinGrayValue = 255;
+    int lMeanGrayValue1 = 0, lMeanGrayValue2 = 0;
+    int lSum1 = 0, lSum2 = 0;
+
+    // 1.get the pixel value, and find the max&min
+    for (int i = 0; i < width; i++)
+    {
+        for (int j = 0; j < height; j++)
+        {
+            grayVal = qGray(img.pixel(i,j));
+            F[grayVal]++;
+
+            if(grayVal>lMaxGrayValue)
+                lMaxGrayValue = grayVal;
+
+            if(grayVal<lMinGrayValue)
+                lMinGrayValue = grayVal;
+        }
+    }
+
+    // 2.set the init value of iterator as the means of max&min
+    lNewThrehold = (lMaxGrayValue + lMinGrayValue)/2;
+
+    // 3.calculate the mean gray of background and foreground
+    while(lThrehold != lNewThrehold)
+    {
+        lSum1 = 0, lSum2 = 0;
+        lMeanGrayValue1 = 0, lMeanGrayValue2 = 0;
+        lThrehold = lNewThrehold;
+
+        for(int k=0;k<=lThrehold;++k)
+        {
+            lSum1 += F[k];
+            lMeanGrayValue1 += k*F[k];
+        }
+        lMeanGrayValue1 /= lSum1;
+
+        for(int k=lThrehold;k<=255;++k)
+        {
+            lSum2 += F[k];
+            lMeanGrayValue2 += k*F[k];
+        }
+        lMeanGrayValue2 /= lSum2;
+        lNewThrehold = (lMeanGrayValue1+lMeanGrayValue2)/2;
+    }
+
+    return lThrehold;
+}
+
+void ImageAlgo::CannyThresholdDetec(const QImage &img, int &ThL, int &ThH)
+{
+    int height = img.height();
+    int width = img.width();
+
+    int F[256] = { 0 };
+    int grayVal;
+
+    int Sum = 0;
+
+    // 1.get the pixel value
+    for (int i = 0; i < width; i++)
+    {
+        for (int j = 0; j < height; j++)
+        {
+            grayVal = qGray(img.pixel(i,j));
+            F[grayVal]++;
+        }
+    }
+
+    // 2.set the threshold
+    int edgePer = 0.7 * width *height;
+    for(int k=0;k<=255;++k)
+    {
+        Sum += F[k];
+        if(Sum > edgePer)
+        {
+            ThH = k;
+            break;
+        }
+    }
+    ThL = 0.4*ThH;
+}
+
 void ImageAlgo::on_pushButton_insert_clicked()
 {
     if(resultImg->isNull())
@@ -1017,7 +1114,7 @@ void ImageAlgo::on_pushButton_binary_clicked()
 
 void ImageAlgo::on_spinBox_threshold_valueChanged(int arg1)
 {
-    Threshold = arg1;
+    THRESHOLD = arg1;
 }
 
 void ImageAlgo::on_pushButton_thinning_clicked()
@@ -1074,4 +1171,10 @@ void ImageAlgo::on_pushButton_houghCirc_clicked()
 
     showResult(*resultImg);
     undoList.append(resultImg);
+}
+
+void ImageAlgo::on_pushButton_findThreshold_clicked()
+{
+    THRESHOLD = ThresholdDetect(*resultImg);
+    ui->spinBox_threshold->setValue(THRESHOLD);
 }
