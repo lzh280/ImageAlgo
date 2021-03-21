@@ -7,6 +7,8 @@
 
 #include <QDebug>
 
+#include "Canny.h"
+
 int THRESHOLD = 128;
 
 ImageAlgo::ImageAlgo(QWidget *parent) :
@@ -175,11 +177,6 @@ QImage *ImageAlgo::Filter(const QImage &img, const int &winSize)
     QImage *filterImg = new QImage(img);
     filterImg->toPixelFormat(QImage::Format_ARGB32);
 
-    QProgressDialog dialog_writedata(tr("Calculating, please wait"),tr("cancle"),0,img.width(),this);
-    dialog_writedata.setWindowTitle(tr("Filtering"));
-    dialog_writedata.setWindowModality(Qt::WindowModal);
-    dialog_writedata.show();
-
     QList<int> rList;
     QList<int> gList;
     QList<int> bList;
@@ -219,15 +216,9 @@ QImage *ImageAlgo::Filter(const QImage &img, const int &winSize)
             color = img.pixel(x,y);
             color = QColor(midRVal,midGVal,midBVal,qAlpha(color)).rgba();
             filterImg->setPixel(x,y,color);
-
-            if(dialog_writedata.wasCanceled())
-                return filterImg;
         }
         qApp->processEvents();
-        dialog_writedata.setValue(x);
     }
-
-    dialog_writedata.setValue(img.width());
 
     return filterImg;
 }
@@ -328,165 +319,185 @@ QImage *ImageAlgo::CannyContours(const QImage &img)
     contoursImage->toPixelFormat(QImage::Format_ARGB32);
 
     // 1.Gauss filter
-    double kernel [3][3]= {{0.0625, 0.125, 0.0625},
-                           {0.125, 0.25, 0.125},
-                           {0.0625, 0.125, 0.0625}};
-    contoursImage = Convolution(*grayImage,(double**)kernel,3);
+//    double kernel [3][3]= {{0.0625, 0.125, 0.0625},
+//                           {0.125, 0.25, 0.125},
+//                           {0.0625, 0.125, 0.0625}};
+//    contoursImage = Convolution(*grayImage,(double**)kernel,3);
 
-    // 2.get the gradient of each pixel
-    double *Gx = new double[9];
-    double *Gy = new double[9];
+//    // 2.get the gradient of each pixel
+//    double *Gx = new double[9];
+//    double *Gy = new double[9];
 
-    Gx[0] = -1; Gx[1] = 0; Gx[2] = 1;
-    Gx[3] = -1.414; Gx[4] = 0; Gx[5] = 1.414;
-    Gx[6] = -1; Gx[7] = 0; Gx[8] = 1;
+//    Gx[0] = -1; Gx[1] = 0; Gx[2] = 1;
+//    Gx[3] = -1.414; Gx[4] = 0; Gx[5] = 1.414;
+//    Gx[6] = -1; Gx[7] = 0; Gx[8] = 1;
 
-    Gy[0] = 1; Gy[1] = 1.414; Gy[2] = 1;
-    Gy[3] = 0; Gy[4] = 0; Gy[5] = 0;
-    Gy[6] = -1; Gy[7] = -1.414; Gy[8] = -1;
+//    Gy[0] = 1; Gy[1] = 1.414; Gy[2] = 1;
+//    Gy[3] = 0; Gy[4] = 0; Gy[5] = 0;
+//    Gy[6] = -1; Gy[7] = -1.414; Gy[8] = -1;
 
-    double *sobel_gradient = new double[width*height];
-    double *sobel_theta = new double[width*height]; // range is (-pi,pi]
-    double value_gx = 0;
-    double value_gy = 0;
-    QRgb color;
+//    double *sobel_gradient = new double[width*height];
+//    double *sobel_theta = new double[width*height]; // range is (-pi,pi]
+//    double value_gx = 0;
+//    double value_gy = 0;
+//    QRgb color;
 
-    for (int x=0; x<width-3; x++)
-    {
-        for( int y=0; y<height-3; y++)
-        {
-            value_gx = 0;
-            value_gy = 0;
+//    for (int x=0; x<width-3; x++)
+//    {
+//        for( int y=0; y<height-3; y++)
+//        {
+//            value_gx = 0;
+//            value_gy = 0;
 
-            for (int k=0; k<3;k++)
-            {
-                for(int p=0; p<3; p++)
-                {
-                    color=grayImage->pixel(x+k,y+p);
-                    value_gx += Gx[p*3+k] * qRed(color);
-                    value_gy += Gy[p*3+k] * qRed(color);
-                }
-            }
-            sobel_gradient[x+width*y] = sqrt(pow(value_gx,2)+pow(value_gy,2));
-            sobel_theta[x+width*y] = atan2(value_gy,value_gx);
-        }
-    }
+//            for (int k=0; k<3;k++)
+//            {
+//                for(int p=0; p<3; p++)
+//                {
+//                    color=grayImage->pixel(x+k,y+p);
+//                    value_gx += Gx[p*3+k] * qRed(color);
+//                    value_gy += Gy[p*3+k] * qRed(color);
+//                }
+//            }
+//            sobel_gradient[x+width*y] = sqrt(pow(value_gx,2)+pow(value_gy,2));
+//            sobel_theta[x+width*y] = atan2(value_gy,value_gx);
+//        }
+//    }
 
-    // 3.Non maximum suppression
-    double theta = 0;
-    double gradient = 0;
-    double dtmp1 = 0;
-    double dtmp2 = 0;
-    double k = 0;
-    int *gray_value = new int[width*height];
-    for (int x=1; x<width-3; x++)
-    {
-        for( int y=1; y<height-3; y++)
-        {
-            gradient = sobel_gradient[x+width*y];
-            theta = sobel_theta[x+width*y] * RAD2DEG;
-            k = tan(theta*DEG2RAD);
+//    // 3.Non maximum suppression
+//    double theta = 0;
+//    double gradient = 0;
+//    double dtmp1 = 0;
+//    double dtmp2 = 0;
+//    double k = 0;
+//    int *gray_value = new int[width*height];
+//    for (int x=1; x<width-3; x++)
+//    {
+//        for( int y=1; y<height-3; y++)
+//        {
+//            gradient = sobel_gradient[x+width*y];
+//            theta = sobel_theta[x+width*y] * RAD2DEG;
+//            k = tan(theta*DEG2RAD);
 
-            if((theta>-180 && theta<=-135)||(theta>0 && theta<=45))
-            {
-                dtmp1 = sobel_gradient[x+1+width*(y-1)] * (1-k)
-                        +sobel_gradient[x+1+width*y] * k;
+//            if((theta>-180 && theta<=-135)||(theta>0 && theta<=45))
+//            {
+//                dtmp1 = sobel_gradient[x+1+width*(y-1)] * (1-k)
+//                        +sobel_gradient[x+1+width*y] * k;
 
-                dtmp2 = sobel_gradient[x-1+width*(y+1)] * (1-k)
-                        +sobel_gradient[x-1+width*y] * k;
-            }
-            else if((theta>-135 && theta<=-90)||(theta>45 && theta<=90))
-            {
-                dtmp1 = sobel_gradient[x+1+width*(y-1)] * (1-1/k)
-                        +sobel_gradient[x+width*(y-1)] * (1/k);
+//                dtmp2 = sobel_gradient[x-1+width*(y+1)] * (1-k)
+//                        +sobel_gradient[x-1+width*y] * k;
+//            }
+//            else if((theta>-135 && theta<=-90)||(theta>45 && theta<=90))
+//            {
+//                dtmp1 = sobel_gradient[x+1+width*(y-1)] * (1-1/k)
+//                        +sobel_gradient[x+width*(y-1)] * (1/k);
 
-                dtmp2 = sobel_gradient[x-1+width*(y+1)] * (1-1/k)
-                        +sobel_gradient[x+width*(y+1)] * (1/k);
-            }
-            else if((theta>-90 && theta<=-45)||(theta>90 && theta<=135))
-            {
-                dtmp1 = sobel_gradient[x+1+width*(y-1)] * (1-qAbs(k))
-                        +sobel_gradient[x+1+width*y] * qAbs(k);
+//                dtmp2 = sobel_gradient[x-1+width*(y+1)] * (1-1/k)
+//                        +sobel_gradient[x+width*(y+1)] * (1/k);
+//            }
+//            else if((theta>-90 && theta<=-45)||(theta>90 && theta<=135))
+//            {
+//                dtmp1 = sobel_gradient[x+1+width*(y-1)] * (1-qAbs(k))
+//                        +sobel_gradient[x+1+width*y] * qAbs(k);
 
-                dtmp2 = sobel_gradient[x-1+width*(y+1)] * (1-qAbs(k))
-                        +sobel_gradient[x-1+width*y] * qAbs(k);
-            }
-            else if((theta>-45 && theta<=0)||(theta>135 && theta<=180))
-            {
-                dtmp1 = sobel_gradient[x+1+width*(y-1)] * (1-qAbs(1/k))
-                        +sobel_gradient[x+1+width*y] * qAbs(1/k);
+//                dtmp2 = sobel_gradient[x-1+width*(y+1)] * (1-qAbs(k))
+//                        +sobel_gradient[x-1+width*y] * qAbs(k);
+//            }
+//            else if((theta>-45 && theta<=0)||(theta>135 && theta<=180))
+//            {
+//                dtmp1 = sobel_gradient[x+1+width*(y-1)] * (1-qAbs(1/k))
+//                        +sobel_gradient[x+1+width*y] * qAbs(1/k);
 
-                dtmp2 = sobel_gradient[x-1+width*(y+1)] * (1-qAbs(1/k))
-                        +sobel_gradient[x-1+width*y] * qAbs(1/k);
-            }
+//                dtmp2 = sobel_gradient[x-1+width*(y+1)] * (1-qAbs(1/k))
+//                        +sobel_gradient[x-1+width*y] * qAbs(1/k);
+//            }
 
-            if(gradient<dtmp1 || gradient<dtmp2)
-                gradient = 0; //set as the background
+//            if(gradient<dtmp1 || gradient<dtmp2)
+//                gradient = 0; //set as the background
 
-            gradient = qBound(0,int(255-gradient),255);
-            gray_value[x+width*y] = gradient;
-        }
-    }
+//            gradient = qBound(0,int(255-gradient),255);
+//            gray_value[x+width*y] = gradient;
+//        }
+//    }
 
     // 4.use high and low threshold to limit image
     int lowTh;
     int highTh;
     CannyThresholdDetec(*contoursImage,lowTh,highTh);
 
-    // deal with the strong-edge and non-edge
-    for (int x=1; x<width-3; x++)
-    {
-        for( int y=1; y<height-3; y++)
-        {
-            if(gray_value[x+width*y] < lowTh)
-                gray_value[x+width*y] = 0;
-            else if(gray_value[x+width*y] > highTh)
-                gray_value[x+width*y] = 255;
+//    // deal with the strong-edge and non-edge
+//    for (int x=1; x<width-3; x++)
+//    {
+//        for( int y=1; y<height-3; y++)
+//        {
+//            if(gray_value[x+width*y] < lowTh)
+//                gray_value[x+width*y] = 0;
+//            else if(gray_value[x+width*y] > highTh)
+//                gray_value[x+width*y] = 255;
 
-            color=grayImage->pixel(x,y);
-            color = QColor(gray_value[x+width*y],gray_value[x+width*y],gray_value[x+width*y],qAlpha(color)).rgba();
-            contoursImage->setPixel(x,y,color);
-        }
-    }
+//            color=grayImage->pixel(x,y);
+//            color = QColor(gray_value[x+width*y],gray_value[x+width*y],gray_value[x+width*y],qAlpha(color)).rgba();
+//            contoursImage->setPixel(x,y,color);
+//        }
+//    }
 
-    // deal with the weak edge
-    int gray = 0;
-    int pixel[8];
-    for (int x=1; x<width-3; x++)
-    {
-        for( int y=1; y<height-3; y++)
-        {
-            gray = gray_value[x+width*y];
-            if(gray == 0 || gray == 255)
-                continue;
+//    // deal with the weak edge
+//    int gray = 0;
+//    int pixel[8];
+//    for (int x=1; x<width-3; x++)
+//    {
+//        for( int y=1; y<height-3; y++)
+//        {
+//            gray = gray_value[x+width*y];
+//            if(gray == 0 || gray == 255)
+//                continue;
 
-            memset(pixel,0,8);
-            pixel[0] = gray_value[x-1+width*(y-1)];
-            pixel[1] = gray_value[x-1+width*y];
-            pixel[2] = gray_value[x-1+width*(y+1)];
-            pixel[3] = gray_value[x+width*(y-1)];
-            pixel[4] = gray_value[x+width*(y+1)];
-            pixel[5] = gray_value[x+1+width*(y-1)];
-            pixel[6] = gray_value[x+1+width*y];
-            pixel[7] = gray_value[x+1+width*(y+1)];
-            // if there is a foreground pixel of these 8 pixels
-            if (pixel[0]+pixel[1]+pixel[2]+pixel[3]+pixel[4]+pixel[5]+pixel[6]+pixel[7] < 255*8)
-                gray = 0;
-            else
-                gray = 255;
+//            memset(pixel,0,8);
+//            pixel[0] = gray_value[x-1+width*(y-1)];
+//            pixel[1] = gray_value[x-1+width*y];
+//            pixel[2] = gray_value[x-1+width*(y+1)];
+//            pixel[3] = gray_value[x+width*(y-1)];
+//            pixel[4] = gray_value[x+width*(y+1)];
+//            pixel[5] = gray_value[x+1+width*(y-1)];
+//            pixel[6] = gray_value[x+1+width*y];
+//            pixel[7] = gray_value[x+1+width*(y+1)];
+//            // if there is a foreground pixel of these 8 pixels
+//            if (pixel[0]+pixel[1]+pixel[2]+pixel[3]+pixel[4]+pixel[5]+pixel[6]+pixel[7] < 255*8)
+//                gray = 0;
+//            else
+//                gray = 255;
 
-            color=grayImage->pixel(x,y);
-            color = QColor(gray,gray,gray,qAlpha(color)).rgba();
-            contoursImage->setPixel(x,y,color);
-        }
-    }
+//            color=grayImage->pixel(x,y);
+//            color = QColor(gray,gray,gray,qAlpha(color)).rgba();
+//            contoursImage->setPixel(x,y,color);
+//        }
+//    }
 
-    delete [] sobel_gradient;
-    delete [] sobel_theta;
-    delete [] Gy;
-    delete [] Gx;
-    delete [] gray_value;
-    return contoursImage;
+//    delete [] sobel_gradient;
+//    delete [] sobel_theta;
+//    delete [] Gy;
+//    delete [] Gx;
+//    delete [] gray_value;
+//    return contoursImage;
+
+        QVector<int> gradient;
+        QVector<int> direction;
+        *contoursImage = contoursImage->convertToFormat(QImage::Format_Grayscale8);
+        sobel(*contoursImage, gradient, direction);
+        QVector<int> thinned = thinning(contoursImage->width(), contoursImage->height(),
+                                       gradient, direction);
+        QVector<int> thresholded = threshold(lowTh, highTh, thinned);
+        QVector<int> canny = hysteresis(contoursImage->width(), contoursImage->height(),
+                                        thresholded);
+
+        const int *iImg = canny.constData();
+        quint8 *oImg = contoursImage->bits();
+
+        int size = contoursImage->width() * contoursImage->height();
+
+        for (int i = 0; i < size; i++)
+            oImg[i] = qBound(0, iImg[i], 255);
+
+        return contoursImage;
 }
 
 QImage *ImageAlgo::FindContours(const QImage &img)
@@ -1065,7 +1076,7 @@ void ImageAlgo::on_pushButton_back_clicked()
 
 void ImageAlgo::on_pushButton_filter_clicked()
 {
-    resultImg = Filter(*resultImg,5);
+    resultImg = Filter(*resultImg,3);
     showResult(*resultImg);
     undoList.append(resultImg);
 }

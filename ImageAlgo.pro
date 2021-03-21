@@ -13,6 +13,7 @@ SOURCES += \
         ImageAlgo.cpp
 
 HEADERS += \
+    Canny.h \
         ImageAlgo.h \
         graphicsview.h \
 
