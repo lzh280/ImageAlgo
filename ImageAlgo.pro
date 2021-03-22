@@ -8,13 +8,14 @@ TEMPLATE = app
 DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
+        LB_ImageProcess.cpp \
         graphicsview.cpp \
         main.cpp \
         ImageAlgo.cpp
 
 HEADERS += \
-    Canny.h \
         ImageAlgo.h \
+    LB_ImageProcess.h \
         graphicsview.h \
 
 FORMS += \
