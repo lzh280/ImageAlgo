@@ -85,7 +85,7 @@ void LB_ImageProcess::CannyThresholdDetec(const QImage &img, int &ThL, int &ThH)
     }
 
     // 2.set the threshold
-    int noEdgePer = 0.8 * width *height;
+    int noEdgePer = 0.75 * width *height;
     for(int k=0;k<=255;++k)
     {
         Sum += F[k];
@@ -146,25 +146,24 @@ QImage *LB_ImageProcess::Filter(const QImage &img, const int &winSize)
     QImage *filterImg = new QImage(img);
     filterImg->toPixelFormat(QImage::Format_ARGB32);
 
-    QList<int> rList;
-    QList<int> gList;
-    QList<int> bList;
+    int totalSize = winSize*winSize;
+    int* rList = new int[totalSize];
+    int* gList = new int[totalSize];
+    int* bList = new int[totalSize];
     int midRVal;
     int midGVal;
     int midBVal;
     QRgb color;
     int x_w = 0;
     int y_w = 0;
+    int index = 0;
 
     for(int x=0;x<img.width();x++)
     {
         for(int y=0;y<img.height();y++)
         {
             //select the middle value of gray, assign it to the middle pixel
-            rList.clear();
-            gList.clear();
-            bList.clear();
-
+            index = 0;
             for(int wx=-winSize/2;wx<=winSize/2;wx++)
             {
                 for(int wy=-winSize/2;wy<=winSize/2;wy++)
@@ -172,19 +171,44 @@ QImage *LB_ImageProcess::Filter(const QImage &img, const int &winSize)
                     x_w = qBound(0,x+wx,filterImg->width()-1);
                     y_w = qBound(0,y+wy,filterImg->height()-1);
                     color = img.pixel(x_w,y_w);
-                    rList.push_back(qRed(color));
-                    gList.push_back(qGreen(color));
-                    bList.push_back(qBlue(color));
+
+                    rList[index] = qRed(color);
+                    gList[index] = qGreen(color);
+                    bList[index] = qBlue(color);
+                    index++;
                 }
             }
 
-            std::sort(rList.begin(),rList.end());
-            std::sort(gList.begin(),gList.end());
-            std::sort(bList.begin(),bList.end());
+            for(int i=0;i<totalSize;++i)
+            {
+                for(int j=totalSize-1;j>i;--j)
+                {
+                    if(rList[i]>rList[j])
+                    {
+                        midRVal = rList[i];
+                        rList[i] = rList[j];
+                        rList[j] = midRVal;
+                    }
 
-            midRVal = rList.at(rList.count()/2);
-            midGVal = gList.at(gList.count()/2);
-            midBVal = bList.at(bList.count()/2);
+                    if(gList[i]>gList[j])
+                    {
+                        midGVal = gList[i];
+                        gList[i] = gList[j];
+                        gList[j] = midGVal;
+                    }
+
+                    if(bList[i]>bList[j])
+                    {
+                        midBVal = bList[i];
+                        bList[i] = bList[j];
+                        bList[j] = midBVal;
+                    }
+                }
+            }
+
+            midRVal = rList[totalSize/2];
+            midGVal = gList[totalSize/2];
+            midBVal = bList[totalSize/2];
 
             color = img.pixel(x,y);
             color = QColor(midRVal,midGVal,midBVal,qAlpha(color)).rgba();

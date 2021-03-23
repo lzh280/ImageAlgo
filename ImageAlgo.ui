@@ -273,6 +273,10 @@
      <property name="text">
       <string>最佳阈值</string>
      </property>
+     <property name="icon">
+      <iconset resource="ImageAlgo.qrc">
+       <normaloff>:/icons/img_calculateTh.png</normaloff>:/icons/img_calculateTh.png</iconset>
+     </property>
     </widget>
    </item>
   </layout>

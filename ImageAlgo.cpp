@@ -202,15 +202,15 @@ void ImageAlgo::on_pushButton_houghLine_clicked()
 {
     // draw the lines
     QVector<QLine> result = LB_ImageProcess::HoughLine(*resultImg);
-    QImage tmp = *resultImg;
+    QImage *tmp = LB_ImageProcess::FindContours(*resultImg);
     if(result.size() != 0)
     {
-        QPainter aPainter(&tmp);
+        QPainter aPainter(tmp);
         QPen aPen(Qt::red);
         aPainter.setPen(aPen);
         aPainter.drawLines(result);
     }
-    resultImg = &tmp;
+    resultImg = tmp;
     showResult(*resultImg);
     undoList.append(resultImg);
 }
