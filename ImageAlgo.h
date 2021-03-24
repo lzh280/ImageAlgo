@@ -48,7 +48,7 @@ private:
 
     QImage *sourceimage;
     QImage *resultImg;
-    QList<QPoint*> borderPnts;
+    QList<QPoint> borderPnts;
     QList<QImage*> undoList;// this list is set for undo/redo
 
     QGraphicsScene  *sourceScene;
@@ -59,7 +59,8 @@ private:
     void showResult(const QImage &img);  
 
 signals:
-    void insertBorder(const QList<QPoint*> &list);
+    void insertBorder(const QList<QList<QPointF>> &list);
+
 };
 
 #endif // WIDGET_H

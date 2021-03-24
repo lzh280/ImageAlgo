@@ -45,6 +45,7 @@ public:
         return this->radius == circ.radius;
     }
 
+    //! filter the circles that are too close to each other
     static void filterCircles(QVector<QCircle> &circles, const int &delta)
     {
         if((circles.size() == 1)||(circles.isEmpty()))
@@ -158,6 +159,7 @@ public:
         return result;
     }
 
+    //! filter the similar lines
     static void filterLines(QVector<HLine> &lines, const int &delta)
     {
         if((lines.size() == 1)||(lines.isEmpty()))
@@ -183,6 +185,7 @@ public:
         }
     }
 
+    //! filter the points of one line to get the real range
     static void filterPoints(QList<QPoint> &pnts, const double &delta)
     {
         double gap;

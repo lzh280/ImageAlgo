@@ -91,7 +91,7 @@ void ImageAlgo::on_pushButton_insert_clicked()
     if(resultImg->isNull())
         return;
 
-    // get the point list that contains the border information
+    // 1.get the point list that contains the border information
     borderPnts.clear();
 
     QRgb color;
@@ -104,15 +104,110 @@ void ImageAlgo::on_pushButton_insert_clicked()
                 continue;
 
             if(qRed(color) == 0)
+                borderPnts.append(QPoint(i,j));
+        }
+    }
+
+    // 2.trace the border to divide them into different group,
+    //   store the points in order, get the rough edges
+    int nextY = 0;
+    int nextX = 0;
+    int totalSize = borderPnts.size();
+    QList<QList<QPoint>> roughEdge;
+    QList<QPoint> neighbor;
+    QList<QPoint> aGroup;
+    QPoint curP = borderPnts[0];
+    bool groupEnd;
+    while(!borderPnts.isEmpty())
+    {
+        curP = borderPnts[0];
+        aGroup.append(curP);
+        borderPnts.removeOne(curP);
+        groupEnd = false;
+
+        while(!groupEnd)
+        {
+            neighbor.clear();
+
+            // find the 8-neighbor
+            for (int j = -1; j < 2; j++) {
+                nextY = curP.y() + j;
+
+                if (nextY < 0 || nextY >= resultImg->height())
+                    continue;
+
+                for (int i = -1; i < 2; i++) {
+                    nextX = curP.x() + i;
+
+                    if (nextX < 0 || nextX >= resultImg->width())
+                        continue;
+
+                    QPoint nextP(nextX,nextY);
+                    if(borderPnts.contains(nextP))
+                        neighbor.append(nextP);
+                }
+            }
+
+            if(!neighbor.isEmpty())
             {
-                QPoint *point = new QPoint(i,j);
-                borderPnts.append(point);
+                aGroup.append(neighbor[0]); // only use the left-bottom one
+                curP = neighbor[0];
+                borderPnts.removeOne(neighbor[0]);
+            }
+            else // reach one edge's end
+            {
+                groupEnd = true;
+                if(aGroup.size() > totalSize/100)
+                    roughEdge.append(aGroup);
+                aGroup.clear();
             }
         }
     }
 
-    emit insertBorder(borderPnts);
-    this->close();
+    // 3.blur the edge
+    QList<QList<QPointF>> smoothEdge;
+    QList<QPointF> blurPnts;
+    QPointF aP;
+    QPointF bP;
+    for(int i=0;i<roughEdge.size();++i)
+    {
+        aGroup = roughEdge[i];
+        blurPnts.clear();
+        for(int j=0;j<aGroup.size()-1;++j)
+        {
+            aP = aGroup[j];
+            bP = aGroup[j+1];
+            QPointF mid((aP.x()+bP.x())/2.0,
+                        (aP.y()+bP.y())/2.0);
+            blurPnts.append(mid);
+        }
+        blurPnts.push_front(aGroup.first());
+        blurPnts.push_back(aGroup.last());
+        smoothEdge.append(blurPnts);
+    }
+
+    QList<QList<QPointF>> tmpEdge;
+    QList<QPointF> tmpGroup;
+    for(int i=0;i<smoothEdge.size();++i)
+    {
+        tmpGroup = smoothEdge[i];
+        blurPnts.clear();
+        for(int j=0;j<tmpGroup.size()-1;++j)
+        {
+            aP = tmpGroup[j];
+            bP = tmpGroup[j+1];
+            QPointF mid((aP.x()+bP.x())/2.0,
+                        (aP.y()+bP.y())/2.0);
+            blurPnts.append(mid);
+        }
+        blurPnts.push_front(tmpGroup.first());
+        blurPnts.push_back(tmpGroup.last());
+        tmpEdge.append(blurPnts);
+    }
+
+    emit insertBorder(tmpEdge);
+
+        this->close();
 }
 
 void ImageAlgo::on_pushButton_saveResult_clicked()
