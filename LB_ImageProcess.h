@@ -272,6 +272,10 @@ public:
 
     static QImage* FindContours(const QImage &img);
 
+    //! edge tracing
+    static QList<QList<QPointF>> EdgeTracing(const QImage &img);
+    static QList<QList<QPointF>> BlurEdge(const QList<QList<QPointF>> &edge, const int &Iterations);
+
     //! thinnig
     static QImage* Thinning(const QImage &img);
 

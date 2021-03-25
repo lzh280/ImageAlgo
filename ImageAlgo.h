@@ -47,8 +47,7 @@ private:
     Ui::ImageAlgo *ui;
 
     QImage *sourceimage;
-    QImage *resultImg;
-    QList<QPoint> borderPnts;
+    QImage *resultImg;    
     QList<QImage*> undoList;// this list is set for undo/redo
 
     QGraphicsScene  *sourceScene;

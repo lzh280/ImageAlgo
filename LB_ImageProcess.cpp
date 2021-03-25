@@ -587,6 +587,114 @@ QImage *LB_ImageProcess::FindContours(const QImage &img)
     return contoursImage;
 }
 
+QList<QList<QPointF> > LB_ImageProcess::EdgeTracing(const QImage &img)
+{
+    // 1.get the points on edge
+    QList<QPoint> borderPnts;
+    QRgb color;
+    for(int i=0;i<img.width();++i)
+    {
+        for(int j=0;j<img.height();++j)
+        {
+            color = img.pixel(i,j);
+            if(qAlpha(color) == 0)
+                continue;
+
+            if(qRed(color) == 0)
+                borderPnts.append(QPoint(i,j));
+        }
+    }
+
+    int nextY = 0;
+    int nextX = 0;
+    int totalSize = borderPnts.size();
+    QList<QList<QPointF>> roughEdge;
+    QList<QPoint> neighbor;
+    QList<QPointF> aGroup;
+    QPoint curP = borderPnts[0];
+    bool groupEnd;
+    while(!borderPnts.isEmpty())
+    {
+        curP = borderPnts[0];
+        aGroup.append(curP);
+        borderPnts.removeOne(curP);
+        groupEnd = false;
+
+        while(!groupEnd)
+        {
+            neighbor.clear();
+
+            // find the 8-neighbor
+            for (int j = -1; j < 2; j++) {
+                nextY = curP.y() + j;
+
+                if (nextY < 0 || nextY >= img.height())
+                    continue;
+
+                for (int i = -1; i < 2; i++) {
+                    nextX = curP.x() + i;
+
+                    if (nextX < 0 || nextX >= img.width())
+                        continue;
+
+                    QPoint nextP(nextX,nextY);
+                    if(borderPnts.contains(nextP))
+                        neighbor.append(nextP);
+                }
+            }
+
+            if(!neighbor.isEmpty())
+            {
+                aGroup.append(neighbor[0]); // only use the left-bottom one
+                curP = neighbor[0];
+                borderPnts.removeOne(neighbor[0]);
+            }
+            else // reach one edge's end
+            {
+                groupEnd = true;
+                if(aGroup.size() > totalSize/100)
+                    roughEdge.append(aGroup);
+                aGroup.clear();
+            }
+        }
+    }
+    return roughEdge;
+}
+
+QList<QList<QPointF> > LB_ImageProcess::BlurEdge(const QList<QList<QPointF> > &edge, const int &Iterations)
+{
+    QList<QList<QPointF>> smoothEdge;
+    QList<QList<QPointF>> roughEdge = edge;
+    QList<QPointF> aGroup;
+    QList<QPointF> blurPnts;
+    QPointF aP;
+    QPointF bP;
+    int index = 0;
+    while(index < Iterations)
+    {
+        smoothEdge.clear();
+        for(int i=0;i<roughEdge.size();++i)
+        {
+            aGroup = roughEdge[i];
+            blurPnts.clear();
+            for(int j=0;j<aGroup.size()-1;++j)
+            {
+                aP = aGroup[j];
+                bP = aGroup[j+1];
+                QPointF mid((aP.x()+bP.x())/2.0,
+                            (aP.y()+bP.y())/2.0);
+                blurPnts.append(mid);
+            }
+            blurPnts.push_front(aGroup.first());
+            blurPnts.push_back(aGroup.last());
+            smoothEdge.append(blurPnts);
+        }
+        roughEdge = smoothEdge;
+        index++;
+    }
+    return smoothEdge;
+}
+
 QImage *LB_ImageProcess::Thinning(const QImage &img)
 {
     QImage *binImg = Binary(img);
