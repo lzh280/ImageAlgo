@@ -93,7 +93,11 @@ void ImageAlgo::on_pushButton_insert_clicked()
 
     QList<QList<QPointF>> roughEdge = LB_ImageProcess::EdgeTracing(*resultImg);
 
-    QList<QList<QPointF>> smoothEdge = LB_ImageProcess::BlurEdge(roughEdge,5);
+    QList<QList<QPointF>> connectEdge = LB_ImageProcess::Connectivity(roughEdge);
+
+    QList<QList<QPointF>> blurEdge = LB_ImageProcess::Deburring(connectEdge);
+
+    QList<QList<QPointF>> smoothEdge = LB_ImageProcess::BlurEdge(blurEdge,6);
 
     emit insertBorder(smoothEdge);
 

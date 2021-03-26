@@ -661,6 +661,77 @@ QList<QList<QPointF> > LB_ImageProcess::EdgeTracing(const QImage &img)
     return roughEdge;
 }
 
+QList<QList<QPointF> > LB_ImageProcess::Connectivity(const QList<QList<QPointF> > &edge)
+{
+    QList<QList<QPointF>> connectEdge;
+    QList<QPointF> aGroup;
+    QPointF beginP;
+    QPointF aP;
+    QPointF bP;
+    qreal aDist;
+    qreal bDist;
+
+    for(int i=0;i<edge.size();++i)
+    {
+        aGroup = edge[i];
+        beginP = aGroup[0];
+        aP = aGroup.last();
+        if((beginP-aP).manhattanLength() > 20) // if head and tail have a distance less than 20, the edge is close
+        {
+            connectEdge.append(aGroup);
+            continue;
+        }
+
+        for(int j=aGroup.size()-1;j>aGroup.size()-21;--j)
+        {
+            aDist = (beginP-aP).manhattanLength();
+            bDist = (beginP-bP).manhattanLength();
+            if(aDist >= bDist)
+            {
+                aGroup.removeOne(aP);
+            }
+            else break;
+        }
+
+        aGroup.append(beginP);
+        connectEdge.append(aGroup);
+    }
+
+    return connectEdge;
+}
+
+QList<QList<QPointF> > LB_ImageProcess::Deburring(const QList<QList<QPointF> > &edge)
+{
+    QList<QList<QPointF>> smoothEdge;
+    QList<QPointF> aGroup;
+    int lP;
+    int nP;
+
+    for(int i=0;i<edge.size();++i)
+    {
+        aGroup = edge[i];
+        for(int j=0;j<aGroup.size();++j)
+        {
+            lP = j-1;
+            nP = j+1;
+            if(lP < 0)
+                lP = aGroup.size()-1;
+
+            if(nP > aGroup.size()-1)
+                nP = 0;
+
+            if((aGroup[lP]-aGroup[j]).manhattanLength()
+                    > (aGroup[lP]-aGroup[nP]).manhattanLength())
+            {
+                aGroup.removeOne(aGroup[j]);
+            }
+        }
+        smoothEdge.append(aGroup);
+    }
+
+    return smoothEdge;
+}
+
 QList<QList<QPointF> > LB_ImageProcess::BlurEdge(const QList<QList<QPointF> > &edge, const int &Iterations)
 {
     QList<QList<QPointF>> smoothEdge;

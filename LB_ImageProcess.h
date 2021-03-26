@@ -274,6 +274,11 @@ public:
 
     //! edge tracing
     static QList<QList<QPointF>> EdgeTracing(const QImage &img);
+
+    static QList<QList<QPointF>> Connectivity(const QList<QList<QPointF>> &edge);
+
+    static QList<QList<QPointF>> Deburring(const QList<QList<QPointF>> &edge);
+
     static QList<QList<QPointF>> BlurEdge(const QList<QList<QPointF>> &edge, const int &Iterations);
 
     //! thinnig
