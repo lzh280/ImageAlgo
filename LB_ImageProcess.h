@@ -244,7 +244,7 @@ public:
 
     //! templet of dealing with image with a kernel
     template<typename T>
-    static QImage* Convolution(const QImage &img, T *kernel[], const int &kernelSize);
+    static QImage Convolution(const QImage &img, T *kernel[], const int &kernelSize);
 
     //! auto get the threshold to binary the image
     static int ThresholdDetect(const QImage &img);
@@ -254,23 +254,23 @@ public:
 
     //! changed into gray-scale images, calculate
     //! the threshold of binarization
-    static QImage* Gray(const QImage &img);
+    static QImage Gray(const QImage &img);
 
     //! Binarization of image
-    static QImage* Binary(const QImage &img);
+    static QImage Binary(const QImage &img);
 
     //! median filtering
-    static QImage* Filter(const QImage &img, const int &winSize);
+    static QImage Filter(const QImage &img, const int &winSize);
 
     //! sharpen the image
-    static QImage* Sharpen(const QImage &img);
+    static QImage Sharpen(const QImage &img);
 
     //! find contours
-    static QImage* SobelContours(const QImage &img);
+    static QImage SobelContours(const QImage &img);
 
-    static QImage *CannyContours(const QImage &img);
+    static QImage CannyContours(const QImage &img);
 
-    static QImage* FindContours(const QImage &img);
+    static QImage FindContours(const QImage &img);
 
     //! edge tracing
     static QList<QList<QPointF>> EdgeTracing(const QImage &img);
@@ -282,7 +282,7 @@ public:
     static QList<QList<QPointF>> BlurEdge(const QList<QList<QPointF>> &edge, const int &Iterations);
 
     //! thinnig
-    static QImage* Thinning(const QImage &img);
+    static QImage Thinning(const QImage &img);
 
     //! Hough transform for line detection
     static QVector<QLine> HoughLine(const QImage &img);

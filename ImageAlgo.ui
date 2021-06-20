@@ -232,7 +232,7 @@
     </widget>
    </item>
    <item row="2" column="0" colspan="4">
-    <widget class="GraphicsView" name="graphicSource">
+    <widget class="LB_ImageViewer" name="graphicSource">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>12</horstretch>
@@ -242,7 +242,7 @@
     </widget>
    </item>
    <item row="2" column="4" colspan="5">
-    <widget class="GraphicsView" name="graphicResult">
+    <widget class="LB_ImageViewer" name="graphicResult">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
        <horstretch>12</horstretch>
@@ -284,9 +284,9 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>GraphicsView</class>
+   <class>LB_ImageViewer</class>
    <extends>QGraphicsView</extends>
-   <header>graphicsview.h</header>
+   <header>LB_ImageViewer.h</header>
   </customwidget>
  </customwidgets>
  <resources>

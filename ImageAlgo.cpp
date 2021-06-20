@@ -1,5 +1,6 @@
 #include "ImageAlgo.h"
 #include "ui_ImageAlgo.h"
+
 #include <QProgressDialog>
 #include <QPainter>
 #include <QLine>
@@ -7,43 +8,21 @@
 
 #include <QDebug>
 
+#include "LB_ImageViewer.h"
+
 int THRESHOLD = 128;
 
 ImageAlgo::ImageAlgo(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::ImageAlgo),
-    resultImg(nullptr)
+    ui(new Ui::ImageAlgo)
 {
     ui->setupUi(this);
 
     ui->spinBox_threshold->setValue(THRESHOLD);
-
-    sourceScene = new QGraphicsScene;
-    resultScene = new QGraphicsScene;
-
-    sourcePixmapItem = new QGraphicsPixmapItem();
-    resultPixmapItem = new QGraphicsPixmapItem();
-
-    sourceScene->setBackgroundBrush(QColor::fromRgb(224,224,224));
-    ui->graphicSource->setScene(sourceScene);
-    resultScene->setBackgroundBrush(QColor::fromRgb(224,224,224));
-    ui->graphicResult->setScene(resultScene);
 }
 
 ImageAlgo::~ImageAlgo()
 {
-    if (sourceScene)
-    {
-        delete sourceScene;
-        sourceScene = nullptr;
-    }
-
-    if (resultScene)
-    {
-        delete resultScene;
-        resultScene = nullptr;
-    }
-
     delete ui;
 }
 
@@ -56,123 +35,84 @@ void ImageAlgo::on_pushButton_openImg_clicked()
     }
     setWindowTitle(filename);
 
-    sourceimage = new QImage(filename);
-    resultImg = sourceimage;
-    THRESHOLD = LB_ImageProcess::ThresholdDetect(*sourceimage);
+    sourceImg.load(filename);
+    resultImg = sourceImg;
+    THRESHOLD = LB_ImageProcess::ThresholdDetect(sourceImg);
     ui->spinBox_threshold->setValue(THRESHOLD);
 
-    undoList.clear();
-    undoList.append(resultImg);
-
-    QPixmap sourcemap = QPixmap::fromImage(*sourceimage);
-
-    sourceScene->clear();
-    ui->graphicSource->resetTransform();
-
-    resultScene->clear();
-    ui->graphicResult->resetTransform();
-
-    sourcePixmapItem = sourceScene->addPixmap(sourcemap);
-    sourceScene->setSceneRect(QRectF(sourcemap.rect()));
-
-    resultPixmapItem = resultScene->addPixmap(sourcemap);
-    resultScene->setSceneRect(QRectF(sourcemap.rect()));
+    QPixmap sourcemap = QPixmap::fromImage(sourceImg);
+    ui->graphicSource->SetPixmap(&sourcemap);
+    ui->graphicResult->SetPixmap(&sourcemap);
 }
 
-void ImageAlgo::showResult(const QImage &img)
+void ImageAlgo::showResult()
 {
-    QPixmap tarmap = QPixmap::fromImage(img);
-    resultPixmapItem->setPixmap(tarmap);
-    resultScene->setSceneRect(QRectF(tarmap.rect()));
+    QPixmap tarmap = QPixmap::fromImage(resultImg);
+    ui->graphicResult->SetPixmap(&tarmap);
+//    delete resultImg;
+//    resultImg = nullptr;
 }
 
 void ImageAlgo::on_pushButton_insert_clicked()
 {
-    if(resultImg->isNull())
-        return;
-
-    QList<QList<QPointF>> roughEdge = LB_ImageProcess::EdgeTracing(*resultImg);
-
-    QList<QList<QPointF>> connectEdge = LB_ImageProcess::Connectivity(roughEdge);
-
-    QList<QList<QPointF>> blurEdge = LB_ImageProcess::Deburring(connectEdge);
-
-    QList<QList<QPointF>> smoothEdge = LB_ImageProcess::BlurEdge(blurEdge,6);
-
-    emit insertBorder(smoothEdge);
-
-    this->close();
 }
 
 void ImageAlgo::on_pushButton_saveResult_clicked()
 {
-    if(resultImg->isNull())
+    if(resultImg.isNull())
         return;
 
     QString imgName = QFileDialog::getSaveFileName(this,tr("save result"),"","*.png *.jpg *.bmp");
     if(imgName.isEmpty())
         return;
 
-    resultImg->save(imgName);
+    resultImg.save(imgName);
 }
 
 void ImageAlgo::on_pushButton_back_clicked()
 {
-    if((undoList.isEmpty())||(undoList.size() == 1))
-        return;
-
-    resultImg = undoList[undoList.size()-2];
-    undoList.removeLast();
-    showResult(*resultImg);
 }
 
 void ImageAlgo::on_pushButton_filter_clicked()
 {
-    resultImg = LB_ImageProcess::Filter(*resultImg,3);
-    showResult(*resultImg);
-    undoList.append(resultImg);
+    resultImg = LB_ImageProcess::Filter(resultImg,3);
+    showResult();
 }
 
 void ImageAlgo::on_pushButton_sharpen_clicked()
 {
-    resultImg = LB_ImageProcess::Sharpen(*resultImg);
-    showResult(*resultImg);
-    undoList.append(resultImg);
+    resultImg = LB_ImageProcess::Sharpen(resultImg);
+    showResult();
 }
 
 void ImageAlgo::on_pushButton_findContours_clicked()
 {
-    resultImg = LB_ImageProcess::FindContours(*resultImg);
-    showResult(*resultImg);
-    undoList.append(resultImg);
+    resultImg = LB_ImageProcess::FindContours(resultImg);
+    showResult();
 }
 
 void ImageAlgo::on_pushButton_solbelContours_clicked()
 {
-    resultImg = LB_ImageProcess::SobelContours(*resultImg);
-    showResult(*resultImg);
-    undoList.append(resultImg);
+    resultImg = LB_ImageProcess::SobelContours(resultImg);
+    showResult();
 }
 
 void ImageAlgo::on_pushButton_cannyContours_clicked()
 {
-    resultImg = LB_ImageProcess::CannyContours(*resultImg);
-    showResult(*resultImg);
-    undoList.append(resultImg);
+    resultImg = LB_ImageProcess::CannyContours(resultImg);
+    showResult();
 }
 
 void ImageAlgo::on_pushButton_gray_clicked()
 {
-    resultImg = LB_ImageProcess::Gray(*resultImg);
-    showResult(*resultImg);
-    undoList.append(resultImg);
+    resultImg = LB_ImageProcess::Gray(resultImg);
+    showResult();
 }
 
 void ImageAlgo::on_pushButton_binary_clicked()
 {
-    resultImg = LB_ImageProcess::Binary(*resultImg);
-    showResult(*resultImg);
-    undoList.append(resultImg);
+    resultImg = LB_ImageProcess::Binary(resultImg);
+    showResult();
 }
 
 void ImageAlgo::on_spinBox_threshold_valueChanged(int arg1)
@@ -182,36 +122,34 @@ void ImageAlgo::on_spinBox_threshold_valueChanged(int arg1)
 
 void ImageAlgo::on_pushButton_thinning_clicked()
 {
-    resultImg = LB_ImageProcess::Thinning(*resultImg);
-    showResult(*resultImg);
-    undoList.append(resultImg);
+    resultImg = LB_ImageProcess::Thinning(resultImg);
+    showResult();
 }
 
 void ImageAlgo::on_pushButton_houghLine_clicked()
 {
     // draw the lines
-    QVector<QLine> result = LB_ImageProcess::HoughLine(*resultImg);
-    QImage *tmp = LB_ImageProcess::FindContours(*resultImg);
+    QVector<QLine> result = LB_ImageProcess::HoughLine(resultImg);
+    QImage tmp = LB_ImageProcess::FindContours(resultImg);
     if(result.size() != 0)
     {
-        QPainter aPainter(tmp);
+        QPainter aPainter(&tmp);
         QPen aPen(Qt::red);
         aPainter.setPen(aPen);
         aPainter.drawLines(result);
     }
     resultImg = tmp;
-    showResult(*resultImg);
-    undoList.append(resultImg);
+    showResult();
 }
 
 void ImageAlgo::on_pushButton_houghCirc_clicked()
 {
     QVector<QCircle> result;
-    int wid = resultImg->width();
-    int hei = resultImg->height();
+    int wid = resultImg.width();
+    int hei = resultImg.height();
     int minRadius = 0.05* (wid>hei? hei:wid);
     int maxRadius = 0.45* (wid>hei? wid:hei);
-    int dividing = 0.95 * (2.0 * (double)minRadius * M_PI);
+    int dividing = 0.95 * (2.0 * (double)minRadius * 3.14);
 
     QProgressDialog dialog_writedata(tr("Scanning, please wait"),tr("cancle"),minRadius,maxRadius,this);
     dialog_writedata.setWindowTitle(tr("Hough Circle"));
@@ -219,7 +157,7 @@ void ImageAlgo::on_pushButton_houghCirc_clicked()
     dialog_writedata.show();
     for(int r=minRadius;r<maxRadius;++r)
     {
-        result.append(LB_ImageProcess::HoughCircle(*resultImg,r,dividing));
+        result.append(LB_ImageProcess::HoughCircle(resultImg,r,dividing));
         qApp->processEvents();
         dialog_writedata.setValue(r);
 
@@ -230,10 +168,10 @@ void ImageAlgo::on_pushButton_houghCirc_clicked()
     QCircle::filterCircles(result,10);
 
     // draw the circles
-    resultImg = LB_ImageProcess::FindContours(*resultImg);
+    resultImg = LB_ImageProcess::FindContours(resultImg);
     if(result.size() != 0)
     {
-        QPainter aPainter(resultImg);
+        QPainter aPainter(&resultImg);
         QPen aPen(Qt::red);
         aPainter.setPen(aPen);
         for(int i=0;i<result.size();++i)
@@ -242,12 +180,11 @@ void ImageAlgo::on_pushButton_houghCirc_clicked()
         }
     }
 
-    showResult(*resultImg);
-    undoList.append(resultImg);
+    showResult();
 }
 
 void ImageAlgo::on_pushButton_findThreshold_clicked()
 {
-    THRESHOLD = LB_ImageProcess::ThresholdDetect(*resultImg);
+    THRESHOLD = LB_ImageProcess::ThresholdDetect(resultImg);
     ui->spinBox_threshold->setValue(THRESHOLD);
 }

@@ -6,9 +6,6 @@
 #include <QPixmap>
 #include <QImage>
 #include <QFileInfo>
-#include <QGraphicsPixmapItem>
-
-#include <QDebug>
 
 #include "LB_ImageProcess.h"
 
@@ -46,19 +43,10 @@ private slots:
 private:
     Ui::ImageAlgo *ui;
 
-    QImage *sourceimage;
-    QImage *resultImg;    
-    QList<QImage*> undoList;// this list is set for undo/redo
+    QImage sourceImg;
+    QImage resultImg;
 
-    QGraphicsScene  *sourceScene;
-    QGraphicsScene  *resultScene;
-    QGraphicsPixmapItem* sourcePixmapItem;
-    QGraphicsPixmapItem* resultPixmapItem;
-
-    void showResult(const QImage &img);  
-
-signals:
-    void insertBorder(const QList<QList<QPointF>> &list);
+    void showResult();
 
 };
 

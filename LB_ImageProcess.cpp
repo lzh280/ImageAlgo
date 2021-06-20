@@ -99,52 +99,52 @@ void LB_ImageProcess::CannyThresholdDetec(const QImage &img, int &ThL, int &ThH)
     ThL = 0.4*ThH;
 }
 
-QImage *LB_ImageProcess::Gray(const QImage &img)
+QImage LB_ImageProcess::Gray(const QImage &img)
 {
-    QImage * grayImg = new QImage(img.width(), img.height(), QImage::Format_ARGB32);
+    QImage grayImg (img.width(), img.height(), QImage::Format_ARGB32);
 
     QRgb color;
     int grayVal = 0;
 
-    for(int x = 0; x< grayImg->width(); x++)
+    for(int x = 0; x< grayImg.width(); x++)
     {
-        for(int y = 0; y< grayImg->height(); y++)
+        for(int y = 0; y< grayImg.height(); y++)
         {
             color = img.pixel(x,y);
             grayVal =  qGray(color);
             color = QColor(grayVal,grayVal,grayVal,qAlpha(color)).rgba();
-            grayImg->setPixel(x,y,color);
+            grayImg.setPixel(x,y,color);
         }
     }
-    return  grayImg;
+    return grayImg;
 }
 
-QImage *LB_ImageProcess::Binary(const QImage &img)
+QImage LB_ImageProcess::Binary(const QImage &img)
 {
-    QImage *binaryImg = new QImage(img.width(), img.height(), QImage::Format_ARGB32);
+    QImage binaryImg (img.width(), img.height(), QImage::Format_ARGB32);
 
     QRgb color;
     int grayVal = 0;
     int binaryTh = ThresholdDetect(img);
 
-    for(int x = 0; x<binaryImg->width(); x++)
+    for(int x = 0; x<binaryImg.width(); x++)
     {
-        for(int y = 0; y<binaryImg->height(); y++)
+        for(int y = 0; y<binaryImg.height(); y++)
         {
             color = img.pixel(x,y);
             grayVal =  qGray(color);
             (grayVal>binaryTh)?(grayVal=255):(grayVal=0);//binarization
             color = QColor(grayVal,grayVal,grayVal,qAlpha(color)).rgba();
-            binaryImg->setPixel(x,y,color);
+            binaryImg.setPixel(x,y,color);
         }
     }
     return binaryImg;
 }
 
-QImage *LB_ImageProcess::Filter(const QImage &img, const int &winSize)
+QImage LB_ImageProcess::Filter(const QImage &img, const int &winSize)
 {
-    QImage *filterImg = new QImage(img);
-    filterImg->toPixelFormat(QImage::Format_ARGB32);
+    QImage filterImg (img);
+    filterImg.toPixelFormat(QImage::Format_ARGB32);
 
     int totalSize = winSize*winSize;
     int* rList = new int[totalSize];
@@ -168,8 +168,8 @@ QImage *LB_ImageProcess::Filter(const QImage &img, const int &winSize)
             {
                 for(int wy=-winSize/2;wy<=winSize/2;wy++)
                 {
-                    x_w = qBound(0,x+wx,filterImg->width()-1);
-                    y_w = qBound(0,y+wy,filterImg->height()-1);
+                    x_w = qBound(0,x+wx,filterImg.width()-1);
+                    y_w = qBound(0,y+wy,filterImg.height()-1);
                     color = img.pixel(x_w,y_w);
 
                     rList[index] = qRed(color);
@@ -212,26 +212,30 @@ QImage *LB_ImageProcess::Filter(const QImage &img, const int &winSize)
 
             color = img.pixel(x,y);
             color = QColor(midRVal,midGVal,midBVal,qAlpha(color)).rgba();
-            filterImg->setPixel(x,y,color);
+            filterImg.setPixel(x,y,color);
         }
     }
+
+    delete[] rList;
+    delete[] gList;
+    delete[] bList;
 
     return filterImg;
 }
 
-QImage *LB_ImageProcess::Sharpen(const QImage &img)
+QImage LB_ImageProcess::Sharpen(const QImage &img)
 {
-    QImage * sharpImage = new QImage(img);
-    sharpImage->toPixelFormat(QImage::Format_ARGB32);
+    QImage sharpImage (img);
+    sharpImage.toPixelFormat(QImage::Format_ARGB32);
 
     int kernel [3][3]= {{0,-1,0},
                         {-1,5,-1},
                         {0,-1,0}};
-    sharpImage = Convolution(*sharpImage,(int**)kernel,3);
+    sharpImage = Convolution(sharpImage,(int**)kernel,3);
     return sharpImage;
 }
 
-QImage *LB_ImageProcess::SobelContours(const QImage &img)
+QImage LB_ImageProcess::SobelContours(const QImage &img)
 {
     double *Gx = new double[9];
     double *Gy = new double[9];
@@ -265,9 +269,9 @@ QImage *LB_ImageProcess::SobelContours(const QImage &img)
 
     int height = img.height();
     int width = img.width();
-    QImage *grayImage = Gray(img);
-    QImage *contoursImage = new QImage(*grayImage);
-    contoursImage->toPixelFormat(QImage::Format_ARGB32);
+    QImage grayImage = Gray(img);
+    QImage contoursImage (grayImage);
+    contoursImage.toPixelFormat(QImage::Format_ARGB32);
 
     int gray = 0;
     double value_gx = 0;
@@ -289,7 +293,7 @@ QImage *LB_ImageProcess::SobelContours(const QImage &img)
                 {
                     x_w = qBound(0,x+k,width-1);
                     y_w = qBound(0,y+p,height-1);
-                    color=grayImage->pixel(x_w,y_w);
+                    color=grayImage.pixel(x_w,y_w);
                     value_gx += Gx[p*3+k] * qRed(color);
                     value_gy += Gy[p*3+k] * qRed(color);
                 }
@@ -298,10 +302,10 @@ QImage *LB_ImageProcess::SobelContours(const QImage &img)
             // inverse the background and the foreground to set the background in white
             gray = qBound(0,int(255-gray),255);
 
-            color=grayImage->pixel(x,y);
+            color=grayImage.pixel(x,y);
             color = QColor(gray,gray,gray,qAlpha(color)).rgba();
 
-            contoursImage->setPixel(x,y,color);
+            contoursImage.setPixel(x,y,color);
         }
     }
 
@@ -310,19 +314,19 @@ QImage *LB_ImageProcess::SobelContours(const QImage &img)
     return contoursImage;
 }
 
-QImage *LB_ImageProcess::CannyContours(const QImage &img)
+QImage LB_ImageProcess::CannyContours(const QImage &img)
 {
     const int height = img.height();
     const int width = img.width();
-    QImage *grayImage = Gray(img);
-    QImage *contoursImage = new QImage(*grayImage);
-    contoursImage->toPixelFormat(QImage::Format_ARGB32);
+    QImage grayImage = Gray(img);
+    QImage contoursImage (grayImage);
+    contoursImage.toPixelFormat(QImage::Format_ARGB32);
 
     // 1.Gauss filter
     double kernel [3][3]= {{0.0625, 0.125, 0.0625},
                            {0.125, 0.25, 0.125},
                            {0.0625, 0.125, 0.0625}};
-    contoursImage = Convolution(*grayImage,(double**)kernel,3);
+    contoursImage = Convolution(grayImage,(double**)kernel,3);
 
     // 2.get the gradient of each pixel
     double *Gx = new double[9];
@@ -357,7 +361,7 @@ QImage *LB_ImageProcess::CannyContours(const QImage &img)
                 {
                     x_w = qBound(0,x+k,width-1);
                     y_w = qBound(0,y+p,height-1);
-                    color=grayImage->pixel(x_w,y_w);
+                    color=grayImage.pixel(x_w,y_w);
                     value_gx += Gx[p*3+k] * qRed(color);
                     value_gy += Gy[p*3+k] * qRed(color);
                 }
@@ -453,7 +457,7 @@ QImage *LB_ImageProcess::CannyContours(const QImage &img)
     // 4.use high and low threshold to limit image
     int lowTh = 0;
     int highTh = 0;
-    CannyThresholdDetec(*contoursImage,lowTh,highTh);
+    CannyThresholdDetec(contoursImage,lowTh,highTh);
 
     int gray = 0;
     for (int x=0; x<width; x++)
@@ -506,9 +510,9 @@ QImage *LB_ImageProcess::CannyContours(const QImage &img)
             if(gray == 128)
                 gray = 255;
 
-            color=grayImage->pixel(x,y);
+            color=grayImage.pixel(x,y);
             color = QColor(gray,gray,gray,qAlpha(color)).rgba();
-            contoursImage->setPixel(x,y,color);
+            contoursImage.setPixel(x,y,color);
         }
     }
 
@@ -520,17 +524,17 @@ QImage *LB_ImageProcess::CannyContours(const QImage &img)
     return contoursImage;
 }
 
-QImage *LB_ImageProcess::FindContours(const QImage &img)
+QImage LB_ImageProcess::FindContours(const QImage &img)
 {
     int width = img.width();
     int height = img.height();
     int pixel[8];
     QRgb color;
 
-    QImage *binImg = Binary(img);
-    QImage *contoursImage = new QImage(*binImg);
-    contoursImage->toPixelFormat(QImage::Format_ARGB32);
-    contoursImage->fill(Qt::white);
+    QImage binImg = Binary(img);
+    QImage contoursImage (binImg);
+    contoursImage.toPixelFormat(QImage::Format_ARGB32);
+    contoursImage.fill(Qt::white);
 
     // Hollowing out the connected area
     for(int y=1; y<height-1; y++)
@@ -539,24 +543,24 @@ QImage *LB_ImageProcess::FindContours(const QImage &img)
         {
             memset(pixel,0,8);
 
-            if (QColor(binImg->pixel(x,y)).red() == 0)
+            if (QColor(binImg.pixel(x,y)).red() == 0)
             {
                 color = img.pixel(x,y);
                 color = QColor(0,0,0,qAlpha(color)).rgba();
 
-                contoursImage->setPixel(x, y, color);
-                pixel[0] = QColor(binImg->pixel(x-1,y-1)).red();
-                pixel[1] = QColor(binImg->pixel(x-1,y)).red();
-                pixel[2] = QColor(binImg->pixel(x-1,y+1)).red();
-                pixel[3] = QColor(binImg->pixel(x,y-1)).red();
-                pixel[4] = QColor(binImg->pixel(x,y+1)).red();
-                pixel[5] = QColor(binImg->pixel(x+1,y-1)).red();
-                pixel[6] = QColor(binImg->pixel(x+1,y)).red();
-                pixel[7] = QColor(binImg->pixel(x+1,y+1)).red();
+                contoursImage.setPixel(x, y, color);
+                pixel[0] = QColor(binImg.pixel(x-1,y-1)).red();
+                pixel[1] = QColor(binImg.pixel(x-1,y)).red();
+                pixel[2] = QColor(binImg.pixel(x-1,y+1)).red();
+                pixel[3] = QColor(binImg.pixel(x,y-1)).red();
+                pixel[4] = QColor(binImg.pixel(x,y+1)).red();
+                pixel[5] = QColor(binImg.pixel(x+1,y-1)).red();
+                pixel[6] = QColor(binImg.pixel(x+1,y)).red();
+                pixel[7] = QColor(binImg.pixel(x+1,y+1)).red();
                 if (pixel[0]+pixel[1]+pixel[2]+pixel[3]+pixel[4]+pixel[5]+pixel[6]+pixel[7] == 0)
                 {
                     color = QColor(255,255,255,qAlpha(color)).rgba();
-                    contoursImage->setPixel(x,y,color);
+                    contoursImage.setPixel(x,y,color);
                 }
             }
         }
@@ -566,22 +570,22 @@ QImage *LB_ImageProcess::FindContours(const QImage &img)
     {
         color = img.pixel(0,y);
         color = QColor(255,255,255,qAlpha(color)).rgba();
-        contoursImage->setPixel(0,y,color);
+        contoursImage.setPixel(0,y,color);
 
         color = img.pixel(width-1,y);
         color = QColor(255,255,255,qAlpha(color)).rgba();
-        contoursImage->setPixel(width-1,y,color);
+        contoursImage.setPixel(width-1,y,color);
     }
 
     for(int x=0;x<width;++x)
     {
         color = img.pixel(x,0);
         color = QColor(255,255,255,qAlpha(color)).rgba();
-        contoursImage->setPixel(x,0,color);
+        contoursImage.setPixel(x,0,color);
 
         color = img.pixel(x,height-1);
         color = QColor(255,255,255,qAlpha(color)).rgba();
-        contoursImage->setPixel(x,height-1,color);
+        contoursImage.setPixel(x,height-1,color);
     }
 
     return contoursImage;
@@ -766,11 +770,11 @@ QList<QList<QPointF> > LB_ImageProcess::BlurEdge(const QList<QList<QPointF> > &e
     return smoothEdge;
 }
 
-QImage *LB_ImageProcess::Thinning(const QImage &img)
+QImage LB_ImageProcess::Thinning(const QImage &img)
 {
-    QImage *binImg = Binary(img);
-    QImage* thinImage = new QImage(*binImg);
-    thinImage->toPixelFormat(QImage::Format_ARGB32);
+    QImage binImg = Binary(img);
+    QImage thinImage (binImg);
+    thinImage.toPixelFormat(QImage::Format_ARGB32);
 
     int count;
     bool finish = false;
@@ -850,7 +854,7 @@ QImage *LB_ImageProcess::Thinning(const QImage &img)
                 if (condition1&&condition2)
                 {
                     color = QColor(255,255,255,qAlpha(color)).rgba();
-                    thinImage->setPixel(x, y, color);
+                    thinImage.setPixel(x, y, color);
                     finish = false;
                 }
             }
@@ -863,13 +867,13 @@ QImage *LB_ImageProcess::Thinning(const QImage &img)
 
 QVector<QLine> LB_ImageProcess::HoughLine(const QImage &img)
 {
-    QImage *contourImg = FindContours(img);
-    QImage *houghImg = new QImage(*contourImg);
-    houghImg->toPixelFormat(QImage::Format_ARGB32);
+    QImage contourImg = FindContours(img);
+    QImage houghImg (contourImg);
+    houghImg.toPixelFormat(QImage::Format_ARGB32);
 
     QRgb color;
-    int imgW = houghImg->width();
-    int imgH = houghImg->height();
+    int imgW = houghImg.width();
+    int imgH = houghImg.height();
     // count the occurrences
     unsigned int* countArray = 0;
     int arrW = 0;
@@ -889,7 +893,7 @@ QVector<QLine> LB_ImageProcess::HoughLine(const QImage &img)
     {
         for(int x=0;x<imgW;x++)
         {
-            color = houghImg->pixel(x,y);
+            color = houghImg.pixel(x,y);
             if( qRed(color) == 0 )
             {
                 for(int t=0;t<180;t++)
@@ -979,7 +983,7 @@ QVector<QLine> LB_ImageProcess::HoughLine(const QImage &img)
     {
         for(int h=0;h<imgH;++h)
         {
-            color = houghImg->pixel(w,h);
+            color = houghImg.pixel(w,h);
             if(qRed(color) != 0)// only for the foreground
                 continue;
 
@@ -1032,13 +1036,13 @@ QVector<QLine> LB_ImageProcess::HoughLine(const QImage &img)
 
 QVector<QCircle> LB_ImageProcess::HoughCircle(const QImage &img, const int &radius, const int &dividing)
 {
-    QImage *contourImg = FindContours(img);
-    QImage *houghImg = new QImage(*contourImg);
-    houghImg->toPixelFormat(QImage::Format_ARGB32);
+    QImage contourImg = FindContours(img);
+    QImage houghImg (contourImg);
+    houghImg.toPixelFormat(QImage::Format_ARGB32);
 
     QRgb color;
-    int imgW = houghImg->width();
-    int imgH = houghImg->height();
+    int imgW = houghImg.width();
+    int imgH = houghImg.height();
     // count the occurrences
     unsigned int* countArray = 0;
     int arrW = imgW;
@@ -1053,7 +1057,7 @@ QVector<QCircle> LB_ImageProcess::HoughCircle(const QImage &img, const int &radi
     {
         for(int x=0;x<imgW;x++)
         {
-            color = houghImg->pixel(x,y);
+            color = houghImg.pixel(x,y);
             if( qRed(color) == 0 )
             {
                 for(int t=1;t<=360;t++)
@@ -1114,10 +1118,10 @@ QVector<QCircle> LB_ImageProcess::HoughCircle(const QImage &img, const int &radi
 }
 
 template<typename T>
-QImage *LB_ImageProcess::Convolution(const QImage &img, T *kernel[], const int &kernelSize)
+QImage LB_ImageProcess::Convolution(const QImage &img, T *kernel[], const int &kernelSize)
 {
-    QImage * targetImage = new QImage(img);
-    targetImage->toPixelFormat(QImage::Format_ARGB32);
+    QImage targetImage (img);
+    targetImage.toPixelFormat(QImage::Format_ARGB32);
 
     int sumR = 0;
     int sumG = 0;
@@ -1127,9 +1131,9 @@ QImage *LB_ImageProcess::Convolution(const QImage &img, T *kernel[], const int &
     int x_w = 0;
     int y_w = 0;
 
-    for(int x=0; x<targetImage->width(); x++)
+    for(int x=0; x<targetImage.width(); x++)
     {
-        for(int y=0; y<targetImage->height(); y++)
+        for(int y=0; y<targetImage.height(); y++)
         {
             sumR = 0;
             sumG = 0;
@@ -1139,8 +1143,8 @@ QImage *LB_ImageProcess::Convolution(const QImage &img, T *kernel[], const int &
             {
                 for(int j = -kernelSize/2; j<= kernelSize/2; j++)
                 {
-                    x_w = qBound(0,x+i,targetImage->width()-1);
-                    y_w = qBound(0,y+j,targetImage->height()-1);
+                    x_w = qBound(0,x+i,targetImage.width()-1);
+                    y_w = qBound(0,y+j,targetImage.height()-1);
                     color = img.pixel(x_w, y_w);
                     kernelVal = *((T*)kernel + kernelSize*(kernelSize/2+i) + kernelSize/2+j);
                     sumR += qRed(color)*kernelVal;
@@ -1154,7 +1158,7 @@ QImage *LB_ImageProcess::Convolution(const QImage &img, T *kernel[], const int &
             sumB = qBound(0, sumB, 255);
             color = img.pixel(x,y);
             color = QColor(sumR,sumG,sumB,qAlpha(color)).rgba();
-            targetImage->setPixel(x,y,color);
+            targetImage.setPixel(x,y,color);
         }
     }
     return targetImage;
