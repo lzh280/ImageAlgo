@@ -6,6 +6,7 @@
 
 #include <QImage>
 #include <QMap>
+#include <QtMath>
 
 class QCircle
 {

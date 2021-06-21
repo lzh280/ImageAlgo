@@ -10,7 +10,7 @@ public:
     explicit LB_ImageViewer(QWidget *parent = nullptr);
     ~LB_ImageViewer();
 
-    void SetPixmap(const QPixmap *map);
+    void SetPixmap(const QPixmap &map);
 
 protected:
 

@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>icons/img_apply.png</file>
         <file>icons/img_back.png</file>
         <file>icons/img_binary.png</file>
         <file>icons/img_edge.png</file>
@@ -15,5 +14,6 @@
         <file>icons/hough_circle.png</file>
         <file>icons/hough_line.png</file>
         <file>icons/img_calculateTh.png</file>
+        <file>icons/img_next.png</file>
     </qresource>
 </RCC>

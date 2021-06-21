@@ -22,19 +22,18 @@ LB_ImageViewer::~LB_ImageViewer()
     }
 }
 
-void LB_ImageViewer::SetPixmap(const QPixmap *map)
+void LB_ImageViewer::SetPixmap(const QPixmap &map)
 {
-    m_pixmap = *map;
+    m_pixmap = map;
 
     if(!m_mapItem) {
         m_mapItem = m_mapScene->addPixmap(m_pixmap);
     }
     else {
-        m_mapItem->setPixmap(*map);
+        m_mapItem->setPixmap(map);
     }
 
     m_mapScene->setSceneRect(m_pixmap.rect());
-    this->centerOn(m_mapItem);
     this->setDragMode(ScrollHandDrag);
 }
 

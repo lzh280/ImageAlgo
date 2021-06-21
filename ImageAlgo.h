@@ -2,16 +2,14 @@
 #define WIDGET_H
 
 #include <QWidget>
-#include <QFileDialog>
-#include <QPixmap>
-#include <QImage>
-#include <QFileInfo>
 
 #include "LB_ImageProcess.h"
 
 namespace Ui {
 class ImageAlgo;
 }
+
+class QUndoStack;
 
 class ImageAlgo : public QWidget
 {
@@ -23,9 +21,9 @@ public:
 
 private slots:
     void on_pushButton_openImg_clicked();
-    void on_pushButton_insert_clicked();
     void on_pushButton_saveResult_clicked();
     void on_pushButton_back_clicked();
+    void on_pushButton_next_clicked();
 
     void on_pushButton_filter_clicked();
     void on_pushButton_sharpen_clicked();
@@ -38,13 +36,15 @@ private slots:
     void on_pushButton_thinning_clicked();
     void on_pushButton_houghLine_clicked();
     void on_pushButton_houghCirc_clicked();    
-    void on_pushButton_findThreshold_clicked();
+    void on_pushButton_findThreshold_clicked();    
 
 private:
     Ui::ImageAlgo *ui;
 
     QImage sourceImg;
     QImage resultImg;
+
+    QUndoStack *undoStack;
 
     void showResult();
 

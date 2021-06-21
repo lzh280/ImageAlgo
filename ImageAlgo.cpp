@@ -5,10 +5,16 @@
 #include <QPainter>
 #include <QLine>
 #include <QRect>
+#include <QFileDialog>
+#include <QImage>
+#include <QFileInfo>
+#include <QUndoStack>
+#include <QUndoView>
 
 #include <QDebug>
 
 #include "LB_ImageViewer.h"
+#include "ImageProcessCommand.h"
 
 int THRESHOLD = 128;
 
@@ -18,11 +24,18 @@ ImageAlgo::ImageAlgo(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    undoStack = new QUndoStack();
+
+    QVBoxLayout *layout = new QVBoxLayout(ui->widget_undo);
+    QUndoView *aView = new QUndoView(undoStack);
+    layout->addWidget(aView);
+
     ui->spinBox_threshold->setValue(THRESHOLD);
 }
 
 ImageAlgo::~ImageAlgo()
 {
+    undoStack->deleteLater();
     delete ui;
 }
 
@@ -41,20 +54,16 @@ void ImageAlgo::on_pushButton_openImg_clicked()
     ui->spinBox_threshold->setValue(THRESHOLD);
 
     QPixmap sourcemap = QPixmap::fromImage(sourceImg);
-    ui->graphicSource->SetPixmap(&sourcemap);
-    ui->graphicResult->SetPixmap(&sourcemap);
+    ui->graphicSource->SetPixmap(sourcemap);
+    ui->graphicResult->SetPixmap(sourcemap);
+
+    undoStack->clear();
 }
 
 void ImageAlgo::showResult()
 {
     QPixmap tarmap = QPixmap::fromImage(resultImg);
-    ui->graphicResult->SetPixmap(&tarmap);
-//    delete resultImg;
-//    resultImg = nullptr;
-}
-
-void ImageAlgo::on_pushButton_insert_clicked()
-{
+    ui->graphicResult->SetPixmap(tarmap);
 }
 
 void ImageAlgo::on_pushButton_saveResult_clicked()
@@ -71,48 +80,74 @@ void ImageAlgo::on_pushButton_saveResult_clicked()
 
 void ImageAlgo::on_pushButton_back_clicked()
 {
+    undoStack->undo();
+    int index = undoStack->index();
+    const ImageProcessCommand *cmd = static_cast<const ImageProcessCommand*>(undoStack->command(index));
+    resultImg = cmd->GetInput();
+}
+
+void ImageAlgo::on_pushButton_next_clicked()
+{
+    undoStack->redo();
+    int index = qBound(0,undoStack->index()-1,undoStack->count()-1);
+    const ImageProcessCommand *cmd = static_cast<const ImageProcessCommand*>(undoStack->command(index));
+    resultImg = cmd->GetOutput();
 }
 
 void ImageAlgo::on_pushButton_filter_clicked()
 {
+    QImage before = resultImg;
     resultImg = LB_ImageProcess::Filter(resultImg,3);
     showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},"filter",ui->graphicResult));
 }
 
 void ImageAlgo::on_pushButton_sharpen_clicked()
 {
+    QImage before = resultImg;
     resultImg = LB_ImageProcess::Sharpen(resultImg);
     showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},"sharpen",ui->graphicResult));
 }
 
 void ImageAlgo::on_pushButton_findContours_clicked()
 {
+    QImage before = resultImg;
     resultImg = LB_ImageProcess::FindContours(resultImg);
     showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},"find contours",ui->graphicResult));
 }
 
 void ImageAlgo::on_pushButton_solbelContours_clicked()
 {
+    QImage before = resultImg;
     resultImg = LB_ImageProcess::SobelContours(resultImg);
     showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},"sobel contours",ui->graphicResult));
 }
 
 void ImageAlgo::on_pushButton_cannyContours_clicked()
 {
+    QImage before = resultImg;
     resultImg = LB_ImageProcess::CannyContours(resultImg);
     showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},"canny contours",ui->graphicResult));
 }
 
 void ImageAlgo::on_pushButton_gray_clicked()
 {
+    QImage before = resultImg;
     resultImg = LB_ImageProcess::Gray(resultImg);
     showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},"gray",ui->graphicResult));
 }
 
 void ImageAlgo::on_pushButton_binary_clicked()
 {
+    QImage before = resultImg;
     resultImg = LB_ImageProcess::Binary(resultImg);
     showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},"binary",ui->graphicResult));
 }
 
 void ImageAlgo::on_spinBox_threshold_valueChanged(int arg1)
@@ -122,8 +157,10 @@ void ImageAlgo::on_spinBox_threshold_valueChanged(int arg1)
 
 void ImageAlgo::on_pushButton_thinning_clicked()
 {
+    QImage before = resultImg;
     resultImg = LB_ImageProcess::Thinning(resultImg);
     showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},"thinning",ui->graphicResult));
 }
 
 void ImageAlgo::on_pushButton_houghLine_clicked()
