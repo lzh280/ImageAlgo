@@ -238,58 +238,56 @@ public:
 
 };
 
-class LB_ImageProcess
+namespace LB_Image
 {
-public:
-    LB_ImageProcess();
 
     //! templet of dealing with image with a kernel
     template<typename T>
-    static QImage Convolution(const QImage &img, T *kernel[], const int &kernelSize);
+    QImage Convolution(const QImage &img, T *kernel[], const int &kernelSize);
 
     //! auto get the threshold to binary the image
-    static int ThresholdDetect(const QImage &img);
+    int ThresholdDetect(const QImage &img);
 
     //! auto get the high threshold of Canny method
-    static void CannyThresholdDetec(const QImage &img, int &ThL, int &ThH);
+    void CannyThresholdDetec(const QImage &img, int &ThL, int &ThH);
 
     //! changed into gray-scale images, calculate
     //! the threshold of binarization
-    static QImage Gray(const QImage &img);
+    QImage Gray(const QImage &img);
 
     //! Binarization of image
-    static QImage Binary(const QImage &img);
+    QImage Binary(const QImage &img);
 
     //! median filtering
-    static QImage Filter(const QImage &img, const int &winSize);
+    QImage Filter(const QImage &img, const int &winSize);
 
     //! sharpen the image
-    static QImage Sharpen(const QImage &img);
+    QImage Sharpen(const QImage &img);
 
     //! find contours
-    static QImage SobelContours(const QImage &img);
+    QImage SobelContours(const QImage &img);
 
-    static QImage CannyContours(const QImage &img);
+    QImage CannyContours(const QImage &img);
 
-    static QImage FindContours(const QImage &img);
+    QImage FindContours(const QImage &img);
 
     //! edge tracing
-    static QList<QList<QPointF>> EdgeTracing(const QImage &img);
+    QList<QList<QPointF>> EdgeTracing(const QImage &img);
 
-    static QList<QList<QPointF>> Connectivity(const QList<QList<QPointF>> &edge);
+    QList<QList<QPointF>> Connectivity(const QList<QList<QPointF>> &edge);
 
-    static QList<QList<QPointF>> Deburring(const QList<QList<QPointF>> &edge);
+    QList<QList<QPointF>> Deburring(const QList<QList<QPointF>> &edge);
 
-    static QList<QList<QPointF>> BlurEdge(const QList<QList<QPointF>> &edge, const int &Iterations);
+    QList<QList<QPointF>> BlurEdge(const QList<QList<QPointF>> &edge, const int &Iterations);
 
     //! thinnig
-    static QImage Thinning(const QImage &img);
+    QImage Thinning(const QImage &img);
 
     //! Hough transform for line detection
-    static QVector<QLine> HoughLine(const QImage &img);
+    QVector<QLine> HoughLine(const QImage &img);
 
     //! Hough transform for circle detection
-    static QVector<QCircle> HoughCircle(const QImage &img, const int &radius, const int &dividing);
+    QVector<QCircle> HoughCircle(const QImage &img, const int &radius, const int &dividing);
 };
 
 #endif // LB_IMAGEPROCESS_H

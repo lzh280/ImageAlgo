@@ -1,6 +1,6 @@
 #include "ImageProcessCommand.h"
 
-#include "LB_ImageViewer.h"
+#include "LB_Image/LB_ImageViewer.h"
 
 ImageProcessCommand::ImageProcessCommand(const QPair<QImage, QImage> &data, const QString &operation, LB_ImageViewer *viewer)
     :QUndoCommand(operation),

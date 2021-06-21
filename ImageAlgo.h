@@ -3,7 +3,7 @@
 
 #include <QWidget>
 
-#include "LB_ImageProcess.h"
+#include "LB_Image/LB_ImageProcess.h"
 
 namespace Ui {
 class ImageAlgo;

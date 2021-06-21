@@ -11,10 +11,15 @@
 #include <QUndoStack>
 #include <QUndoView>
 
+#include "LB_Image/LB_ImageViewer.h"
+#include "ImageProcessCommand.h"
+#include "QxPotrace"
+#include "dl_dxf.h"
+#include "dl_creationadapter.h"
+
 #include <QDebug>
 
-#include "LB_ImageViewer.h"
-#include "ImageProcessCommand.h"
+using namespace LB_Image;
 
 int THRESHOLD = 128;
 
@@ -50,7 +55,7 @@ void ImageAlgo::on_pushButton_openImg_clicked()
 
     sourceImg.load(filename);
     resultImg = sourceImg;
-    THRESHOLD = LB_ImageProcess::ThresholdDetect(sourceImg);
+    THRESHOLD = ThresholdDetect(sourceImg);
     ui->spinBox_threshold->setValue(THRESHOLD);
 
     QPixmap sourcemap = QPixmap::fromImage(sourceImg);
@@ -71,11 +76,105 @@ void ImageAlgo::on_pushButton_saveResult_clicked()
     if(resultImg.isNull())
         return;
 
-    QString imgName = QFileDialog::getSaveFileName(this,tr("save result"),"","*.png *.jpg *.bmp");
+    QString imgName = QFileDialog::getSaveFileName(this,tr("save result"),"",tr("Image(*.png *.jpg *.bmp) \n DXF(*.dxf)"));
     if(imgName.isEmpty())
         return;
 
-    resultImg.save(imgName);
+    QFileInfo aInfo(imgName);
+    if(aInfo.suffix() == "dxf") {
+        // 1.trace the edge
+        resultImg.convertTo(QImage::Format_RGB32);
+
+        QxPotrace potrace;
+        if (!potrace.trace(resultImg) || potrace.polygons().isEmpty()) {
+            return;
+        }
+
+        QList<QxPotrace::Polygon> edges = potrace.polygons();
+        // 2.save the polygons into dxf
+        DL_Dxf* dxf = new DL_Dxf();
+        DL_Codes::version exportVersion = DL_Codes::AC1015;
+        DL_WriterA* dw = dxf->out(imgName.toUtf8(), exportVersion);
+
+        dxf->writeHeader(*dw);
+        dw->sectionEnd();
+        dw->sectionTables();
+        dxf->writeVPort(*dw);
+
+        dw->tableLinetypes(1);
+        dxf->writeLinetype(*dw, DL_LinetypeData("CONTINUOUS", "Continuous", 0, 0, 0.0));
+        dw->tableEnd();
+
+        int numberOfLayers = 3;
+        dw->tableLayers(numberOfLayers);
+
+        dxf->writeLayer(*dw,
+                        DL_LayerData("0", 0),
+                        DL_Attributes(
+                            std::string(""),      // leave empty
+                            DL_Codes::red,        // default color
+                            100,                  // default width
+                            "CONTINUOUS", 1.0));       // default line style
+
+        dw->tableEnd();
+
+        dw->tableStyle(1);
+        dxf->writeStyle(*dw, DL_StyleData("standard", 0, 2.5, 1.0, 0.0, 0, 2.5, "txt", ""));
+        dw->tableEnd();
+
+        dxf->writeView(*dw);
+        dxf->writeUcs(*dw);
+
+        dw->tableAppid(1);
+        dxf->writeAppid(*dw, "ACAD");
+        dw->tableEnd();
+
+        dxf->writeDimStyle(*dw, 1, 1, 1, 1, 1);
+
+        dxf->writeBlockRecord(*dw);
+        dw->tableEnd();
+
+        dw->sectionEnd();
+
+        dw->sectionBlocks();
+        dxf->writeBlock(*dw, DL_BlockData("*Model_Space", 0, 0.0, 0.0, 0.0));
+        dxf->writeEndBlock(*dw, "*Model_Space");
+
+        dw->sectionEnd();
+        dw->sectionEntities();
+
+        // write all entities in model space:
+        foreach (const QxPotrace::Polygon &polygon, edges) {
+            QPolygonF aPoly = polygon.boundary;
+            if(aPoly.first() != aPoly.last())
+                aPoly.append(aPoly.first());
+
+            dxf->writePolyline(*dw,
+                           DL_PolylineData(aPoly.size(),0,0,DL_CLOSED_PLINE),
+                           DL_Attributes("0", 256, -1, "CONTINUOUS", 1.0));
+            foreach(QPointF pnt, aPoly) {
+                dxf->writeVertex(*dw,
+                                 DL_VertexData(
+                                     pnt.x(),
+                                     -pnt.y(),
+                                     0, 0));
+            }
+            dxf->writePolylineEnd(*dw);
+        }
+
+        dw->sectionEnd();
+
+        dxf->writeObjects(*dw);
+        dxf->writeObjectsEnd(*dw);
+
+        dw->dxfEOF();
+        dw->close();
+        delete dw;
+        delete dxf;
+    }
+    else {
+        resultImg.save(imgName);
+    }
 }
 
 void ImageAlgo::on_pushButton_back_clicked()
@@ -97,7 +196,7 @@ void ImageAlgo::on_pushButton_next_clicked()
 void ImageAlgo::on_pushButton_filter_clicked()
 {
     QImage before = resultImg;
-    resultImg = LB_ImageProcess::Filter(resultImg,3);
+    resultImg = Filter(resultImg,3);
     showResult();
     undoStack->push(new ImageProcessCommand({before,resultImg},"filter",ui->graphicResult));
 }
@@ -105,7 +204,7 @@ void ImageAlgo::on_pushButton_filter_clicked()
 void ImageAlgo::on_pushButton_sharpen_clicked()
 {
     QImage before = resultImg;
-    resultImg = LB_ImageProcess::Sharpen(resultImg);
+    resultImg = Sharpen(resultImg);
     showResult();
     undoStack->push(new ImageProcessCommand({before,resultImg},"sharpen",ui->graphicResult));
 }
@@ -113,7 +212,7 @@ void ImageAlgo::on_pushButton_sharpen_clicked()
 void ImageAlgo::on_pushButton_findContours_clicked()
 {
     QImage before = resultImg;
-    resultImg = LB_ImageProcess::FindContours(resultImg);
+    resultImg = FindContours(resultImg);
     showResult();
     undoStack->push(new ImageProcessCommand({before,resultImg},"find contours",ui->graphicResult));
 }
@@ -121,7 +220,7 @@ void ImageAlgo::on_pushButton_findContours_clicked()
 void ImageAlgo::on_pushButton_solbelContours_clicked()
 {
     QImage before = resultImg;
-    resultImg = LB_ImageProcess::SobelContours(resultImg);
+    resultImg = SobelContours(resultImg);
     showResult();
     undoStack->push(new ImageProcessCommand({before,resultImg},"sobel contours",ui->graphicResult));
 }
@@ -129,7 +228,7 @@ void ImageAlgo::on_pushButton_solbelContours_clicked()
 void ImageAlgo::on_pushButton_cannyContours_clicked()
 {
     QImage before = resultImg;
-    resultImg = LB_ImageProcess::CannyContours(resultImg);
+    resultImg = CannyContours(resultImg);
     showResult();
     undoStack->push(new ImageProcessCommand({before,resultImg},"canny contours",ui->graphicResult));
 }
@@ -137,7 +236,7 @@ void ImageAlgo::on_pushButton_cannyContours_clicked()
 void ImageAlgo::on_pushButton_gray_clicked()
 {
     QImage before = resultImg;
-    resultImg = LB_ImageProcess::Gray(resultImg);
+    resultImg = Gray(resultImg);
     showResult();
     undoStack->push(new ImageProcessCommand({before,resultImg},"gray",ui->graphicResult));
 }
@@ -145,7 +244,7 @@ void ImageAlgo::on_pushButton_gray_clicked()
 void ImageAlgo::on_pushButton_binary_clicked()
 {
     QImage before = resultImg;
-    resultImg = LB_ImageProcess::Binary(resultImg);
+    resultImg = Binary(resultImg);
     showResult();
     undoStack->push(new ImageProcessCommand({before,resultImg},"binary",ui->graphicResult));
 }
@@ -158,16 +257,18 @@ void ImageAlgo::on_spinBox_threshold_valueChanged(int arg1)
 void ImageAlgo::on_pushButton_thinning_clicked()
 {
     QImage before = resultImg;
-    resultImg = LB_ImageProcess::Thinning(resultImg);
+    resultImg = Thinning(resultImg);
     showResult();
     undoStack->push(new ImageProcessCommand({before,resultImg},"thinning",ui->graphicResult));
 }
 
 void ImageAlgo::on_pushButton_houghLine_clicked()
 {
+    QImage before = resultImg;
+
     // draw the lines
-    QVector<QLine> result = LB_ImageProcess::HoughLine(resultImg);
-    QImage tmp = LB_ImageProcess::FindContours(resultImg);
+    QVector<QLine> result = HoughLine(resultImg);
+    QImage tmp = FindContours(resultImg);
     if(result.size() != 0)
     {
         QPainter aPainter(&tmp);
@@ -177,10 +278,13 @@ void ImageAlgo::on_pushButton_houghLine_clicked()
     }
     resultImg = tmp;
     showResult();
+
+    undoStack->push(new ImageProcessCommand({before,resultImg},"hough line",ui->graphicResult));
 }
 
 void ImageAlgo::on_pushButton_houghCirc_clicked()
 {
+    QImage before = resultImg;
     QVector<QCircle> result;
     int wid = resultImg.width();
     int hei = resultImg.height();
@@ -194,7 +298,7 @@ void ImageAlgo::on_pushButton_houghCirc_clicked()
     dialog_writedata.show();
     for(int r=minRadius;r<maxRadius;++r)
     {
-        result.append(LB_ImageProcess::HoughCircle(resultImg,r,dividing));
+        result.append(HoughCircle(resultImg,r,dividing));
         qApp->processEvents();
         dialog_writedata.setValue(r);
 
@@ -205,7 +309,7 @@ void ImageAlgo::on_pushButton_houghCirc_clicked()
     QCircle::filterCircles(result,10);
 
     // draw the circles
-    resultImg = LB_ImageProcess::FindContours(resultImg);
+    resultImg = FindContours(resultImg);
     if(result.size() != 0)
     {
         QPainter aPainter(&resultImg);
@@ -218,10 +322,12 @@ void ImageAlgo::on_pushButton_houghCirc_clicked()
     }
 
     showResult();
+
+    undoStack->push(new ImageProcessCommand({before,resultImg},"hough circle",ui->graphicResult));
 }
 
 void ImageAlgo::on_pushButton_findThreshold_clicked()
 {
-    THRESHOLD = LB_ImageProcess::ThresholdDetect(resultImg);
+    THRESHOLD = ThresholdDetect(resultImg);
     ui->spinBox_threshold->setValue(THRESHOLD);
 }

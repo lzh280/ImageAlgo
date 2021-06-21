@@ -1,10 +1,9 @@
 #include "LB_ImageProcess.h"
 
-LB_ImageProcess::LB_ImageProcess()
+namespace LB_Image
 {
-}
 
-int LB_ImageProcess::ThresholdDetect(const QImage &img)
+int ThresholdDetect(const QImage &img)
 {
     int lThrehold = 0;
 
@@ -64,7 +63,7 @@ int LB_ImageProcess::ThresholdDetect(const QImage &img)
     return lThrehold;
 }
 
-void LB_ImageProcess::CannyThresholdDetec(const QImage &img, int &ThL, int &ThH)
+void CannyThresholdDetec(const QImage &img, int &ThL, int &ThH)
 {
     int height = img.height();
     int width = img.width();
@@ -99,7 +98,7 @@ void LB_ImageProcess::CannyThresholdDetec(const QImage &img, int &ThL, int &ThH)
     ThL = 0.4*ThH;
 }
 
-QImage LB_ImageProcess::Gray(const QImage &img)
+QImage Gray(const QImage &img)
 {
     QImage grayImg (img.width(), img.height(), QImage::Format_ARGB32);
 
@@ -119,7 +118,7 @@ QImage LB_ImageProcess::Gray(const QImage &img)
     return grayImg;
 }
 
-QImage LB_ImageProcess::Binary(const QImage &img)
+QImage Binary(const QImage &img)
 {
     QImage binaryImg (img.width(), img.height(), QImage::Format_ARGB32);
 
@@ -141,7 +140,7 @@ QImage LB_ImageProcess::Binary(const QImage &img)
     return binaryImg;
 }
 
-QImage LB_ImageProcess::Filter(const QImage &img, const int &winSize)
+QImage Filter(const QImage &img, const int &winSize)
 {
     QImage filterImg (img);
     filterImg.toPixelFormat(QImage::Format_ARGB32);
@@ -223,7 +222,7 @@ QImage LB_ImageProcess::Filter(const QImage &img, const int &winSize)
     return filterImg;
 }
 
-QImage LB_ImageProcess::Sharpen(const QImage &img)
+QImage Sharpen(const QImage &img)
 {
     QImage sharpImage (img);
     sharpImage.toPixelFormat(QImage::Format_ARGB32);
@@ -235,7 +234,7 @@ QImage LB_ImageProcess::Sharpen(const QImage &img)
     return sharpImage;
 }
 
-QImage LB_ImageProcess::SobelContours(const QImage &img)
+QImage SobelContours(const QImage &img)
 {
     double *Gx = new double[9];
     double *Gy = new double[9];
@@ -314,7 +313,7 @@ QImage LB_ImageProcess::SobelContours(const QImage &img)
     return contoursImage;
 }
 
-QImage LB_ImageProcess::CannyContours(const QImage &img)
+QImage CannyContours(const QImage &img)
 {
     const int height = img.height();
     const int width = img.width();
@@ -524,7 +523,7 @@ QImage LB_ImageProcess::CannyContours(const QImage &img)
     return contoursImage;
 }
 
-QImage LB_ImageProcess::FindContours(const QImage &img)
+QImage FindContours(const QImage &img)
 {
     int width = img.width();
     int height = img.height();
@@ -591,7 +590,7 @@ QImage LB_ImageProcess::FindContours(const QImage &img)
     return contoursImage;
 }
 
-QList<QList<QPointF> > LB_ImageProcess::EdgeTracing(const QImage &img)
+QList<QList<QPointF> > EdgeTracing(const QImage &img)
 {
     // 1.get the points on edge
     QList<QPoint> borderPnts;
@@ -665,7 +664,7 @@ QList<QList<QPointF> > LB_ImageProcess::EdgeTracing(const QImage &img)
     return roughEdge;
 }
 
-QList<QList<QPointF> > LB_ImageProcess::Connectivity(const QList<QList<QPointF> > &edge)
+QList<QList<QPointF> > Connectivity(const QList<QList<QPointF> > &edge)
 {
     QList<QList<QPointF>> connectEdge;
     QList<QPointF> aGroup;
@@ -704,7 +703,7 @@ QList<QList<QPointF> > LB_ImageProcess::Connectivity(const QList<QList<QPointF> 
     return connectEdge;
 }
 
-QList<QList<QPointF> > LB_ImageProcess::Deburring(const QList<QList<QPointF> > &edge)
+QList<QList<QPointF> > Deburring(const QList<QList<QPointF> > &edge)
 {
     QList<QList<QPointF>> smoothEdge;
     QList<QPointF> aGroup;
@@ -736,7 +735,7 @@ QList<QList<QPointF> > LB_ImageProcess::Deburring(const QList<QList<QPointF> > &
     return smoothEdge;
 }
 
-QList<QList<QPointF> > LB_ImageProcess::BlurEdge(const QList<QList<QPointF> > &edge, const int &Iterations)
+QList<QList<QPointF> > BlurEdge(const QList<QList<QPointF> > &edge, const int &Iterations)
 {
     QList<QList<QPointF>> smoothEdge;
     QList<QList<QPointF>> roughEdge = edge;
@@ -770,7 +769,7 @@ QList<QList<QPointF> > LB_ImageProcess::BlurEdge(const QList<QList<QPointF> > &e
     return smoothEdge;
 }
 
-QImage LB_ImageProcess::Thinning(const QImage &img)
+QImage Thinning(const QImage &img)
 {
     QImage binImg = Binary(img);
     QImage thinImage (binImg);
@@ -865,7 +864,7 @@ QImage LB_ImageProcess::Thinning(const QImage &img)
     return thinImage;
 }
 
-QVector<QLine> LB_ImageProcess::HoughLine(const QImage &img)
+QVector<QLine> HoughLine(const QImage &img)
 {
     QImage contourImg = FindContours(img);
     QImage houghImg (contourImg);
@@ -1034,7 +1033,7 @@ QVector<QLine> LB_ImageProcess::HoughLine(const QImage &img)
     return HLine::toQLines(result);
 }
 
-QVector<QCircle> LB_ImageProcess::HoughCircle(const QImage &img, const int &radius, const int &dividing)
+QVector<QCircle> HoughCircle(const QImage &img, const int &radius, const int &dividing)
 {
     QImage contourImg = FindContours(img);
     QImage houghImg (contourImg);
@@ -1118,7 +1117,7 @@ QVector<QCircle> LB_ImageProcess::HoughCircle(const QImage &img, const int &radi
 }
 
 template<typename T>
-QImage LB_ImageProcess::Convolution(const QImage &img, T *kernel[], const int &kernelSize)
+QImage Convolution(const QImage &img, T *kernel[], const int &kernelSize)
 {
     QImage targetImage (img);
     targetImage.toPixelFormat(QImage::Format_ARGB32);
@@ -1162,4 +1161,6 @@ QImage LB_ImageProcess::Convolution(const QImage &img, T *kernel[], const int &k
         }
     }
     return targetImage;
+}
+
 }
