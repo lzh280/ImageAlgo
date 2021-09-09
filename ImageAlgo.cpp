@@ -12,10 +12,13 @@
 #include <QUndoView>
 
 #include "LB_Image/LB_ImageViewer.h"
+#include "LB_Image/LB_ImagePreProcess.h"
+#include "LB_Image/LB_BMPVectorization.h"
+#include "LB_Image/LB_ElementDetection.h"
 #include "ImageProcessCommand.h"
-#include "QxPotrace"
-#include "dl_dxf.h"
-#include "dl_creationadapter.h"
+
+#include "3rd/dxflib/dl_dxf.h"
+#include "3rd/dxflib/dl_creationadapter.h"
 
 #include <QDebug>
 
@@ -76,105 +79,115 @@ void ImageAlgo::on_pushButton_saveResult_clicked()
     if(resultImg.isNull())
         return;
 
+    QVector<QPolygon> edges = RadialSweepTracing(resultImg);
+    edges = SimplifyEdge(edges);
+    QVector<QPolygonF> result = SmoothEdge(edges);
+
+    LB_ImageViewer* aViewer = new LB_ImageViewer;
+    QPixmap map(resultImg.size());
+    QPainter aPainter(&map);
+    aPainter.setPen(Qt::white);
+    for(int i=0;i<result.size();++i) {
+        aPainter.drawPolygon(result[i]);
+    }
+
+    aViewer->SetPixmap(map);
+    aViewer->show();
+
     QString imgName = QFileDialog::getSaveFileName(this,tr("save result"),"",tr("Image(*.png *.jpg *.bmp) \n DXF(*.dxf)"));
-    if(imgName.isEmpty())
-        return;
-
-    QFileInfo aInfo(imgName);
-    if(aInfo.suffix() == "dxf") {
-        // 1.trace the edge
-        resultImg.convertTo(QImage::Format_RGB32);
-
-        QxPotrace potrace;
-        if (!potrace.trace(resultImg) || potrace.polygons().isEmpty()) {
+        if(imgName.isEmpty())
             return;
-        }
 
-        QList<QxPotrace::Polygon> edges = potrace.polygons();
-        // 2.save the polygons into dxf
-        DL_Dxf* dxf = new DL_Dxf();
-        DL_Codes::version exportVersion = DL_Codes::AC1015;
-        DL_WriterA* dw = dxf->out(imgName.toUtf8(), exportVersion);
+        QFileInfo aInfo(imgName);
+        if(aInfo.suffix() == "dxf") {
+            // 1.trace the edge
+            QVector<QPolygon> edges = RadialSweepTracing(resultImg);
+            edges = SimplifyEdge(edges);
+            QVector<QPolygonF> result = SmoothEdge(edges);
 
-        dxf->writeHeader(*dw);
-        dw->sectionEnd();
-        dw->sectionTables();
-        dxf->writeVPort(*dw);
+            // 2.save the polygons into dxf
+            DL_Dxf* dxf = new DL_Dxf();
+            DL_Codes::version exportVersion = DL_Codes::AC1015;
+            DL_WriterA* dw = dxf->out(imgName.toUtf8().data(), exportVersion);
 
-        dw->tableLinetypes(1);
-        dxf->writeLinetype(*dw, DL_LinetypeData("CONTINUOUS", "Continuous", 0, 0, 0.0));
-        dw->tableEnd();
+            dxf->writeHeader(*dw);
+            dw->sectionEnd();
+            dw->sectionTables();
+            dxf->writeVPort(*dw);
 
-        int numberOfLayers = 3;
-        dw->tableLayers(numberOfLayers);
+            dw->tableLinetypes(1);
+            dxf->writeLinetype(*dw, DL_LinetypeData("CONTINUOUS", "Continuous", 0, 0, 0.0));
+            dw->tableEnd();
 
-        dxf->writeLayer(*dw,
-                        DL_LayerData("0", 0),
-                        DL_Attributes(
-                            std::string(""),      // leave empty
-                            DL_Codes::red,        // default color
-                            100,                  // default width
-                            "CONTINUOUS", 1.0));       // default line style
+            int numberOfLayers = 3;
+            dw->tableLayers(numberOfLayers);
 
-        dw->tableEnd();
+            dxf->writeLayer(*dw,
+                            DL_LayerData("0", 0),
+                            DL_Attributes(
+                                std::string(""),      // leave empty
+                                DL_Codes::red,        // default color
+                                100,                  // default width
+                                "CONTINUOUS", 1.0));       // default line style
 
-        dw->tableStyle(1);
-        dxf->writeStyle(*dw, DL_StyleData("standard", 0, 2.5, 1.0, 0.0, 0, 2.5, "txt", ""));
-        dw->tableEnd();
+            dw->tableEnd();
 
-        dxf->writeView(*dw);
-        dxf->writeUcs(*dw);
+            dw->tableStyle(1);
+            dxf->writeStyle(*dw, DL_StyleData("standard", 0, 2.5, 1.0, 0.0, 0, 2.5, "txt", ""));
+            dw->tableEnd();
 
-        dw->tableAppid(1);
-        dxf->writeAppid(*dw, "ACAD");
-        dw->tableEnd();
+            dxf->writeView(*dw);
+            dxf->writeUcs(*dw);
 
-        dxf->writeDimStyle(*dw, 1, 1, 1, 1, 1);
+            dw->tableAppid(1);
+            dxf->writeAppid(*dw, "ACAD");
+            dw->tableEnd();
 
-        dxf->writeBlockRecord(*dw);
-        dw->tableEnd();
+            dxf->writeDimStyle(*dw, 1, 1, 1, 1, 1);
 
-        dw->sectionEnd();
+            dxf->writeBlockRecord(*dw);
+            dw->tableEnd();
 
-        dw->sectionBlocks();
-        dxf->writeBlock(*dw, DL_BlockData("*Model_Space", 0, 0.0, 0.0, 0.0));
-        dxf->writeEndBlock(*dw, "*Model_Space");
+            dw->sectionEnd();
 
-        dw->sectionEnd();
-        dw->sectionEntities();
+            dw->sectionBlocks();
+            dxf->writeBlock(*dw, DL_BlockData("*Model_Space", 0, 0.0, 0.0, 0.0));
+            dxf->writeEndBlock(*dw, "*Model_Space");
 
-        // write all entities in model space:
-        foreach (const QxPotrace::Polygon &polygon, edges) {
-            QPolygonF aPoly = polygon.boundary;
-            if(aPoly.first() != aPoly.last())
-                aPoly.append(aPoly.first());
+            dw->sectionEnd();
+            dw->sectionEntities();
 
-            dxf->writePolyline(*dw,
-                           DL_PolylineData(aPoly.size(),0,0,DL_CLOSED_PLINE),
-                           DL_Attributes("0", 256, -1, "CONTINUOUS", 1.0));
-            foreach(QPointF pnt, aPoly) {
-                dxf->writeVertex(*dw,
-                                 DL_VertexData(
-                                     pnt.x(),
-                                     -pnt.y(),
-                                     0, 0));
+            // write all entities in model space:
+            foreach (QPolygonF aPoly, result) {
+                if(aPoly.first() != aPoly.last())
+                    aPoly.append(aPoly.first());
+
+                dxf->writePolyline(*dw,
+                               DL_PolylineData(aPoly.size(),0,0,DL_CLOSED_PLINE),
+                               DL_Attributes("0", 256, -1, "CONTINUOUS", 1.0));
+                foreach(QPointF pnt, aPoly) {
+                    dxf->writeVertex(*dw,
+                                     DL_VertexData(
+                                         pnt.x(),
+                                         -pnt.y(),
+                                         0, 0));
+                }
+                dxf->writePolylineEnd(*dw);
             }
-            dxf->writePolylineEnd(*dw);
+
+            dw->sectionEnd();
+
+            dxf->writeObjects(*dw);
+            dxf->writeObjectsEnd(*dw);
+
+            dw->dxfEOF();
+            dw->close();
+            delete dw;
+            delete dxf;
         }
-
-        dw->sectionEnd();
-
-        dxf->writeObjects(*dw);
-        dxf->writeObjectsEnd(*dw);
-
-        dw->dxfEOF();
-        dw->close();
-        delete dw;
-        delete dxf;
-    }
-    else {
-        resultImg.save(imgName);
-    }
+        else {
+            resultImg.save(imgName);
+        }
 }
 
 void ImageAlgo::on_pushButton_back_clicked()
@@ -244,7 +257,7 @@ void ImageAlgo::on_pushButton_gray_clicked()
 void ImageAlgo::on_pushButton_binary_clicked()
 {
     QImage before = resultImg;
-    resultImg = Binary(resultImg);
+    resultImg = Binary(resultImg,THRESHOLD);
     showResult();
     undoStack->push(new ImageProcessCommand({before,resultImg},"binary",ui->graphicResult));
 }

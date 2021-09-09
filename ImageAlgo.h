@@ -3,8 +3,6 @@
 
 #include <QWidget>
 
-#include "LB_Image/LB_ImageProcess.h"
-
 namespace Ui {
 class ImageAlgo;
 }
@@ -35,8 +33,8 @@ private slots:
     void on_spinBox_threshold_valueChanged(int arg1);
     void on_pushButton_thinning_clicked();
     void on_pushButton_houghLine_clicked();
-    void on_pushButton_houghCirc_clicked();    
-    void on_pushButton_findThreshold_clicked();    
+    void on_pushButton_houghCirc_clicked();
+    void on_pushButton_findThreshold_clicked();
 
 private:
     Ui::ImageAlgo *ui;

@@ -340,7 +340,7 @@
   <customwidget>
    <class>LB_ImageViewer</class>
    <extends>QGraphicsView</extends>
-   <header>LB_ImageViewer.h</header>
+   <header>LB_Image/LB_ImageViewer.h</header>
   </customwidget>
  </customwidgets>
  <resources>

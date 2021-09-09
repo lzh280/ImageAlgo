@@ -1,12 +1,20 @@
-#ifndef LB_IMAGEPROCESS_H
-#define LB_IMAGEPROCESS_H
+#ifndef LB_BASEUTIL_H
+#define LB_BASEUTIL_H
 
-#define DEG2RAD 0.017453293f
-#define RAD2DEG 57.2957796f
-
-#include <QImage>
-#include <QMap>
 #include <QtMath>
+#include <QRect>
+#include <QLine>
+#include <QVector>
+
+const double DEG2RAD = 0.017453293f;
+const double RAD2DEG = 57.2957796f;
+const QPoint INVALID_PNT = QPoint(-1,-1);
+
+const int MIN_EDGE_SIZE = 10;
+const double COLINEAR_TOLERANCE = 1.0;
+const int BEZIER_STEP = 4;
+const double MIN_SMOOTH_ANG = 135;
+const double MAX_SMOOTH_ANG = 175;
 
 class QCircle
 {
@@ -187,12 +195,12 @@ public:
     }
 
     //! filter the points of one line to get the real range
-    static void filterPoints(QList<QPoint> &pnts, const double &delta)
+    static void filterPoints(QVector<QPoint> &pnts, const double &delta)
     {
         double gap;
-        QList<QPoint>::Iterator aIter = pnts.begin();
-        QList<QPoint>::Iterator bIter = aIter++;
-        QList<QPoint>::Iterator dIter = pnts.begin();
+        QVector<QPoint>::Iterator aIter = pnts.begin();
+        QVector<QPoint>::Iterator bIter = aIter++;
+        QVector<QPoint>::Iterator dIter = pnts.begin();
         while(*bIter != pnts[pnts.size()/2])
         {
             gap = sqrt(pow(aIter->x()-bIter->x(),2) +
@@ -214,9 +222,9 @@ public:
         }
 
         // filter from the end
-        QList<QPoint>::reverse_iterator raIter = pnts.rbegin();
-        QList<QPoint>::reverse_iterator rbIter = raIter++;
-        QList<QPoint>::reverse_iterator rdIter = pnts.rbegin();
+        QVector<QPoint>::reverse_iterator raIter = pnts.rbegin();
+        QVector<QPoint>::reverse_iterator rbIter = raIter++;
+        QVector<QPoint>::reverse_iterator rdIter = pnts.rbegin();
         while(*rbIter != pnts[pnts.size()/2])
         {
             gap = sqrt(pow(raIter->x()-rbIter->x(),2) +
@@ -238,56 +246,4 @@ public:
 
 };
 
-namespace LB_Image
-{
-
-    //! templet of dealing with image with a kernel
-    template<typename T>
-    QImage Convolution(const QImage &img, T *kernel[], const int &kernelSize);
-
-    //! auto get the threshold to binary the image
-    int ThresholdDetect(const QImage &img);
-
-    //! auto get the high threshold of Canny method
-    void CannyThresholdDetec(const QImage &img, int &ThL, int &ThH);
-
-    //! changed into gray-scale images, calculate
-    //! the threshold of binarization
-    QImage Gray(const QImage &img);
-
-    //! Binarization of image
-    QImage Binary(const QImage &img);
-
-    //! median filtering
-    QImage Filter(const QImage &img, const int &winSize);
-
-    //! sharpen the image
-    QImage Sharpen(const QImage &img);
-
-    //! find contours
-    QImage SobelContours(const QImage &img);
-
-    QImage CannyContours(const QImage &img);
-
-    QImage FindContours(const QImage &img);
-
-    //! edge tracing
-    QList<QList<QPointF>> EdgeTracing(const QImage &img);
-
-    QList<QList<QPointF>> Connectivity(const QList<QList<QPointF>> &edge);
-
-    QList<QList<QPointF>> Deburring(const QList<QList<QPointF>> &edge);
-
-    QList<QList<QPointF>> BlurEdge(const QList<QList<QPointF>> &edge, const int &Iterations);
-
-    //! thinnig
-    QImage Thinning(const QImage &img);
-
-    //! Hough transform for line detection
-    QVector<QLine> HoughLine(const QImage &img);
-
-    //! Hough transform for circle detection
-    QVector<QCircle> HoughCircle(const QImage &img, const int &radius, const int &dividing);
-};
-
-#endif // LB_IMAGEPROCESS_H
+#endif // LB_BASEUTIL_H
