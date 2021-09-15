@@ -103,6 +103,7 @@ void ImageAlgo::on_pushButton_saveResult_clicked()
             // 1.trace the edge
             QVector<QPolygon> edges = RadialSweepTracing(resultImg);
             edges = SimplifyEdge(edges);
+//            edges = DogulasSimplify(edges);
             QVector<QPolygonF> result = SmoothEdge(edges);
 
             // 2.save the polygons into dxf

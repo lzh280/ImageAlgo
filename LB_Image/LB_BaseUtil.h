@@ -15,6 +15,7 @@ const double COLINEAR_TOLERANCE = 1.0;
 const int BEZIER_STEP = 4;
 const double MIN_SMOOTH_ANG = 135;
 const double MAX_SMOOTH_ANG = 175;
+const double DOUGLAS_PEUCKER_TOLERANCE = 1.42;
 
 class QCircle
 {

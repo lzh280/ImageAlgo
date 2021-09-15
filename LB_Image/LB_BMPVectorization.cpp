@@ -299,4 +299,91 @@ QPointF bezier(const QPointF &a, const QPointF &b, const QPointF &c, const QPoin
     return lerp(abbc, bccd, t);   // point on the bezier-curve (black)
 }
 
+QVector<QPolygon> DogulasSimplify(const QVector<QPolygon> &edges)
+{
+    QVector<QPolygon> result;
+    QPolygon anEdge;
+    QPolygon dougEdge;
+    QPolygon::Iterator start;
+    QPolygon::Iterator end;
+    QPolygon::Iterator ptr;
+
+    auto distance = [](const QPoint& p1, const QPoint& p2) {
+        return pow(p2.x()-p1.x(), 2) + pow(p2.y()-p1.y(), 2);
+    };
+
+    for(int i=0;i<edges.size();++i) {
+        anEdge = edges[i];
+        start = anEdge.begin();
+
+        // 1.find the point furthest from start point
+        end = start;
+        double dis = 0;
+        while(end != anEdge.end()) {
+            if(distance(*start,*end) > dis) {
+                dis = distance(*start,*end);
+                ptr = end;
+            }
+            end++;
+        }
+
+        // 2.put the start and furthest into Douglas-Peucker edge
+        dougEdge.append(*start);
+        dougEdge.append(*ptr);
+
+        // 3.perform Douglas_Peucker algorithm
+        Douglas_Peucker(start,end,ptr,dougEdge);
+
+        // 4.sort the dougEdge by the order of source
+        QPolygon tmp;
+        for(int j=0;j<anEdge.size();++j) {
+            if(dougEdge.contains(anEdge[j])) {
+                tmp.append(anEdge[j]);
+            }
+        }
+
+        result.append(tmp);
+        dougEdge.clear();
+    }
+
+    return result;
+}
+
+void Douglas_Peucker(const QPolygon::iterator &start, const QPolygon::iterator &end, const QPolygon::Iterator &furthest, QPolygon &result)
+{
+    double dis = 0;
+    QPolygon::Iterator ptr = furthestPnt(start, furthest, dis);
+    if(dis > DOUGLAS_PEUCKER_TOLERANCE && ptr != start) {
+        result.append(*ptr);
+        Douglas_Peucker(start,furthest,ptr,result);
+    }
+
+    ptr = furthestPnt(furthest, end, dis);
+    if(dis > DOUGLAS_PEUCKER_TOLERANCE && ptr != furthest) {
+        result.append(*ptr);
+        Douglas_Peucker(furthest, end, ptr, result);
+    }
+}
+
+QPolygon::iterator furthestPnt(const QPolygon::iterator &start, const QPolygon::iterator &end, double &distance)
+{
+    QPolygon::iterator furthest = start;
+    if(end == start)
+        return furthest;
+
+    QPolygon::iterator tmp = start+1;
+    distance = 0;
+
+    HLine aLin(*start, *end, 8848);
+    while(tmp != end) {
+        if(aLin.distance(*tmp) > distance) {
+            distance = aLin.distance(*tmp);
+            furthest = tmp;
+        }
+        tmp++;
+    }
+
+    return furthest;
+}
+
 }
