@@ -6,16 +6,16 @@
 #include <QLine>
 #include <QVector>
 
-const double DEG2RAD = 0.017453293f;
-const double RAD2DEG = 57.2957796f;
+const qreal DEG2RAD = 0.017453293f;
+const qreal RAD2DEG = 57.2957796f;
 const QPoint INVALID_PNT = QPoint(-1,-1);
 
-const int MIN_EDGE_SIZE = 10;
-const double COLINEAR_TOLERANCE = 1.0;
-const int BEZIER_STEP = 4;
-const double MIN_SMOOTH_ANG = 135;
-const double MAX_SMOOTH_ANG = 175;
-const double DOUGLAS_PEUCKER_TOLERANCE = 1.42;
+const qint8 MIN_EDGE_SIZE = 10;
+const qreal COLINEAR_TOLERANCE = 1.0;
+const qreal BEZIER_STEP = 5.0;
+const qreal MIN_SMOOTH_ALPHA = -0.58;
+const qreal MAX_SMOOTH_ALPHA = 0.6;
+const qreal DOUGLAS_PEUCKER_TOLERANCE = 1.42;
 
 class QCircle
 {

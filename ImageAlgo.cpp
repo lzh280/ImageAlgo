@@ -210,7 +210,7 @@ void ImageAlgo::on_pushButton_next_clicked()
 void ImageAlgo::on_pushButton_filter_clicked()
 {
     QImage before = resultImg;
-    resultImg = Filter(resultImg,3);
+    resultImg = MedianFilter(resultImg,3);
     showResult();
     undoStack->push(new ImageProcessCommand({before,resultImg},"filter",ui->graphicResult));
 }

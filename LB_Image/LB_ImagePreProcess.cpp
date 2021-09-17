@@ -143,7 +143,7 @@ QImage Binary(const QImage &img, int threshold)
     return binaryImg;
 }
 
-QImage Filter(const QImage &img, const int &winSize)
+QImage MedianFilter(const QImage &img, const int &winSize)
 {
     QImage filterImg (img);
     filterImg.toPixelFormat(QImage::Format_ARGB32);
@@ -223,6 +223,14 @@ QImage Filter(const QImage &img, const int &winSize)
     delete[] bList;
 
     return filterImg;
+}
+
+QImage GaussFilter(const QImage &img)
+{
+    double kernel [3][3]= {{0.0625, 0.125, 0.0625},
+                           {0.125, 0.25, 0.125},
+                           {0.0625, 0.125, 0.0625}};
+    return Convolution(img,(double**)kernel,3);
 }
 
 QImage Sharpen(const QImage &img)
@@ -324,11 +332,8 @@ QImage CannyContours(const QImage &img)
     QImage contoursImage (grayImage);
     contoursImage.toPixelFormat(QImage::Format_ARGB32);
 
-    // 1.Gauss filter
-    double kernel [3][3]= {{0.0625, 0.125, 0.0625},
-                           {0.125, 0.25, 0.125},
-                           {0.0625, 0.125, 0.0625}};
-    contoursImage = Convolution(grayImage,(double**)kernel,3);
+    // 1.Gauss filter    
+    contoursImage = GaussFilter(grayImage);
 
     // 2.get the gradient of each pixel
     double *Gx = new double[9];

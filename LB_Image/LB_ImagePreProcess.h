@@ -24,7 +24,10 @@ QImage Gray(const QImage &img);
 QImage Binary(const QImage &img, int threshold = -1);
 
 //! median filtering
-QImage Filter(const QImage &img, const int &winSize);
+QImage MedianFilter(const QImage &img, const int &winSize);
+
+//! Gauss filter
+QImage GaussFilter(const QImage &img);
 
 //! sharpen the image
 QImage Sharpen(const QImage &img);

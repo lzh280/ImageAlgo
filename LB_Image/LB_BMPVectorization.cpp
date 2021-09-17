@@ -174,13 +174,10 @@ QVector<QPolygonF> SmoothEdge(const QVector<QPolygon> &edges)
             double dis = aLin.distance(aGroup[k]);
             double alpha = (dis-1)/dis;
 
-//            double alpha = angle(midPnts[k], aGroup[k], midPnts[next]);
-//            bool ret1 = alpha > DEG2RAD*MIN_SMOOTH_ANG && alpha < DEG2RAD*MAX_SMOOTH_ANG;
-
-            if(alpha < 0.7) {
+            if(alpha > MIN_SMOOTH_ALPHA && alpha < MAX_SMOOTH_ALPHA) {
                 // calculate the control point
-                QPointF c1 = lerp(aGroup[k],midPnts[k],0.2);
-                QPointF c2 = lerp(aGroup[k],midPnts[next],0.2);
+                QPointF c1 = lerp(aGroup[k],midPnts[k],0.15);
+                QPointF c2 = lerp(aGroup[k],midPnts[next],0.15);
 
                 for (int i = 0; i < BEZIER_STEP; ++i) {
                     aBezireGroup << bezier(midPnts[k], c1, c2, midPnts[next], static_cast<qreal>(i) / BEZIER_STEP);
@@ -221,16 +218,18 @@ QVector<LB_Contour> DescribeEdge(const QVector<QPolygon> &edges)
         int next;
         for(int k=0;k<midPnts.size();++k) {
             next = (k+1)%midPnts.size();
-            double alpha = angle(midPnts[k], aGroup[k], midPnts[next]);
+            HLineF aLin(midPnts[k],midPnts[next]);
+            double dis = aLin.distance(aGroup[k]);
+            double alpha = (dis-1)/dis;
 
-            if(alpha < DEG2RAD*MIN_SMOOTH_ANG || alpha > DEG2RAD*MAX_SMOOTH_ANG) {
+            if(alpha < MIN_SMOOTH_ALPHA || alpha > MAX_SMOOTH_ALPHA) {
                 aContour.append(new LB_SegmentContour(midPnts[k], aGroup[k]));
                 aContour.append(new LB_SegmentContour(aGroup[k], midPnts[next]));
             }
             else {
                 // calculate the control point
-                QPointF c1 = lerp(aGroup[k],midPnts[k],0.5);
-                QPointF c2 = lerp(aGroup[k],midPnts[next],0.5);
+                QPointF c1 = lerp(aGroup[k],midPnts[k],0.15);
+                QPointF c2 = lerp(aGroup[k],midPnts[next],0.15);
                 aContour.append(new LB_SplineContour({midPnts[k], c1, c2, midPnts[next]}));
             }
         }
@@ -396,6 +395,7 @@ QVector<QPolygon> DogulasSimplify(const QVector<QPolygon> &edges)
 
         // 1.find the point furthest from start point
         end = start;
+        ptr = start;
         double dis = 0;
         while(end != anEdge.end()) {
             if(distance(*start,*end) > dis) {
