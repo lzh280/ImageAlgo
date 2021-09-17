@@ -247,4 +247,63 @@ public:
 
 };
 
+class HLineF
+{
+public:
+    HLineF(const double &x1, const double &y1, const double &x2, const double &y2)
+    {
+        px1 = x1;
+        px2 = x2;
+        py1 = y1;
+        py2 = y2;
+    }
+
+    HLineF(const QPointF &pnt1, const QPointF &pnt2)
+    {
+        px1 = pnt1.x();
+        px2 = pnt2.x();
+        py1 = pnt1.y();
+        py2 = pnt2.y();
+    }
+
+    double px1;
+    double py1;
+    double px2;
+    double py2;
+
+    double dx() const {
+        return px2-px1;
+    }
+
+    double dy() const {
+        return py2-py1;
+    }
+
+    QPointF pnt1() const {
+        return QPointF(px1,py1);
+    }
+
+    QPointF pnt2() const {
+        return QPointF(px2,py2);
+    }
+
+    void setPnt1(const QPointF &aPnt) {
+        px1 = aPnt.x();
+        py1 = aPnt.y();
+    }
+
+    void setPnt2(const QPointF &aPnt) {
+        px2 = aPnt.x();
+        py2 = aPnt.y();
+    }
+
+    double distance(const QPointF &aPnt) {
+        double kA = this->dy();
+        double kB = -this->dx();
+        double kC = -px2*this->dy()+py2*this->dx();
+
+        return qAbs(kA*aPnt.x()+kB*aPnt.y()+kC)/sqrt(pow(kA,2)+pow(kB,2));
+    }
+};
+
 #endif // LB_BASEUTIL_H

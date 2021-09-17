@@ -4,6 +4,7 @@
 #include <QImage>
 
 #include "LB_BaseUtil.h"
+#include "LB_ContourElement.h"
 
 namespace LB_Image
 {
@@ -16,6 +17,10 @@ QVector<QPolygon> SimplifyEdge(const QVector<QPolygon> &edges);
 
 //! make the edge smooth by bezier interpolation
 QVector<QPolygonF> SmoothEdge(const QVector<QPolygon> &edges);
+
+//! describe the edge into base element with segment and spline
+QVector<LB_Contour> DescribeEdge(const QVector<QPolygon> &edges);
+QVector<LB_Contour> MergeContour(const QVector<LB_Contour>& contours);
 
 //! get the 'neighbor''s index of 8-connect neighbours of 'current'
 int indexOfNeighbor(const QPoint& neighbor, const QPoint& current);

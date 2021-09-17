@@ -170,25 +170,103 @@ QVector<QPolygonF> SmoothEdge(const QVector<QPolygon> &edges)
         int next;
         for(int k=0;k<midPnts.size();++k) {
             next = (k+1)%midPnts.size();
-            double alpha = angle(midPnts[k], aGroup[k], midPnts[next]);
+            HLineF aLin(midPnts[k],midPnts[next]);
+            double dis = aLin.distance(aGroup[k]);
+            double alpha = (dis-1)/dis;
 
-            if(alpha < DEG2RAD*MIN_SMOOTH_ANG || alpha > DEG2RAD*MAX_SMOOTH_ANG) {
-                aBezireGroup.append(aGroup[k]);
-            }
-            else {
+//            double alpha = angle(midPnts[k], aGroup[k], midPnts[next]);
+//            bool ret1 = alpha > DEG2RAD*MIN_SMOOTH_ANG && alpha < DEG2RAD*MAX_SMOOTH_ANG;
+
+            if(alpha < 0.7) {
                 // calculate the control point
-                QPointF c1 = lerp(aGroup[k],midPnts[k],0.6);
-                QPointF c2 = lerp(aGroup[k],midPnts[next],0.6);
+                QPointF c1 = lerp(aGroup[k],midPnts[k],0.2);
+                QPointF c2 = lerp(aGroup[k],midPnts[next],0.2);
 
-                for (int i = 0; i <= BEZIER_STEP; ++i) {
+                for (int i = 0; i < BEZIER_STEP; ++i) {
                     aBezireGroup << bezier(midPnts[k], c1, c2, midPnts[next], static_cast<qreal>(i) / BEZIER_STEP);
                 }
+            }
+            else {
+                aBezireGroup.append(aGroup[k]);
             }
         }
 
         result.append(aBezireGroup);
     }
 
+    return result;
+}
+
+QVector<LB_Contour> DescribeEdge(const QVector<QPolygon> &edges)
+{
+    QVector<LB_Contour> result;
+    QPolygon aGroup;
+    QVector<QPointF> midPnts;
+    LB_Contour aContour;
+
+    for(int i=0;i<edges.size();++i) {
+        aGroup = edges[i];
+        aContour.clear();
+
+        // 1.generate the middle point of two edge point
+        midPnts.clear();
+        int last;
+        for(int j=0;j<aGroup.size();++j) {
+            last = (j+aGroup.size()-1)%aGroup.size();
+            midPnts.append(QPointF((aGroup[j].x()+aGroup[last].x())/2.0,
+                           (aGroup[j].y()+aGroup[last].y())/2.0));
+        }
+
+        // 2.jude if need to use bezier
+        int next;
+        for(int k=0;k<midPnts.size();++k) {
+            next = (k+1)%midPnts.size();
+            double alpha = angle(midPnts[k], aGroup[k], midPnts[next]);
+
+            if(alpha < DEG2RAD*MIN_SMOOTH_ANG || alpha > DEG2RAD*MAX_SMOOTH_ANG) {
+                aContour.append(new LB_SegmentContour(midPnts[k], aGroup[k]));
+                aContour.append(new LB_SegmentContour(aGroup[k], midPnts[next]));
+            }
+            else {
+                // calculate the control point
+                QPointF c1 = lerp(aGroup[k],midPnts[k],0.5);
+                QPointF c2 = lerp(aGroup[k],midPnts[next],0.5);
+                aContour.append(new LB_SplineContour({midPnts[k], c1, c2, midPnts[next]}));
+            }
+        }
+
+        result.append(aContour);
+    }
+
+    return result;
+}
+
+QVector<LB_Contour> MergeContour(const QVector<LB_Contour> &contours)
+{
+    QVector<LB_Contour> result;
+    LB_Contour aContour;
+    LB_Contour merged;
+
+    for(int i=0;i<contours.size();++i) {
+        aContour = contours[i];
+        merged.clear();
+
+        int next;
+        for(int j=0;j<aContour.size();++j) {
+            next = (j+1)%aContour.size();
+            if(aContour[i]->Type() == 1 && aContour[next]->Type() == 1) {
+                LB_SplineContour* spline1 = dynamic_cast<LB_SplineContour*>(aContour[i]);
+                LB_SplineContour* spline2 = dynamic_cast<LB_SplineContour*>(aContour[next]);
+                spline1->GetFitPnts().append(spline2->GetFitPnts());
+                merged.append(spline1);
+            }
+            else {
+                merged.append(aContour[i]);
+            }
+        }
+
+        result.append(merged);
+    }
     return result;
 }
 
