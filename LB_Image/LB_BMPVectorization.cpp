@@ -172,9 +172,9 @@ QVector<QPolygonF> SmoothEdge(const QVector<QPolygon> &edges)
             next = (k+1)%midPnts.size();
             HLineF aLin(midPnts[k],midPnts[next]);
             double dis = aLin.distance(aGroup[k]);
-            double alpha = (dis-1)/dis;
+            double alpha = (dis-COLINEAR_TOLERANCE)/dis;
 
-            if(alpha > MIN_SMOOTH_ALPHA && alpha < MAX_SMOOTH_ALPHA) {
+            if(alpha < SMOOTH_ALPHA) {
                 // calculate the control point
                 QPointF c1 = lerp(aGroup[k],midPnts[k],0.15);
                 QPointF c2 = lerp(aGroup[k],midPnts[next],0.15);
@@ -220,9 +220,9 @@ QVector<LB_Contour> DescribeEdge(const QVector<QPolygon> &edges)
             next = (k+1)%midPnts.size();
             HLineF aLin(midPnts[k],midPnts[next]);
             double dis = aLin.distance(aGroup[k]);
-            double alpha = (dis-1)/dis;
+            double alpha = (dis-COLINEAR_TOLERANCE)/dis;
 
-            if(alpha < MIN_SMOOTH_ALPHA || alpha > MAX_SMOOTH_ALPHA) {
+            if(alpha < 0 || alpha > SMOOTH_ALPHA) {
                 aContour.append(new LB_SegmentContour(midPnts[k], aGroup[k]));
                 aContour.append(new LB_SegmentContour(aGroup[k], midPnts[next]));
             }

@@ -24,17 +24,22 @@ private slots:
     void on_pushButton_next_clicked();
 
     void on_pushButton_filter_clicked();
-    void on_pushButton_sharpen_clicked();
+//    void on_pushButton_sharpen_clicked();
     void on_pushButton_findContours_clicked();
-    void on_pushButton_solbelContours_clicked();
-    void on_pushButton_cannyContours_clicked();
+//    void on_pushButton_solbelContours_clicked();
+//    void on_pushButton_cannyContours_clicked();
     void on_pushButton_gray_clicked();
     void on_pushButton_binary_clicked();
     void on_spinBox_threshold_valueChanged(int arg1);
-    void on_pushButton_thinning_clicked();
-    void on_pushButton_houghLine_clicked();
-    void on_pushButton_houghCirc_clicked();
+//    void on_pushButton_thinning_clicked();
+//    void on_pushButton_houghLine_clicked();
+//    void on_pushButton_houghCirc_clicked();
     void on_pushButton_findThreshold_clicked();
+
+    void on_spinBox_minPathLen_valueChanged(int arg1);
+    void on_doubleSpinBox_alpha_valueChanged(double arg1);
+    void on_spinBox_bezierStep_valueChanged(int arg1);
+    void on_doubleSpinBox_colinearTol_valueChanged(double arg1);
 
 private:
     Ui::ImageAlgo *ui;
@@ -45,6 +50,9 @@ private:
     QUndoStack *undoStack;
 
     void showResult();
+
+signals:
+    void solveContour(const QVector<QPolygonF>& contours);
 
 };
 
