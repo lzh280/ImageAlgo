@@ -44,7 +44,7 @@ QPointF lerp(const QPointF &a, const QPointF &b, qreal t);
 QPointF bezier(const QPointF &a, const QPointF &b, const QPointF &c, const QPointF &d, qreal t);
 
 //! Douglas-Peucker algorithm to simplify the edge into polygon
-QVector<QPolygon> DogulasSimplify(const QVector<QPolygon> &edges);
+QVector<QPolygon> DouglasSimplify(const QVector<QPolygon> &edges);
 void Douglas_Peucker(const QPolygon::iterator& start, const QPolygon::iterator& end, const QPolygon::Iterator& furthest, QPolygon& result);
 QPolygon::iterator furthestPnt(const QPolygon::iterator& start, const QPolygon::iterator& end, double& distance);
 

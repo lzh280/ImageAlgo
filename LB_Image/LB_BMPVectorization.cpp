@@ -222,15 +222,12 @@ QVector<LB_Contour> DescribeEdge(const QVector<QPolygon> &edges)
             double dis = aLin.distance(aGroup[k]);
             double alpha = (dis-COLINEAR_TOLERANCE)/dis;
 
-            if(alpha < 0 || alpha > SMOOTH_ALPHA) {
+            if(alpha >= SMOOTH_ALPHA) {
                 aContour.append(new LB_SegmentContour(midPnts[k], aGroup[k]));
                 aContour.append(new LB_SegmentContour(aGroup[k], midPnts[next]));
             }
             else {
-                // calculate the control point
-                QPointF c1 = lerp(aGroup[k],midPnts[k],0.15);
-                QPointF c2 = lerp(aGroup[k],midPnts[next],0.15);
-                aContour.append(new LB_SplineContour({midPnts[k], c1, c2, midPnts[next]}));
+                aContour.append(new LB_SplineContour({midPnts[k], aGroup[k], midPnts[next]}));
             }
         }
 
@@ -376,7 +373,7 @@ QPointF bezier(const QPointF &a, const QPointF &b, const QPointF &c, const QPoin
     return lerp(abbc, bccd, t);   // point on the bezier-curve (black)
 }
 
-QVector<QPolygon> DogulasSimplify(const QVector<QPolygon> &edges)
+QVector<QPolygon> DouglasSimplify(const QVector<QPolygon> &edges)
 {
     QVector<QPolygon> result;
     QPolygon anEdge;
@@ -431,13 +428,13 @@ void Douglas_Peucker(const QPolygon::iterator &start, const QPolygon::iterator &
 {
     double dis = 0;
     QPolygon::Iterator ptr = furthestPnt(start, furthest, dis);
-    if(dis > DOUGLAS_PEUCKER_TOLERANCE && ptr != start) {
+    if(dis > COLINEAR_TOLERANCE && ptr != start) {
         result.append(*ptr);
         Douglas_Peucker(start,furthest,ptr,result);
     }
 
     ptr = furthestPnt(furthest, end, dis);
-    if(dis > DOUGLAS_PEUCKER_TOLERANCE && ptr != furthest) {
+    if(dis > COLINEAR_TOLERANCE && ptr != furthest) {
         result.append(*ptr);
         Douglas_Peucker(furthest, end, ptr, result);
     }

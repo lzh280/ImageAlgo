@@ -1,5 +1,5 @@
-#include "ImageAlgo.h"
-#include "ui_ImageAlgo.h"
+#include "MainWindow.h"
+#include "ui_MainWindow.h"
 
 #include <QProgressDialog>
 #include <QPainter>
@@ -23,32 +23,26 @@ using namespace LB_Image;
 
 int THRESHOLD = 128;
 
-ImageAlgo::ImageAlgo(QWidget *parent) :
-    QWidget(parent),
-    ui(new Ui::ImageAlgo)
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
     undoStack = new QUndoStack();
-
-    QVBoxLayout *layout = new QVBoxLayout(ui->widget_undo);
     QUndoView *aView = new QUndoView(undoStack);
-    layout->addWidget(aView);
+    ui->dockWidget_undo->setWidget(aView);
 
-    ui->spinBox_threshold->setValue(THRESHOLD);
-    ui->doubleSpinBox_alpha->setValue(SMOOTH_ALPHA);
-    ui->doubleSpinBox_colinearTol->setValue(COLINEAR_TOLERANCE);
-    ui->spinBox_bezierStep->setValue(BEZIER_STEP);
-    ui->spinBox_minPathLen->setValue(MIN_EDGE_SIZE);
+    loadArguments();
 }
 
-ImageAlgo::~ImageAlgo()
+MainWindow::~MainWindow()
 {
     undoStack->deleteLater();
     delete ui;
 }
 
-void ImageAlgo::on_pushButton_openImg_clicked()
+void MainWindow::on_action_openImg_triggered()
 {
     QString filename = QFileDialog::getOpenFileName(this,tr("chose one image"),"","*.jpg *.png *bmp *.jpeg *.jfif");
     if(filename.isEmpty())
@@ -58,24 +52,26 @@ void ImageAlgo::on_pushButton_openImg_clicked()
     setWindowTitle(filename);
 
     sourceImg.load(filename);
-    resultImg = sourceImg;
+    resultImg = sourceImg.scaled(sourceImg.size()*SCALE_FACTOR);
     THRESHOLD = ThresholdDetect(sourceImg);
     ui->spinBox_threshold->setValue(THRESHOLD);
 
     QPixmap sourcemap = QPixmap::fromImage(sourceImg);
     ui->graphicSource->SetPixmap(sourcemap);
-    ui->graphicResult->SetPixmap(sourcemap);
+    ui->label_imgInfoSource->setText(QString("%1px X %2px").arg(sourcemap.width()).arg(sourcemap.height()));
+    ui->graphicResult->SetPixmap(sourcemap.scaled(sourcemap.size()*SCALE_FACTOR));
+    ui->label_imgInfoResult->setText(QString("%1px X %2px").arg(resultImg.width()).arg(resultImg.height()));
 
     undoStack->clear();
 }
 
-void ImageAlgo::showResult()
+void MainWindow::showResult()
 {
     QPixmap tarmap = QPixmap::fromImage(resultImg);
     ui->graphicResult->SetPixmap(tarmap);
 }
 
-void ImageAlgo::on_pushButton_saveResult_clicked()
+void MainWindow::on_action_saveResult_triggered()
 {
     if(resultImg.isNull())
         return;
@@ -87,7 +83,7 @@ void ImageAlgo::on_pushButton_saveResult_clicked()
     emit solveContour(result);
 }
 
-void ImageAlgo::on_pushButton_back_clicked()
+void MainWindow::on_action_back_triggered()
 {
     undoStack->undo();
     int index = undoStack->index();
@@ -95,7 +91,7 @@ void ImageAlgo::on_pushButton_back_clicked()
     resultImg = cmd->GetInput();
 }
 
-void ImageAlgo::on_pushButton_next_clicked()
+void MainWindow::on_action_next_triggered()
 {
     undoStack->redo();
     int index = qBound(0,undoStack->index()-1,undoStack->count()-1);
@@ -103,7 +99,7 @@ void ImageAlgo::on_pushButton_next_clicked()
     resultImg = cmd->GetOutput();
 }
 
-void ImageAlgo::on_pushButton_filter_clicked()
+void MainWindow::on_action_filter_triggered()
 {
     QImage before = resultImg;
     resultImg = MedianFilter(resultImg,3);
@@ -111,7 +107,7 @@ void ImageAlgo::on_pushButton_filter_clicked()
     undoStack->push(new ImageProcessCommand({before,resultImg},"filter",ui->graphicResult));
 }
 
-//void ImageAlgo::on_pushButton_sharpen_clicked()
+//void MainWindow::on_pushButton_sharpen_clicked()
 //{
 //    QImage before = resultImg;
 //    resultImg = Sharpen(resultImg);
@@ -119,7 +115,7 @@ void ImageAlgo::on_pushButton_filter_clicked()
 //    undoStack->push(new ImageProcessCommand({before,resultImg},"sharpen",ui->graphicResult));
 //}
 
-void ImageAlgo::on_pushButton_findContours_clicked()
+void MainWindow::on_action_findContours_triggered()
 {
     QImage before = resultImg;
     resultImg = FindContours(resultImg);
@@ -127,7 +123,7 @@ void ImageAlgo::on_pushButton_findContours_clicked()
     undoStack->push(new ImageProcessCommand({before,resultImg},"find contours",ui->graphicResult));
 }
 
-//void ImageAlgo::on_pushButton_solbelContours_clicked()
+//void MainWindow::on_pushButton_solbelContours_clicked()
 //{
 //    QImage before = resultImg;
 //    resultImg = SobelContours(resultImg);
@@ -135,7 +131,7 @@ void ImageAlgo::on_pushButton_findContours_clicked()
 //    undoStack->push(new ImageProcessCommand({before,resultImg},"sobel contours",ui->graphicResult));
 //}
 
-//void ImageAlgo::on_pushButton_cannyContours_clicked()
+//void MainWindow::on_pushButton_cannyContours_clicked()
 //{
 //    QImage before = resultImg;
 //    resultImg = CannyContours(resultImg);
@@ -143,15 +139,15 @@ void ImageAlgo::on_pushButton_findContours_clicked()
 //    undoStack->push(new ImageProcessCommand({before,resultImg},"canny contours",ui->graphicResult));
 //}
 
-void ImageAlgo::on_pushButton_gray_clicked()
-{
-    QImage before = resultImg;
-    resultImg = Gray(resultImg);
-    showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},"gray",ui->graphicResult));
-}
+//void MainWindow::on_action_gray_triggered()
+//{
+//    QImage before = resultImg;
+//    resultImg = Gray(resultImg);
+//    showResult();
+//    undoStack->push(new ImageProcessCommand({before,resultImg},"gray",ui->graphicResult));
+//}
 
-void ImageAlgo::on_pushButton_binary_clicked()
+void MainWindow::on_action_binary_triggered()
 {
     QImage before = resultImg;
     resultImg = Binary(resultImg,THRESHOLD);
@@ -159,12 +155,12 @@ void ImageAlgo::on_pushButton_binary_clicked()
     undoStack->push(new ImageProcessCommand({before,resultImg},"binary",ui->graphicResult));
 }
 
-void ImageAlgo::on_spinBox_threshold_valueChanged(int arg1)
+void MainWindow::on_spinBox_threshold_valueChanged(int arg1)
 {
     THRESHOLD = arg1;
 }
 
-//void ImageAlgo::on_pushButton_thinning_clicked()
+//void MainWindow::on_pushButton_thinning_clicked()
 //{
 //    QImage before = resultImg;
 //    resultImg = Thinning(resultImg);
@@ -172,7 +168,7 @@ void ImageAlgo::on_spinBox_threshold_valueChanged(int arg1)
 //    undoStack->push(new ImageProcessCommand({before,resultImg},"thinning",ui->graphicResult));
 //}
 
-//void ImageAlgo::on_pushButton_houghLine_clicked()
+//void MainWindow::on_pushButton_houghLine_clicked()
 //{
 //    QImage before = resultImg;
 
@@ -192,7 +188,7 @@ void ImageAlgo::on_spinBox_threshold_valueChanged(int arg1)
 //    undoStack->push(new ImageProcessCommand({before,resultImg},"hough line",ui->graphicResult));
 //}
 
-//void ImageAlgo::on_pushButton_houghCirc_clicked()
+//void MainWindow::on_pushButton_houghCirc_clicked()
 //{
 //    QImage before = resultImg;
 //    QVector<QCircle> result;
@@ -236,28 +232,85 @@ void ImageAlgo::on_spinBox_threshold_valueChanged(int arg1)
 //    undoStack->push(new ImageProcessCommand({before,resultImg},"hough circle",ui->graphicResult));
 //}
 
-void ImageAlgo::on_pushButton_findThreshold_clicked()
+void MainWindow::on_action_findThreshold_triggered()
 {
     THRESHOLD = ThresholdDetect(resultImg);
     ui->spinBox_threshold->setValue(THRESHOLD);
 }
 
-void ImageAlgo::on_spinBox_minPathLen_valueChanged(int arg1)
+void MainWindow::on_spinBox_minPathLen_valueChanged(int arg1)
 {
     MIN_EDGE_SIZE = arg1;
 }
 
-void ImageAlgo::on_doubleSpinBox_alpha_valueChanged(double arg1)
+void MainWindow::on_doubleSpinBox_alpha_valueChanged(double arg1)
 {
     SMOOTH_ALPHA = arg1;
 }
 
-void ImageAlgo::on_spinBox_bezierStep_valueChanged(int arg1)
+void MainWindow::on_spinBox_bezierStep_valueChanged(int arg1)
 {
     BEZIER_STEP = arg1;
 }
 
-void ImageAlgo::on_doubleSpinBox_colinearTol_valueChanged(double arg1)
+void MainWindow::on_doubleSpinBox_colinearTol_valueChanged(double arg1)
 {
     COLINEAR_TOLERANCE = arg1;
+}
+
+void MainWindow::on_comboBox_scaleFactor_currentIndexChanged(int index)
+{
+    switch(index) {
+    case 0: SCALE_FACTOR = 0.5;break;
+    case 1: SCALE_FACTOR = 0.67;break;
+    case 2: SCALE_FACTOR = 0.75;break;
+    case 3: SCALE_FACTOR = 0.8;break;
+    case 4: SCALE_FACTOR = 0.9;break;
+    case 5: SCALE_FACTOR = 1.0;break;
+    case 6: SCALE_FACTOR = 1.1;break;
+    case 7: SCALE_FACTOR = 1.25;break;
+    case 8: SCALE_FACTOR = 1.5;break;
+    case 9: SCALE_FACTOR = 1.75;break;
+    case 10: SCALE_FACTOR = 2.0;break;
+    }
+    if(resultImg.isNull())
+        return;
+
+    resultImg = resultImg.scaled(sourceImg.size()*SCALE_FACTOR);
+    ui->label_imgInfoResult->setText(QString("%1px X %2px").arg(resultImg.width()).arg(resultImg.height()));
+    showResult();
+}
+
+void MainWindow::loadArguments()
+{
+    ui->spinBox_threshold->setValue(THRESHOLD);
+    ui->doubleSpinBox_alpha->setValue(SMOOTH_ALPHA);
+    ui->doubleSpinBox_colinearTol->setValue(COLINEAR_TOLERANCE);
+    ui->spinBox_bezierStep->setValue(BEZIER_STEP);
+    ui->spinBox_minPathLen->setValue(MIN_EDGE_SIZE);
+
+    if(SCALE_FACTOR == 0.5)
+        ui->comboBox_scaleFactor->setCurrentIndex(0);
+    else if(SCALE_FACTOR == 0.67)
+        ui->comboBox_scaleFactor->setCurrentIndex(1);
+    else if(SCALE_FACTOR == 0.75)
+        ui->comboBox_scaleFactor->setCurrentIndex(2);
+    else if(SCALE_FACTOR == 0.8)
+        ui->comboBox_scaleFactor->setCurrentIndex(3);
+    else if(SCALE_FACTOR == 0.9)
+        ui->comboBox_scaleFactor->setCurrentIndex(4);
+    else if(SCALE_FACTOR == 1.0)
+        ui->comboBox_scaleFactor->setCurrentIndex(5);
+    else if(SCALE_FACTOR == 1.1)
+        ui->comboBox_scaleFactor->setCurrentIndex(6);
+    else if(SCALE_FACTOR == 1.25)
+        ui->comboBox_scaleFactor->setCurrentIndex(7);
+    else if(SCALE_FACTOR == 1.5)
+        ui->comboBox_scaleFactor->setCurrentIndex(8);
+    else if(SCALE_FACTOR == 1.75)
+        ui->comboBox_scaleFactor->setCurrentIndex(9);
+    else if(SCALE_FACTOR == 2.0)
+        ui->comboBox_scaleFactor->setCurrentIndex(10);
+    else
+        ui->comboBox_scaleFactor->setCurrentIndex(5);
 }

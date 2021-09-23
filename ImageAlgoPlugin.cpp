@@ -10,7 +10,7 @@
 #include "RPolylineEntity.h"
 #include "RAddObjectOperation.h"
 
-#include "ImageAlgo.h"
+#include "MainWindow.h"
 
 bool ImageAlgoPlugin::init() {
     return true;
@@ -46,11 +46,11 @@ RPluginInfo ImageAlgoPlugin::getPluginInfo() {
 }
 
 void ImageAlgoPlugin::on_actionImage() {
-    ImageAlgo* aImageWid = new ImageAlgo();
+    MainWindow* aImageWid = new MainWindow();
     aImageWid->setAttribute(Qt::WA_DeleteOnClose);
     aImageWid->show();
 
-    connect(aImageWid,&ImageAlgo::solveContour,this,[=](const QVector<QPolygonF>& contours) {
+    connect(aImageWid,&MainWindow::solveContour,this,[=](const QVector<QPolygonF>& contours) {
         RDocumentInterface* di = RMainWindow::getDocumentInterfaceStatic();
         RDocument& doc = di->getDocument();
         RAddObjectOperation* operation = new RAddObjectOperation();

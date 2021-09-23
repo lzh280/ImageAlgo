@@ -1,0 +1,420 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1349</width>
+    <height>640</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>图片提取加工路径</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <widget class="LB_ImageViewer" name="graphicSource">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>12</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="LB_ImageViewer" name="graphicResult">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>12</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_imgInfoSource">
+      <property name="text">
+       <string>未打开图片</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QLabel" name="label_imgInfoResult">
+      <property name="text">
+       <string>未打开图片</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1349</width>
+     <height>23</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QDockWidget" name="dockWidget_undo">
+   <property name="minimumSize">
+    <size>
+     <width>200</width>
+     <height>38</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>200</width>
+     <height>524287</height>
+    </size>
+   </property>
+   <property name="windowTitle">
+    <string>操作记录</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents"/>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget_arguments">
+   <property name="minimumSize">
+    <size>
+     <width>200</width>
+     <height>210</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>200</width>
+     <height>210</height>
+    </size>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>参数设置</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2">
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_colinearTol">
+       <property name="text">
+        <string>共线容差：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1" colspan="3">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_alpha">
+       <property name="toolTip">
+        <string>尖角系数越大，图像轮廓圆滑角点越多</string>
+       </property>
+       <property name="singleStep">
+        <double>0.050000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.550000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0" colspan="3">
+      <widget class="QLabel" name="label_minPathLen">
+       <property name="text">
+        <string>最小边缘长度：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2" colspan="2">
+      <widget class="QSpinBox" name="spinBox_threshold">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>2</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="maximum">
+        <number>255</number>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="3">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_colinearTol">
+       <property name="toolTip">
+        <string>矢量化过程中，像素点处于一条直线的最大容差</string>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="3">
+      <widget class="QSpinBox" name="spinBox_bezierStep">
+       <property name="toolTip">
+        <string>替代原轮廓的顺滑点个数</string>
+       </property>
+       <property name="minimum">
+        <number>2</number>
+       </property>
+       <property name="maximum">
+        <number>15</number>
+       </property>
+       <property name="value">
+        <number>5</number>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_ahpha">
+       <property name="text">
+        <string>尖角系数：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0" colspan="2">
+      <widget class="QLabel" name="label_bezierStep">
+       <property name="text">
+        <string>曲线插值数：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" colspan="2">
+      <widget class="QLabel" name="label_threshold">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>二值化阈值：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="3">
+      <widget class="QSpinBox" name="spinBox_minPathLen">
+       <property name="toolTip">
+        <string>一段轮廓的最小像素数</string>
+       </property>
+       <property name="maximum">
+        <number>999</number>
+       </property>
+       <property name="value">
+        <number>10</number>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_scaleFactor">
+       <property name="text">
+        <string>缩放倍率：</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2" colspan="2">
+      <widget class="QComboBox" name="comboBox_scaleFactor">
+       <property name="currentIndex">
+        <number>5</number>
+       </property>
+       <item>
+        <property name="text">
+         <string>50%</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>67%</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>75%</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>80%</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>90%</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>100%</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>110%</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>125%</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>150%</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>175%</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>200%</string>
+        </property>
+       </item>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="action_openImg"/>
+   <addaction name="action_saveResult"/>
+   <addaction name="separator"/>
+   <addaction name="action_back"/>
+   <addaction name="action_next"/>
+   <addaction name="separator"/>
+   <addaction name="action_filter"/>
+   <addaction name="action_findContours"/>
+   <addaction name="action_binary"/>
+   <addaction name="action_findThreshold"/>
+  </widget>
+  <action name="action_openImg">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_open.png</normaloff>:/icons/img_open.png</iconset>
+   </property>
+   <property name="text">
+    <string>打开图片</string>
+   </property>
+   <property name="statusTip">
+    <string>打开图片</string>
+   </property>
+  </action>
+  <action name="action_saveResult">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_save.png</normaloff>:/icons/img_save.png</iconset>
+   </property>
+   <property name="text">
+    <string>使用结果</string>
+   </property>
+   <property name="statusTip">
+    <string>使用结果</string>
+   </property>
+  </action>
+  <action name="action_back">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_back.png</normaloff>:/icons/img_back.png</iconset>
+   </property>
+   <property name="text">
+    <string>上一步</string>
+   </property>
+   <property name="statusTip">
+    <string>上一步</string>
+   </property>
+  </action>
+  <action name="action_next">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_next.png</normaloff>:/icons/img_next.png</iconset>
+   </property>
+   <property name="text">
+    <string>下一步</string>
+   </property>
+   <property name="statusTip">
+    <string>下一步</string>
+   </property>
+  </action>
+  <action name="action_filter">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_filter.png</normaloff>:/icons/img_filter.png</iconset>
+   </property>
+   <property name="text">
+    <string>滤波</string>
+   </property>
+   <property name="statusTip">
+    <string>滤波</string>
+   </property>
+  </action>
+  <action name="action_findContours">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_edge.png</normaloff>:/icons/img_edge.png</iconset>
+   </property>
+   <property name="text">
+    <string>边缘检测</string>
+   </property>
+   <property name="statusTip">
+    <string>边缘检测</string>
+   </property>
+  </action>
+  <action name="action_binary">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_binary.png</normaloff>:/icons/img_binary.png</iconset>
+   </property>
+   <property name="text">
+    <string>二值化</string>
+   </property>
+   <property name="statusTip">
+    <string>二值化</string>
+   </property>
+  </action>
+  <action name="action_findThreshold">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_calculateTh.png</normaloff>:/icons/img_calculateTh.png</iconset>
+   </property>
+   <property name="text">
+    <string>最佳阈值</string>
+   </property>
+   <property name="statusTip">
+    <string>最佳阈值</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>LB_ImageViewer</class>
+   <extends>QGraphicsView</extends>
+   <header>LB_Image/LB_ImageViewer.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="ImageAlgo.qrc"/>
+ </resources>
+ <connections/>
+</ui>

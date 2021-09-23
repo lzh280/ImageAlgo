@@ -8,11 +8,9 @@ SOURCES += \
         LB_Image/LB_ElementDetection.cpp \
         LB_Image/LB_ImagePreProcess.cpp \
         LB_Image/LB_ImageViewer.cpp \
-        main.cpp \
-        ImageAlgo.cpp
+        MainWindow.cpp \
 
 HEADERS += \
-        ImageAlgo.h \
     ImageProcessCommand.h \
     LB_Image/LB_BMPVectorization.h \
     LB_Image/LB_BaseUtil.h \
@@ -21,9 +19,10 @@ HEADERS += \
     LB_Image/LB_ImagePreProcess.h \
     LB_Image/LB_ImageViewer.h \
     LB_ImageViewer.h \
+    MainWindow.h
 
 FORMS += \
-        ImageAlgo.ui
+        MainWindow.ui
 
 RESOURCES += \
     ImageAlgo.qrc

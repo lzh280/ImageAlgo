@@ -15,5 +15,6 @@
         <file>icons/hough_line.png</file>
         <file>icons/img_calculateTh.png</file>
         <file>icons/img_next.png</file>
+        <file>icons/background.png</file>
     </qresource>
 </RCC>

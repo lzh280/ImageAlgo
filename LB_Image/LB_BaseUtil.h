@@ -7,14 +7,14 @@
 #include <QVector>
 
 inline const qreal DEG2RAD = 0.017453293f;
-static const qreal RAD2DEG = 57.2957796f;
+inline const qreal RAD2DEG = 57.2957796f;
 inline const QPoint INVALID_PNT = QPoint(-1,-1);
 
 inline qint8 MIN_EDGE_SIZE = 10;
 inline qreal COLINEAR_TOLERANCE = 1.0;
 inline qreal BEZIER_STEP = 5.0;
 inline qreal SMOOTH_ALPHA = 0.55;
-inline qreal DOUGLAS_PEUCKER_TOLERANCE = 1.0;
+inline qreal SCALE_FACTOR = 1.0;
 
 class QCircle
 {

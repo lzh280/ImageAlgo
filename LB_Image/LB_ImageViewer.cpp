@@ -10,7 +10,7 @@ LB_ImageViewer::LB_ImageViewer(QWidget *parent)
 {
     m_mapScene = new QGraphicsScene(this);
     this->setScene(m_mapScene);
-    this->setBackgroundBrush(QBrush(QColor(128,128,128,255),Qt::SolidPattern));
+    this->setBackgroundBrush(QPixmap(":/icons/background.png"));
     this->setDragMode(NoDrag);
 }
 
