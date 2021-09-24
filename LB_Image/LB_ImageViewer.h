@@ -2,6 +2,8 @@
 
 #include <QGraphicsView>
 
+class LB_PolygonItem;
+
 class LB_ImageViewer : public QGraphicsView
 {
     Q_OBJECT
@@ -10,7 +12,9 @@ public:
     explicit LB_ImageViewer(QWidget *parent = nullptr);
     ~LB_ImageViewer();
 
+    void ResetContours();
     void SetPixmap(const QPixmap &map);
+    void SetImageContours(const QVector<QPolygonF>& contours);
 
 protected:
 
@@ -18,8 +22,8 @@ protected:
     virtual void wheelEvent(QWheelEvent *event) override;
 
 private:
-    QPixmap m_pixmap;
-    QGraphicsPixmapItem *m_mapItem;
-    QGraphicsScene *m_mapScene;
+    QGraphicsPixmapItem *myPixmapItem;
+    QVector<LB_PolygonItem*> myPolyItems;
+    QGraphicsScene *myGraphicScene;
 
 };

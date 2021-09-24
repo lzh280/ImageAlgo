@@ -4,51 +4,76 @@
 #include <QGraphicsScene>
 #include <QGraphicsPixmapItem>
 
+#include "LB_Graphics/LB_GraphicsItem.h"
+
 LB_ImageViewer::LB_ImageViewer(QWidget *parent)
     : QGraphicsView(parent),
-      m_mapItem(nullptr)
+    myPixmapItem(nullptr),
+    myPolyItems({})
 {
-    m_mapScene = new QGraphicsScene(this);
-    this->setScene(m_mapScene);
+    myGraphicScene = new QGraphicsScene(this);
+    this->setScene(myGraphicScene);
     this->setBackgroundBrush(QPixmap(":/icons/background.png"));
     this->setDragMode(NoDrag);
 }
 
 LB_ImageViewer::~LB_ImageViewer()
 {
-    if(m_mapItem) {
-        delete m_mapItem;
-        m_mapItem = nullptr;
+    if(myPixmapItem) {
+        delete myPixmapItem;
+        myPixmapItem = nullptr;
     }
+
+    ResetContours();
+}
+
+void LB_ImageViewer::ResetContours()
+{
+    foreach(LB_PolygonItem* item, myPolyItems) {
+        if(item) {
+            myGraphicScene->removeItem(item);
+            delete item;
+            item = nullptr;
+        }
+    }
+    myPolyItems.clear();
 }
 
 void LB_ImageViewer::SetPixmap(const QPixmap &map)
 {
-    m_pixmap = map;
-
-    if(!m_mapItem) {
-        m_mapItem = m_mapScene->addPixmap(m_pixmap);
+    if(!myPixmapItem) {
+        myPixmapItem = myGraphicScene->addPixmap(map);
     }
     else {
-        m_mapItem->setPixmap(map);
+        myPixmapItem->setPixmap(map);
     }
 
-    m_mapScene->setSceneRect(m_pixmap.rect());
+    myGraphicScene->setSceneRect(map.rect());
     this->setDragMode(ScrollHandDrag);
+}
+
+void LB_ImageViewer::SetImageContours(const QVector<QPolygonF> &contours)
+{
+    ResetContours();
+
+    foreach(const QPolygonF& poly, contours) {
+        LB_PolygonItem* item = new LB_PolygonItem(poly);
+        myPolyItems.append(item);
+        myGraphicScene->addItem(item);
+    }
 }
 
 void LB_ImageViewer::resizeEvent(QResizeEvent *event)
 {
-    if(!m_mapItem)
-        return;
-
-    QGraphicsView::resizeEvent(event);
-    this->centerOn(m_mapItem);
+    if(myPixmapItem) {
+        QGraphicsView::resizeEvent(event);
+        this->centerOn(myPixmapItem);
+    }
 }
 
 void LB_ImageViewer::wheelEvent(QWheelEvent *event)
 {
-    if(!m_mapItem)
+    if(!myPixmapItem && myPolyItems.isEmpty())
         return;
 
     this->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);

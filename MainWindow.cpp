@@ -51,14 +51,17 @@ void MainWindow::on_action_openImg_triggered()
     }
     setWindowTitle(filename);
 
+    //get the image and scale it, find the best threshold as well
     sourceImg.load(filename);
     resultImg = sourceImg.scaled(sourceImg.size()*SCALE_FACTOR);
     THRESHOLD = ThresholdDetect(sourceImg);
     ui->spinBox_threshold->setValue(THRESHOLD);
 
+    // show the two pixmap, and it's resolutiuon
     QPixmap sourcemap = QPixmap::fromImage(sourceImg);
     ui->graphicSource->SetPixmap(sourcemap);
     ui->label_imgInfoSource->setText(QString("%1px X %2px").arg(sourcemap.width()).arg(sourcemap.height()));
+    ui->graphicResult->ResetContours();
     ui->graphicResult->SetPixmap(sourcemap.scaled(sourcemap.size()*SCALE_FACTOR));
     ui->label_imgInfoResult->setText(QString("%1px X %2px").arg(resultImg.width()).arg(resultImg.height()));
 
@@ -71,7 +74,7 @@ void MainWindow::showResult()
     ui->graphicResult->SetPixmap(tarmap);
 }
 
-void MainWindow::on_action_saveResult_triggered()
+void MainWindow::on_action_generateResult_triggered()
 {
     if(resultImg.isNull())
         return;
@@ -80,7 +83,8 @@ void MainWindow::on_action_saveResult_triggered()
     edges = SimplifyEdge(edges);
     QVector<QPolygonF> result = SmoothEdge(edges);
 
-    emit solveContour(result);
+    ui->graphicResult->ResetContours();
+    ui->graphicResult->SetImageContours(result);
 }
 
 void MainWindow::on_action_back_triggered()

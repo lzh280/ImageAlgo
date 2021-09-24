@@ -19,7 +19,7 @@ public:
 
 private slots:
     void on_action_openImg_triggered();
-    void on_action_saveResult_triggered();
+    void on_action_generateResult_triggered();
     void on_action_back_triggered();
     void on_action_next_triggered();
 
@@ -53,8 +53,6 @@ private:
     void loadArguments();
     void showResult();
 
-signals:
-    void solveContour(const QVector<QPolygonF>& contours);
 };
 
 #endif // MAINWINDOW_H

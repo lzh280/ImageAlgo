@@ -299,7 +299,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="action_openImg"/>
-   <addaction name="action_saveResult"/>
+   <addaction name="action_generateResult"/>
    <addaction name="separator"/>
    <addaction name="action_back"/>
    <addaction name="action_next"/>
@@ -321,16 +321,16 @@
     <string>打开图片</string>
    </property>
   </action>
-  <action name="action_saveResult">
+  <action name="action_generateResult">
    <property name="icon">
     <iconset resource="ImageAlgo.qrc">
      <normaloff>:/icons/img_save.png</normaloff>:/icons/img_save.png</iconset>
    </property>
    <property name="text">
-    <string>使用结果</string>
+    <string>生成结果</string>
    </property>
    <property name="statusTip">
-    <string>使用结果</string>
+    <string>生成结果</string>
    </property>
   </action>
   <action name="action_back">
