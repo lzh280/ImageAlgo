@@ -13,6 +13,8 @@ public:
     ~LB_ImageViewer();
 
     void ResetContours();
+    void SetContoursVisible(bool ret);
+    void SetVertexVisible(bool ret);
     void SetPixmap(const QPixmap &map);
     void SetImageContours(const QVector<QPolygonF>& contours);
 

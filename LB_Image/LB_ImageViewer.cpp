@@ -15,6 +15,7 @@ LB_ImageViewer::LB_ImageViewer(QWidget *parent)
     this->setScene(myGraphicScene);
     this->setBackgroundBrush(QPixmap(":/icons/background.png"));
     this->setDragMode(NoDrag);
+    this->setRenderHints(QPainter::Antialiasing);
 }
 
 LB_ImageViewer::~LB_ImageViewer()
@@ -37,6 +38,24 @@ void LB_ImageViewer::ResetContours()
         }
     }
     myPolyItems.clear();
+}
+
+void LB_ImageViewer::SetContoursVisible(bool ret)
+{
+    foreach(LB_PolygonItem* item, myPolyItems) {
+        if(item) {
+            item->setVisible(ret);
+        }
+    }
+}
+
+void LB_ImageViewer::SetVertexVisible(bool ret)
+{
+    foreach(LB_PolygonItem* item, myPolyItems) {
+        if(item) {
+            item->SetVertexVisible(ret);
+        }
+    }
 }
 
 void LB_ImageViewer::SetPixmap(const QPixmap &map)

@@ -108,7 +108,7 @@ void MainWindow::on_action_filter_triggered()
     QImage before = resultImg;
     resultImg = MedianFilter(resultImg,3);
     showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},"filter",ui->graphicResult));
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("filter"),ui->graphicResult));
 }
 
 //void MainWindow::on_pushButton_sharpen_clicked()
@@ -116,7 +116,7 @@ void MainWindow::on_action_filter_triggered()
 //    QImage before = resultImg;
 //    resultImg = Sharpen(resultImg);
 //    showResult();
-//    undoStack->push(new ImageProcessCommand({before,resultImg},"sharpen",ui->graphicResult));
+//    undoStack->push(new ImageProcessCommand({before,resultImg},tr("sharpen"),ui->graphicResult));
 //}
 
 void MainWindow::on_action_findContours_triggered()
@@ -124,7 +124,7 @@ void MainWindow::on_action_findContours_triggered()
     QImage before = resultImg;
     resultImg = FindContours(resultImg);
     showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},"find contours",ui->graphicResult));
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("find contours"),ui->graphicResult));
 }
 
 //void MainWindow::on_pushButton_solbelContours_clicked()
@@ -132,7 +132,7 @@ void MainWindow::on_action_findContours_triggered()
 //    QImage before = resultImg;
 //    resultImg = SobelContours(resultImg);
 //    showResult();
-//    undoStack->push(new ImageProcessCommand({before,resultImg},"sobel contours",ui->graphicResult));
+//    undoStack->push(new ImageProcessCommand({before,resultImg},tr("sobel contours"),ui->graphicResult));
 //}
 
 //void MainWindow::on_pushButton_cannyContours_clicked()
@@ -140,7 +140,7 @@ void MainWindow::on_action_findContours_triggered()
 //    QImage before = resultImg;
 //    resultImg = CannyContours(resultImg);
 //    showResult();
-//    undoStack->push(new ImageProcessCommand({before,resultImg},"canny contours",ui->graphicResult));
+//    undoStack->push(new ImageProcessCommand({before,resultImg},tr("canny contours"),ui->graphicResult));
 //}
 
 //void MainWindow::on_action_gray_triggered()
@@ -148,7 +148,7 @@ void MainWindow::on_action_findContours_triggered()
 //    QImage before = resultImg;
 //    resultImg = Gray(resultImg);
 //    showResult();
-//    undoStack->push(new ImageProcessCommand({before,resultImg},"gray",ui->graphicResult));
+//    undoStack->push(new ImageProcessCommand({before,resultImg},tr("gray"),ui->graphicResult));
 //}
 
 void MainWindow::on_action_binary_triggered()
@@ -156,7 +156,7 @@ void MainWindow::on_action_binary_triggered()
     QImage before = resultImg;
     resultImg = Binary(resultImg,THRESHOLD);
     showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},"binary",ui->graphicResult));
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("binary"),ui->graphicResult));
 }
 
 void MainWindow::on_spinBox_threshold_valueChanged(int arg1)
@@ -164,12 +164,16 @@ void MainWindow::on_spinBox_threshold_valueChanged(int arg1)
     THRESHOLD = arg1;
 }
 
+void MainWindow::on_action_saveAsImg_triggered()
+{
+}
+
 //void MainWindow::on_pushButton_thinning_clicked()
 //{
 //    QImage before = resultImg;
 //    resultImg = Thinning(resultImg);
 //    showResult();
-//    undoStack->push(new ImageProcessCommand({before,resultImg},"thinning",ui->graphicResult));
+//    undoStack->push(new ImageProcessCommand({before,resultImg},tr("thinning"),ui->graphicResult));
 //}
 
 //void MainWindow::on_pushButton_houghLine_clicked()
@@ -189,7 +193,7 @@ void MainWindow::on_spinBox_threshold_valueChanged(int arg1)
 //    resultImg = tmp;
 //    showResult();
 
-//    undoStack->push(new ImageProcessCommand({before,resultImg},"hough line",ui->graphicResult));
+//    undoStack->push(new ImageProcessCommand({before,resultImg},tr("hough line"),ui->graphicResult));
 //}
 
 //void MainWindow::on_pushButton_houghCirc_clicked()
@@ -233,7 +237,7 @@ void MainWindow::on_spinBox_threshold_valueChanged(int arg1)
 
 //    showResult();
 
-//    undoStack->push(new ImageProcessCommand({before,resultImg},"hough circle",ui->graphicResult));
+//    undoStack->push(new ImageProcessCommand({before,resultImg},tr("hough circle"),ui->graphicResult));
 //}
 
 void MainWindow::on_action_findThreshold_triggered()
@@ -317,4 +321,24 @@ void MainWindow::loadArguments()
         ui->comboBox_scaleFactor->setCurrentIndex(10);
     else
         ui->comboBox_scaleFactor->setCurrentIndex(5);
+}
+
+void MainWindow::on_checkBox_showContours_stateChanged(int arg1)
+{
+    if(arg1 == Qt::Checked) {
+        ui->graphicResult->SetContoursVisible(true);
+    }
+    else if(arg1 == Qt::Unchecked) {
+        ui->graphicResult->SetContoursVisible(false);
+    }
+}
+
+void MainWindow::on_checkBox_showVertex_stateChanged(int arg1)
+{
+    if(arg1 == Qt::Checked) {
+        ui->graphicResult->SetVertexVisible(true);
+    }
+    else if(arg1 == Qt::Unchecked) {
+        ui->graphicResult->SetVertexVisible(false);
+    }
 }

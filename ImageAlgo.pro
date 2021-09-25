@@ -37,3 +37,5 @@ FORMS += \
 
 RESOURCES += \
     ImageAlgo.qrc
+
+TRANSLATIONS = ImageAlgo_zh_CN.ts

@@ -35,12 +35,15 @@ private slots:
 //    void on_action_houghLine_triggered();
 //    void on_action_houghCirc_triggered();
     void on_action_findThreshold_triggered();
+    void on_action_saveAsImg_triggered();
 
     void on_spinBox_minPathLen_valueChanged(int arg1);
     void on_doubleSpinBox_alpha_valueChanged(double arg1);
     void on_spinBox_bezierStep_valueChanged(int arg1);
     void on_doubleSpinBox_colinearTol_valueChanged(double arg1);
     void on_comboBox_scaleFactor_currentIndexChanged(int index);
+    void on_checkBox_showContours_stateChanged(int arg1);
+    void on_checkBox_showVertex_stateChanged(int arg1);
 
 private:
     Ui::MainWindow *ui;

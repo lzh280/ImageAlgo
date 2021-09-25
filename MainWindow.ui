@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1349</width>
-    <height>640</height>
+    <width>1069</width>
+    <height>554</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>图片提取加工路径</string>
+   <string>Bitmap to processing path</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -38,35 +38,25 @@
     <item row="1" column="0">
      <widget class="QLabel" name="label_imgInfoSource">
       <property name="text">
-       <string>未打开图片</string>
+       <string>Image not open</string>
       </property>
      </widget>
     </item>
     <item row="1" column="1">
      <widget class="QLabel" name="label_imgInfoResult">
       <property name="text">
-       <string>未打开图片</string>
+       <string>Image not open</string>
       </property>
      </widget>
     </item>
    </layout>
-  </widget>
-  <widget class="QMenuBar" name="menubar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>1349</width>
-     <height>23</height>
-    </rect>
-   </property>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QDockWidget" name="dockWidget_undo">
    <property name="minimumSize">
     <size>
      <width>200</width>
-     <height>38</height>
+     <height>42</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -76,7 +66,7 @@
     </size>
    </property>
    <property name="windowTitle">
-    <string>操作记录</string>
+    <string>Operation</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -87,53 +77,26 @@
    <property name="minimumSize">
     <size>
      <width>200</width>
-     <height>210</height>
+     <height>230</height>
     </size>
    </property>
    <property name="maximumSize">
     <size>
      <width>200</width>
-     <height>210</height>
+     <height>230</height>
     </size>
    </property>
    <property name="allowedAreas">
     <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
    <property name="windowTitle">
-    <string>参数设置</string>
+    <string>Arguments</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2">
     <layout class="QGridLayout" name="gridLayout_2">
-     <item row="5" column="0">
-      <widget class="QLabel" name="label_colinearTol">
-       <property name="text">
-        <string>共线容差：</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1" colspan="3">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_alpha">
-       <property name="toolTip">
-        <string>尖角系数越大，图像轮廓圆滑角点越多</string>
-       </property>
-       <property name="singleStep">
-        <double>0.050000000000000</double>
-       </property>
-       <property name="value">
-        <double>0.550000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0" colspan="3">
-      <widget class="QLabel" name="label_minPathLen">
-       <property name="text">
-        <string>最小边缘长度：</string>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="2" colspan="2">
       <widget class="QSpinBox" name="spinBox_threshold">
        <property name="sizePolicy">
@@ -147,79 +110,37 @@
        </property>
       </widget>
      </item>
-     <item row="5" column="3">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_colinearTol">
+     <item row="3" column="1" colspan="3">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_alpha">
        <property name="toolTip">
-        <string>矢量化过程中，像素点处于一条直线的最大容差</string>
+        <string>The larger the sharp coefficient, the more smooth corners of the image contour</string>
        </property>
        <property name="singleStep">
-        <double>0.100000000000000</double>
+        <double>0.050000000000000</double>
        </property>
        <property name="value">
-        <double>1.000000000000000</double>
+        <double>0.550000000000000</double>
        </property>
       </widget>
      </item>
-     <item row="4" column="3">
-      <widget class="QSpinBox" name="spinBox_bezierStep">
-       <property name="toolTip">
-        <string>替代原轮廓的顺滑点个数</string>
-       </property>
-       <property name="minimum">
-        <number>2</number>
-       </property>
-       <property name="maximum">
-        <number>15</number>
-       </property>
-       <property name="value">
-        <number>5</number>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_ahpha">
+     <item row="2" column="0" colspan="3">
+      <widget class="QLabel" name="label_minPathLen">
        <property name="text">
-        <string>尖角系数：</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0" colspan="2">
-      <widget class="QLabel" name="label_bezierStep">
-       <property name="text">
-        <string>曲线插值数：</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0" colspan="2">
-      <widget class="QLabel" name="label_threshold">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-         <horstretch>1</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>二值化阈值：</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="3">
-      <widget class="QSpinBox" name="spinBox_minPathLen">
-       <property name="toolTip">
-        <string>一段轮廓的最小像素数</string>
-       </property>
-       <property name="maximum">
-        <number>999</number>
-       </property>
-       <property name="value">
-        <number>10</number>
+        <string>Minimum edge length:</string>
        </property>
       </widget>
      </item>
      <item row="1" column="0">
       <widget class="QLabel" name="label_scaleFactor">
        <property name="text">
-        <string>缩放倍率：</string>
+        <string>Scale factor:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0" colspan="2">
+      <widget class="QLabel" name="label_bezierStep">
+       <property name="text">
+        <string>Interpolation count:</string>
        </property>
       </widget>
      </item>
@@ -285,6 +206,95 @@
        </item>
       </widget>
      </item>
+     <item row="6" column="0" colspan="4">
+      <widget class="QCheckBox" name="checkBox_showContours">
+       <property name="text">
+        <string>Show contours</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_ahpha">
+       <property name="text">
+        <string>Sharpness coefficient:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" colspan="2">
+      <widget class="QLabel" name="label_threshold">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Binarization threshold:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="3">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_colinearTol">
+       <property name="toolTip">
+        <string>In the vectorization process, pixels are in the maximum tolerance of a straight line</string>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="3">
+      <widget class="QSpinBox" name="spinBox_minPathLen">
+       <property name="toolTip">
+        <string>The minimum number of pixels of an outline</string>
+       </property>
+       <property name="maximum">
+        <number>999</number>
+       </property>
+       <property name="value">
+        <number>10</number>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_colinearTol">
+       <property name="text">
+        <string>Colinear tolerance:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="3">
+      <widget class="QSpinBox" name="spinBox_bezierStep">
+       <property name="toolTip">
+        <string>Number of smooth points replacing the original contour</string>
+       </property>
+       <property name="minimum">
+        <number>2</number>
+       </property>
+       <property name="maximum">
+        <number>15</number>
+       </property>
+       <property name="value">
+        <number>5</number>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0" colspan="4">
+      <widget class="QCheckBox" name="checkBox_showVertex">
+       <property name="text">
+        <string>Show vertex</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -308,6 +318,9 @@
    <addaction name="action_findContours"/>
    <addaction name="action_binary"/>
    <addaction name="action_findThreshold"/>
+   <addaction name="separator"/>
+   <addaction name="action_saveAsImg"/>
+   <addaction name="action_saveAsDXF"/>
   </widget>
   <action name="action_openImg">
    <property name="icon">
@@ -315,22 +328,22 @@
      <normaloff>:/icons/img_open.png</normaloff>:/icons/img_open.png</iconset>
    </property>
    <property name="text">
-    <string>打开图片</string>
+    <string>Open Image</string>
    </property>
    <property name="statusTip">
-    <string>打开图片</string>
+    <string>Open Image</string>
    </property>
   </action>
   <action name="action_generateResult">
    <property name="icon">
     <iconset resource="ImageAlgo.qrc">
-     <normaloff>:/icons/img_save.png</normaloff>:/icons/img_save.png</iconset>
+     <normaloff>:/icons/img_generate.png</normaloff>:/icons/img_generate.png</iconset>
    </property>
    <property name="text">
-    <string>生成结果</string>
+    <string>Generate results</string>
    </property>
    <property name="statusTip">
-    <string>生成结果</string>
+    <string>Generate results</string>
    </property>
   </action>
   <action name="action_back">
@@ -339,10 +352,10 @@
      <normaloff>:/icons/img_back.png</normaloff>:/icons/img_back.png</iconset>
    </property>
    <property name="text">
-    <string>上一步</string>
+    <string>Last step</string>
    </property>
    <property name="statusTip">
-    <string>上一步</string>
+    <string>Last step</string>
    </property>
   </action>
   <action name="action_next">
@@ -351,10 +364,10 @@
      <normaloff>:/icons/img_next.png</normaloff>:/icons/img_next.png</iconset>
    </property>
    <property name="text">
-    <string>下一步</string>
+    <string>Next step</string>
    </property>
    <property name="statusTip">
-    <string>下一步</string>
+    <string>Next step</string>
    </property>
   </action>
   <action name="action_filter">
@@ -363,10 +376,10 @@
      <normaloff>:/icons/img_filter.png</normaloff>:/icons/img_filter.png</iconset>
    </property>
    <property name="text">
-    <string>滤波</string>
+    <string>Median filter</string>
    </property>
    <property name="statusTip">
-    <string>滤波</string>
+    <string>Median filter</string>
    </property>
   </action>
   <action name="action_findContours">
@@ -375,10 +388,10 @@
      <normaloff>:/icons/img_edge.png</normaloff>:/icons/img_edge.png</iconset>
    </property>
    <property name="text">
-    <string>边缘检测</string>
+    <string>Find contours</string>
    </property>
    <property name="statusTip">
-    <string>边缘检测</string>
+    <string>Find contours</string>
    </property>
   </action>
   <action name="action_binary">
@@ -387,10 +400,10 @@
      <normaloff>:/icons/img_binary.png</normaloff>:/icons/img_binary.png</iconset>
    </property>
    <property name="text">
-    <string>二值化</string>
+    <string>Binary</string>
    </property>
    <property name="statusTip">
-    <string>二值化</string>
+    <string>Binary</string>
    </property>
   </action>
   <action name="action_findThreshold">
@@ -399,10 +412,40 @@
      <normaloff>:/icons/img_calculateTh.png</normaloff>:/icons/img_calculateTh.png</iconset>
    </property>
    <property name="text">
-    <string>最佳阈值</string>
+    <string>Best threshold</string>
    </property>
    <property name="statusTip">
-    <string>最佳阈值</string>
+    <string>Best threshold</string>
+   </property>
+  </action>
+  <action name="action_saveAsImg">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_saveImg.png</normaloff>:/icons/img_saveImg.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save as image</string>
+   </property>
+   <property name="toolTip">
+    <string>Save as image</string>
+   </property>
+   <property name="statusTip">
+    <string>Save as image</string>
+   </property>
+  </action>
+  <action name="action_saveAsDXF">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_saveDXF.png</normaloff>:/icons/img_saveDXF.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save as dxf</string>
+   </property>
+   <property name="toolTip">
+    <string>Save as dxf</string>
+   </property>
+   <property name="statusTip">
+    <string>Save as dxf</string>
    </property>
   </action>
  </widget>

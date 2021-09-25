@@ -27,7 +27,10 @@ public:
     LB_PolygonItem() : LB_BasicGraphicsItem() {}
     LB_PolygonItem(const QPolygonF& poly);
 
-    void updatePolygon(const QPointF& origin, const QPointF& end);
+    void SetVertexVisible(bool ret) {
+        myPoints.setVisible(ret);
+    }
+    void UpdatePolygon(const QPointF& origin, const QPointF& end);
 
 protected:
     virtual QRectF boundingRect() const override;

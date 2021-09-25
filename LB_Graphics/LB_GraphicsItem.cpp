@@ -4,9 +4,9 @@
 
 LB_BasicGraphicsItem::LB_BasicGraphicsItem()
 {
-    myNoSelectedPen.setColor(QColor(0, 160, 230));
+    myNoSelectedPen.setColor(QColor(0, 160, 255));
     myNoSelectedPen.setWidth(1);
-    mySelectedPen.setColor(QColor(255, 0, 255));
+    mySelectedPen.setColor(Qt::magenta);
     mySelectedPen.setWidth(1);
 
     this->setPen(myNoSelectedPen);
@@ -17,14 +17,12 @@ void LB_BasicGraphicsItem::focusInEvent(QFocusEvent *event)
 {
     Q_UNUSED(event);
     this->setPen(mySelectedPen);
-    myPoints.setVisible(true);
 }
 
 void LB_BasicGraphicsItem::focusOutEvent(QFocusEvent *event)
 {
     Q_UNUSED(event);
     this->setPen(myNoSelectedPen);
-    myPoints.setVisible(false);
 }
 
 
@@ -32,15 +30,14 @@ LB_PolygonItem::LB_PolygonItem(const QPolygonF &poly) : LB_BasicGraphicsItem()
 {    
     for(int i=0;i<poly.size();++i) {
         QPointF pnt = poly[i];
-        LB_PointItem *point = new LB_PointItem(this, pnt, LB_PointItem::Edge);
+        LB_PointItem *point = new LB_PointItem(this, pnt);
         point->setParentItem(this);
         myPoints.append(point);
-        myPoints.setColor(QColor(0, 255, 0));
+        myPoints.setColor(Qt::green);
     }
-    myPoints.setVisible(false);
 }
 
-void LB_PolygonItem::updatePolygon(const QPointF &origin, const QPointF &end)
+void LB_PolygonItem::UpdatePolygon(const QPointF &origin, const QPointF &end)
 {
     QPolygonF poly;
 
@@ -92,10 +89,11 @@ void LB_PolygonItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     painter->setPen(this->pen());
     painter->setBrush(this->brush());
 
-    for (int i = 1; i < myPoints.size(); i++)
+    QPolygonF poly;
+    for (auto &temp : myPoints)
     {
-        painter->drawLine(myPoints[i-1]->getPoint(), myPoints[i]->getPoint());
+        poly.append(temp->getPoint());
     }
 
-    painter->drawLine(myPoints.last()->getPoint(), myPoints.first()->getPoint());
+    painter->drawPolygon(poly);
 }

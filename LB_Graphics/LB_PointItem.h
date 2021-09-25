@@ -6,12 +6,7 @@
 class LB_PointItem : public QAbstractGraphicsShapeItem
 {
 public:
-    enum PointType {
-        Center = 0,
-        Edge,
-    };
-
-    LB_PointItem(QAbstractGraphicsShapeItem* parent, const QPointF& p, PointType type);
+    LB_PointItem(QAbstractGraphicsShapeItem* parent, const QPointF& p);
 
     qreal x() const {return myPoint.x(); }
     qreal y() const {return myPoint.y(); }
@@ -30,13 +25,11 @@ protected:
 
 private:
     QPointF myPoint;
-    PointType myType;
 };
 
 class LB_PointItemVector: public QVector<LB_PointItem *>
 {
 public:
-    void setRandColor();
     void setColor(const QColor& color);
     void setVisible(bool visible);
 };
