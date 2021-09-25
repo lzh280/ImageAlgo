@@ -16,6 +16,9 @@ int ThresholdDetect(const QImage &img);
 //! auto get the high threshold of Canny method
 void CannyThresholdDetec(const QImage &img, int &ThL, int &ThH);
 
+//! scale the image with sepecific factor
+QImage Scale(const QImage &img, double factor);
+
 //! changed into gray-scale images, calculate
 //! the threshold of binarization
 QImage Gray(const QImage &img);

@@ -46,7 +46,7 @@ int ThresholdDetect(const QImage &img)
         lMeanGrayValue1 = 0, lMeanGrayValue2 = 0;
         lThrehold = lNewThrehold;
 
-        for(int k=0;k<=lThrehold;++k)
+        for(int k=0;k<lThrehold;++k)
         {
             lSum1 += F[k];
             lMeanGrayValue1 += k*F[k];
@@ -118,6 +118,85 @@ QImage Gray(const QImage &img)
         }
     }
     return grayImg;
+}
+
+QImage Scale(const QImage &img, double factor)
+{
+    unsigned int OutWidth = (unsigned int)(img.width() * factor +0.5);
+    unsigned int OutHeight = (unsigned int)(img.height() * factor +0.5 );
+    QImage scaledImg (OutWidth, OutHeight ,QImage::Format_ARGB32);
+
+    double  x = 0;
+    double  y = 0;
+    int r,g,b;
+    for (unsigned int  j = 0; j < OutHeight- factor; j++)
+    {
+        y = j / factor  ;
+
+        for(unsigned int i =0; i < OutWidth; i++)
+        {
+            x = i / factor ;
+
+            int x1, x2, y1, y2;
+            x1= ( int)x;
+            x2 = x1 + 1;
+            y1 = ( int)y;
+            y2 = y1 + 1;
+
+            QColor oldcolor1;
+            QColor oldcolor2;
+            QColor oldcolor3;
+            QColor oldcolor4;
+            double u, v;
+            u = x - x1;
+            v = y - y1;
+            if ((x >=img.width() - 1 ) && (y >=img.height() - 1 ))
+            {
+                oldcolor1 = QColor(img.pixel(x1,y1));
+                r = oldcolor1.red();
+                g = oldcolor1.green();
+                b = oldcolor1.blue();
+            }
+            else if (x >= img.width() - 1)
+            {
+                oldcolor1 = QColor(img.pixel(x1,y1));
+                oldcolor3 = QColor(img.pixel(x1,y2));
+                r = oldcolor1.red() * (1 - v) + oldcolor3.red() * v;
+                g = oldcolor1.green() * (1 - v) + oldcolor3.green() * v;
+                b = oldcolor1.blue() * (1 - v) + oldcolor3.blue() * v;
+            }
+            else if (x >=img.height() - 1)
+            {
+                oldcolor1 = QColor(img.pixel(x1,y1));
+                oldcolor2 = QColor(img.pixel(x2,y1));
+                r = oldcolor1.red() * (1 - u) + oldcolor2.red() * u;
+                g = oldcolor1.green() * (1 - u) + oldcolor2.green() * u;
+                b = oldcolor1.blue() * (1 - u) + oldcolor2.blue() * u;
+            }
+            else
+            {
+                oldcolor1 = QColor(img.pixel(x1,y1));
+                oldcolor2 = QColor(img.pixel(x2,y1));
+                oldcolor3 = QColor(img.pixel(x1,y2));
+                oldcolor4 = QColor(img.pixel(x2,y2));
+                int r1,g1,b1;
+                r = oldcolor1.red() * (1 - u) + oldcolor2.red() * u;
+                g = oldcolor1.green() * (1 - u) + oldcolor2.green() * u;
+                b = oldcolor1.blue() * (1 - u) + oldcolor2.blue() * u;
+
+                r1 = oldcolor3.red() * (1 - u) + oldcolor4.red() * u;
+                g1 = oldcolor3.green() * (1 - u) + oldcolor4.green() * u;
+                b1 = oldcolor3.blue() * (1 - u) + oldcolor4.blue() * u;
+
+                r = r * (1 - v) + r1 * v;
+                g = g * (1 - v) + g1 * v;
+                b = b * (1 - v) + b1 * v;
+            }
+
+            scaledImg.setPixel(i, j, qRgb(r, g, b));
+        }
+    }
+    return scaledImg;
 }
 
 QImage Binary(const QImage &img, int threshold)
@@ -499,7 +578,7 @@ QImage CannyContours(const QImage &img)
                     if (nextX < 0 || nextX >= width)
                         continue;
 
-                    int grayNext = gray_value[nextX+width*nextY];
+                    int &grayNext = gray_value[nextX+width*nextY];
                     if (grayNext == 127) {
                         grayNext = 255;
                     }

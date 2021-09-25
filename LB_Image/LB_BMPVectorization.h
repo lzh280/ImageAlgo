@@ -15,8 +15,11 @@ QVector<QPolygon> RadialSweepTracing(const QImage &img);
 //! simplyfy the dense points into group of segment
 QVector<QPolygon> SimplifyEdge(const QVector<QPolygon> &edges);
 
+//! scale the simplified edge to match the size of source image
+QVector<QPolygonF> ScaleEdge(const QVector<QPolygon> &edges);
+
 //! make the edge smooth by bezier interpolation
-QVector<QPolygonF> SmoothEdge(const QVector<QPolygon> &edges);
+QVector<QPolygonF> SmoothEdge(const QVector<QPolygonF> &edges);
 
 //! describe the edge into base element with segment and spline
 QVector<LB_Contour> DescribeEdge(const QVector<QPolygon> &edges);

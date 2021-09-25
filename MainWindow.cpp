@@ -10,6 +10,7 @@
 #include <QFileInfo>
 #include <QUndoStack>
 #include <QUndoView>
+#include <QElapsedTimer>
 
 #include "LB_Image/LB_ImageViewer.h"
 #include "LB_Image/LB_ImagePreProcess.h"
@@ -79,9 +80,12 @@ void MainWindow::on_action_generateResult_triggered()
     if(resultImg.isNull())
         return;
 
-    QVector<QPolygon> edges = RadialSweepTracing(resultImg);
-    edges = SimplifyEdge(edges);
-    QVector<QPolygonF> result = SmoothEdge(edges);
+    QElapsedTimer testTimer;
+    testTimer.start();
+    QVector<QPolygon> edges = RadialSweepTracing(resultImg);qDebug()<<"tracing cost:"<<testTimer.elapsed()<<"ms";testTimer.restart();
+    edges = SimplifyEdge(edges);qDebug()<<"simplify cost:"<<testTimer.elapsed()<<"ms";testTimer.restart();
+    QVector<QPolygonF> result = ScaleEdge(edges);
+    result = SmoothEdge(result);qDebug()<<"smooth cost:"<<testTimer.elapsed()<<"ms";
 
     ui->graphicResult->ResetContours();
     ui->graphicResult->SetImageContours(result);
@@ -284,9 +288,11 @@ void MainWindow::on_comboBox_scaleFactor_currentIndexChanged(int index)
     if(resultImg.isNull())
         return;
 
-    resultImg = resultImg.scaled(sourceImg.size()*SCALE_FACTOR);
+    QImage before = resultImg;
+    resultImg = resultImg.scaled(sourceImg.size()*SCALE_FACTOR,Qt::KeepAspectRatio,Qt::SmoothTransformation);
     ui->label_imgInfoResult->setText(QString("%1px X %2px").arg(resultImg.width()).arg(resultImg.height()));
     showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("sacle"),ui->graphicResult));
 }
 
 void MainWindow::loadArguments()
