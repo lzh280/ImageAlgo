@@ -19,5 +19,6 @@
         <file>icons/img_generate.png</file>
         <file>icons/img_saveDXF.png</file>
         <file>icons/img_saveImg.png</file>
+        <file>icons/img_resetOperation.png</file>
     </qresource>
 </RCC>

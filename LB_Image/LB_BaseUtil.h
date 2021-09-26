@@ -12,7 +12,7 @@ inline const QPoint INVALID_PNT = QPoint(-1,-1);
 
 inline qint8 MIN_EDGE_SIZE = 10;
 inline qreal COLINEAR_TOLERANCE = 1.0;
-inline qreal BEZIER_STEP = 5.0;
+inline qreal BEZIER_STEP = 3.0;
 inline qreal SMOOTH_ALPHA = 0.55;
 inline qreal SCALE_FACTOR = 1.0;
 

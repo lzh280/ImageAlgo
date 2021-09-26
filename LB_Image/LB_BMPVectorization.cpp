@@ -146,25 +146,10 @@ QVector<QPolygon> SimplifyEdge(const QVector<QPolygon> &edges)
     return simpleEdge;
 }
 
-QVector<QPolygonF> ScaleEdge(const QVector<QPolygon> &edges)
-{
-    qreal factor = 1.0/SCALE_FACTOR;
-    QVector<QPolygonF> result;
-    QPolygonF oneEdge;
-    foreach(const QPolygon& poly, edges) {
-        oneEdge.clear();
-        foreach(const QPoint& pnt, poly) {
-            oneEdge.append(factor * pnt);
-        }
-        result.append(oneEdge);
-    }
-    return result;
-}
-
-QVector<QPolygonF> SmoothEdge(const QVector<QPolygonF> &edges)
+QVector<QPolygonF> SmoothEdge(const QVector<QPolygon> &edges)
 {
     QVector<QPolygonF> result;
-    QPolygonF aGroup;
+    QPolygon aGroup;
     QVector<QPointF> midPnts;
     QPolygonF aBezireGroup;
 
@@ -206,6 +191,21 @@ QVector<QPolygonF> SmoothEdge(const QVector<QPolygonF> &edges)
         result.append(aBezireGroup);
     }
 
+    return result;
+}
+
+QVector<QPolygonF> ScaleEdge(const QVector<QPolygonF> &edges)
+{
+    qreal factor = 1.0/SCALE_FACTOR;
+    QVector<QPolygonF> result;
+    QPolygonF oneEdge;
+    foreach(const QPolygonF& poly, edges) {
+        oneEdge.clear();
+        foreach(const QPointF& pnt, poly) {
+            oneEdge.append(factor * pnt);
+        }
+        result.append(oneEdge);
+    }
     return result;
 }
 

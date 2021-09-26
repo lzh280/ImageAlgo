@@ -19,7 +19,7 @@ LB_PointItem::LB_PointItem(QAbstractGraphicsShapeItem* parent, const QPointF &p)
 
 QRectF LB_PointItem::boundingRect() const
 {
-    return QRectF(-2, -2, 4, 4);
+    return QRectF(-1, -1, 2, 2);
 }
 
 void LB_PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -30,7 +30,7 @@ void LB_PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
     painter->setBrush(this->brush());
     this->setPos(myPoint);
 
-    painter->drawRect(QRectF(-0.5, -0.5, 1, 1));
+    painter->drawRect(QRectF(-1, -1, 2, 2));
 }
 
 void LB_PointItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)

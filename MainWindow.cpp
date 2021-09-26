@@ -32,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     undoStack = new QUndoStack();
     QUndoView *aView = new QUndoView(undoStack);
+    aView->setEmptyLabel(tr("<empty>"));
+    aView->setEnabled(false);
     ui->dockWidget_undo->setWidget(aView);
 
     loadArguments();
@@ -52,9 +54,9 @@ void MainWindow::on_action_openImg_triggered()
     }
     setWindowTitle(filename);
 
-    //get the image and scale it, find the best threshold as well
+    //get the image, find the best threshold as well
     sourceImg.load(filename);
-    resultImg = sourceImg.scaled(sourceImg.size()*SCALE_FACTOR);
+    resultImg = sourceImg;
     THRESHOLD = ThresholdDetect(sourceImg);
     ui->spinBox_threshold->setValue(THRESHOLD);
 
@@ -62,17 +64,12 @@ void MainWindow::on_action_openImg_triggered()
     QPixmap sourcemap = QPixmap::fromImage(sourceImg);
     ui->graphicSource->SetPixmap(sourcemap);
     ui->label_imgInfoSource->setText(QString("%1px X %2px").arg(sourcemap.width()).arg(sourcemap.height()));
+
     ui->graphicResult->ResetContours();
     ui->graphicResult->SetPixmap(sourcemap.scaled(sourcemap.size()*SCALE_FACTOR));
     ui->label_imgInfoResult->setText(QString("%1px X %2px").arg(resultImg.width()).arg(resultImg.height()));
 
     undoStack->clear();
-}
-
-void MainWindow::showResult()
-{
-    QPixmap tarmap = QPixmap::fromImage(resultImg);
-    ui->graphicResult->SetPixmap(tarmap);
 }
 
 void MainWindow::on_action_generateResult_triggered()
@@ -84,11 +81,14 @@ void MainWindow::on_action_generateResult_triggered()
     testTimer.start();
     QVector<QPolygon> edges = RadialSweepTracing(resultImg);qDebug()<<"tracing cost:"<<testTimer.elapsed()<<"ms";testTimer.restart();
     edges = SimplifyEdge(edges);qDebug()<<"simplify cost:"<<testTimer.elapsed()<<"ms";testTimer.restart();
-    QVector<QPolygonF> result = ScaleEdge(edges);
-    result = SmoothEdge(result);qDebug()<<"smooth cost:"<<testTimer.elapsed()<<"ms";
+    QVector<QPolygonF> result = SmoothEdge(edges);qDebug()<<"smooth cost:"<<testTimer.elapsed()<<"ms";
+    result = ScaleEdge(result);
 
     ui->graphicResult->ResetContours();
     ui->graphicResult->SetImageContours(result);
+
+    ui->checkBox_showContours->setChecked(true);
+    ui->checkBox_showVertex->setChecked(true);
 }
 
 void MainWindow::on_action_back_triggered()
@@ -97,6 +97,8 @@ void MainWindow::on_action_back_triggered()
     int index = undoStack->index();
     const ImageProcessCommand *cmd = static_cast<const ImageProcessCommand*>(undoStack->command(index));
     resultImg = cmd->GetInput();
+    double scaleF = (double)resultImg.width() / (double)sourceImg.width();
+    fuzzyJudgeFactor(scaleF);
 }
 
 void MainWindow::on_action_next_triggered()
@@ -105,6 +107,17 @@ void MainWindow::on_action_next_triggered()
     int index = qBound(0,undoStack->index()-1,undoStack->count()-1);
     const ImageProcessCommand *cmd = static_cast<const ImageProcessCommand*>(undoStack->command(index));
     resultImg = cmd->GetOutput();
+    double scaleF = (double)resultImg.width() / (double)sourceImg.width();
+    fuzzyJudgeFactor(scaleF);
+}
+
+void MainWindow::on_action_resetOperation_triggered()
+{
+    undoStack->clear();
+    SCALE_FACTOR = 1.0;
+    ui->comboBox_scaleFactor->setCurrentIndex(5);
+    resultImg = sourceImg;
+    showResult();
 }
 
 void MainWindow::on_action_filter_triggered()
@@ -115,13 +128,13 @@ void MainWindow::on_action_filter_triggered()
     undoStack->push(new ImageProcessCommand({before,resultImg},tr("filter"),ui->graphicResult));
 }
 
-//void MainWindow::on_pushButton_sharpen_clicked()
-//{
-//    QImage before = resultImg;
-//    resultImg = Sharpen(resultImg);
-//    showResult();
-//    undoStack->push(new ImageProcessCommand({before,resultImg},tr("sharpen"),ui->graphicResult));
-//}
+void MainWindow::on_action_sharpen_triggered()
+{
+    QImage before = resultImg;
+    resultImg = Sharpen(resultImg);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("sharpen"),ui->graphicResult));
+}
 
 void MainWindow::on_action_findContours_triggered()
 {
@@ -131,29 +144,29 @@ void MainWindow::on_action_findContours_triggered()
     undoStack->push(new ImageProcessCommand({before,resultImg},tr("find contours"),ui->graphicResult));
 }
 
-//void MainWindow::on_pushButton_solbelContours_clicked()
-//{
-//    QImage before = resultImg;
-//    resultImg = SobelContours(resultImg);
-//    showResult();
-//    undoStack->push(new ImageProcessCommand({before,resultImg},tr("sobel contours"),ui->graphicResult));
-//}
+void MainWindow::on_action_sobelContours_triggered()
+{
+    QImage before = resultImg;
+    resultImg = SobelContours(resultImg);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("sobel contours"),ui->graphicResult));
+}
 
-//void MainWindow::on_pushButton_cannyContours_clicked()
-//{
-//    QImage before = resultImg;
-//    resultImg = CannyContours(resultImg);
-//    showResult();
-//    undoStack->push(new ImageProcessCommand({before,resultImg},tr("canny contours"),ui->graphicResult));
-//}
+void MainWindow::on_action_cannyContours_triggered()
+{
+    QImage before = resultImg;
+    resultImg = CannyContours(resultImg);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("canny contours"),ui->graphicResult));
+}
 
-//void MainWindow::on_action_gray_triggered()
-//{
-//    QImage before = resultImg;
-//    resultImg = Gray(resultImg);
-//    showResult();
-//    undoStack->push(new ImageProcessCommand({before,resultImg},tr("gray"),ui->graphicResult));
-//}
+void MainWindow::on_action_gray_triggered()
+{
+    QImage before = resultImg;
+    resultImg = Gray(resultImg);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("gray"),ui->graphicResult));
+}
 
 void MainWindow::on_action_binary_triggered()
 {
@@ -172,77 +185,77 @@ void MainWindow::on_action_saveAsImg_triggered()
 {
 }
 
-//void MainWindow::on_pushButton_thinning_clicked()
-//{
-//    QImage before = resultImg;
-//    resultImg = Thinning(resultImg);
-//    showResult();
-//    undoStack->push(new ImageProcessCommand({before,resultImg},tr("thinning"),ui->graphicResult));
-//}
+void MainWindow::on_action_thinning_triggered()
+{
+    QImage before = resultImg;
+    resultImg = Thinning(resultImg);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("thinning"),ui->graphicResult));
+}
 
-//void MainWindow::on_pushButton_houghLine_clicked()
-//{
-//    QImage before = resultImg;
+void MainWindow::on_action_houghLine_triggered()
+{
+    QImage before = resultImg;
 
-//    // draw the lines
-//    QVector<QLine> result = HoughLine(resultImg);
-//    QImage tmp = FindContours(resultImg);
-//    if(result.size() != 0)
-//    {
-//        QPainter aPainter(&tmp);
-//        QPen aPen(Qt::red);
-//        aPainter.setPen(aPen);
-//        aPainter.drawLines(result);
-//    }
-//    resultImg = tmp;
-//    showResult();
+    // draw the lines
+    QVector<QLine> result = HoughLine(resultImg);
+    QImage tmp = FindContours(resultImg);
+    if(result.size() != 0)
+    {
+        QPainter aPainter(&tmp);
+        QPen aPen(Qt::red);
+        aPainter.setPen(aPen);
+        aPainter.drawLines(result);
+    }
+    resultImg = tmp;
+    showResult();
 
-//    undoStack->push(new ImageProcessCommand({before,resultImg},tr("hough line"),ui->graphicResult));
-//}
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("hough line"),ui->graphicResult));
+}
 
-//void MainWindow::on_pushButton_houghCirc_clicked()
-//{
-//    QImage before = resultImg;
-//    QVector<QCircle> result;
-//    int wid = resultImg.width();
-//    int hei = resultImg.height();
-//    int minRadius = 0.05* (wid>hei? hei:wid);
-//    int maxRadius = 0.45* (wid>hei? wid:hei);
-//    int dividing = 0.95 * (2.0 * (double)minRadius * 3.14);
+void MainWindow::on_action_houghCircle_triggered()
+{
+    QImage before = resultImg;
+    QVector<QCircle> result;
+    int wid = resultImg.width();
+    int hei = resultImg.height();
+    int minRadius = 0.05* (wid>hei? hei:wid);
+    int maxRadius = 0.45* (wid>hei? wid:hei);
+    int dividing = 0.95 * (2.0 * (double)minRadius * 3.14);
 
-//    QProgressDialog dialog_writedata(tr("Scanning, please wait"),tr("cancle"),minRadius,maxRadius,this);
-//    dialog_writedata.setWindowTitle(tr("Hough Circle"));
-//    dialog_writedata.setWindowModality(Qt::WindowModal);
-//    dialog_writedata.show();
-//    for(int r=minRadius;r<maxRadius;++r)
-//    {
-//        result.append(HoughCircle(resultImg,r,dividing));
-//        qApp->processEvents();
-//        dialog_writedata.setValue(r);
+    QProgressDialog dialog_writedata(tr("Scanning, please wait"),tr("cancle"),minRadius,maxRadius,this);
+    dialog_writedata.setWindowTitle(tr("Hough Circle"));
+    dialog_writedata.setWindowModality(Qt::WindowModal);
+    dialog_writedata.show();
+    for(int r=minRadius;r<maxRadius;++r)
+    {
+        result.append(HoughCircle(resultImg,r,dividing));
+        qApp->processEvents();
+        dialog_writedata.setValue(r);
 
-//        if(dialog_writedata.wasCanceled())
-//            break;
-//    }
+        if(dialog_writedata.wasCanceled())
+            break;
+    }
 
-//    QCircle::filterCircles(result,10);
+    QCircle::filterCircles(result,10);
 
-//    // draw the circles
-//    resultImg = FindContours(resultImg);
-//    if(result.size() != 0)
-//    {
-//        QPainter aPainter(&resultImg);
-//        QPen aPen(Qt::red);
-//        aPainter.setPen(aPen);
-//        for(int i=0;i<result.size();++i)
-//        {
-//            aPainter.drawEllipse(result[i].toRect());
-//        }
-//    }
+    // draw the circles
+    resultImg = FindContours(resultImg);
+    if(result.size() != 0)
+    {
+        QPainter aPainter(&resultImg);
+        QPen aPen(Qt::red);
+        aPainter.setPen(aPen);
+        for(int i=0;i<result.size();++i)
+        {
+            aPainter.drawEllipse(result[i].toRect());
+        }
+    }
 
-//    showResult();
+    showResult();
 
-//    undoStack->push(new ImageProcessCommand({before,resultImg},tr("hough circle"),ui->graphicResult));
-//}
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("hough circle"),ui->graphicResult));
+}
 
 void MainWindow::on_action_findThreshold_triggered()
 {
@@ -270,7 +283,7 @@ void MainWindow::on_doubleSpinBox_colinearTol_valueChanged(double arg1)
     COLINEAR_TOLERANCE = arg1;
 }
 
-void MainWindow::on_comboBox_scaleFactor_currentIndexChanged(int index)
+void MainWindow::on_comboBox_scaleFactor_activated(int index)
 {
     switch(index) {
     case 0: SCALE_FACTOR = 0.5;break;
@@ -288,45 +301,11 @@ void MainWindow::on_comboBox_scaleFactor_currentIndexChanged(int index)
     if(resultImg.isNull())
         return;
 
-    QImage before = resultImg;
-    resultImg = resultImg.scaled(sourceImg.size()*SCALE_FACTOR,Qt::KeepAspectRatio,Qt::SmoothTransformation);
+    QImage befor = resultImg;
+    resultImg = Scale(resultImg, sourceImg.size() * SCALE_FACTOR);
     ui->label_imgInfoResult->setText(QString("%1px X %2px").arg(resultImg.width()).arg(resultImg.height()));
     showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},tr("sacle"),ui->graphicResult));
-}
-
-void MainWindow::loadArguments()
-{
-    ui->spinBox_threshold->setValue(THRESHOLD);
-    ui->doubleSpinBox_alpha->setValue(SMOOTH_ALPHA);
-    ui->doubleSpinBox_colinearTol->setValue(COLINEAR_TOLERANCE);
-    ui->spinBox_bezierStep->setValue(BEZIER_STEP);
-    ui->spinBox_minPathLen->setValue(MIN_EDGE_SIZE);
-
-    if(SCALE_FACTOR == 0.5)
-        ui->comboBox_scaleFactor->setCurrentIndex(0);
-    else if(SCALE_FACTOR == 0.67)
-        ui->comboBox_scaleFactor->setCurrentIndex(1);
-    else if(SCALE_FACTOR == 0.75)
-        ui->comboBox_scaleFactor->setCurrentIndex(2);
-    else if(SCALE_FACTOR == 0.8)
-        ui->comboBox_scaleFactor->setCurrentIndex(3);
-    else if(SCALE_FACTOR == 0.9)
-        ui->comboBox_scaleFactor->setCurrentIndex(4);
-    else if(SCALE_FACTOR == 1.0)
-        ui->comboBox_scaleFactor->setCurrentIndex(5);
-    else if(SCALE_FACTOR == 1.1)
-        ui->comboBox_scaleFactor->setCurrentIndex(6);
-    else if(SCALE_FACTOR == 1.25)
-        ui->comboBox_scaleFactor->setCurrentIndex(7);
-    else if(SCALE_FACTOR == 1.5)
-        ui->comboBox_scaleFactor->setCurrentIndex(8);
-    else if(SCALE_FACTOR == 1.75)
-        ui->comboBox_scaleFactor->setCurrentIndex(9);
-    else if(SCALE_FACTOR == 2.0)
-        ui->comboBox_scaleFactor->setCurrentIndex(10);
-    else
-        ui->comboBox_scaleFactor->setCurrentIndex(5);
+    undoStack->push(new ImageProcessCommand({befor,resultImg},tr("scale"),ui->graphicResult));
 }
 
 void MainWindow::on_checkBox_showContours_stateChanged(int arg1)
@@ -347,4 +326,69 @@ void MainWindow::on_checkBox_showVertex_stateChanged(int arg1)
     else if(arg1 == Qt::Unchecked) {
         ui->graphicResult->SetVertexVisible(false);
     }
+}
+
+void MainWindow::loadArguments()
+{
+    ui->spinBox_threshold->setValue(THRESHOLD);
+    ui->doubleSpinBox_alpha->setValue(SMOOTH_ALPHA);
+    ui->doubleSpinBox_colinearTol->setValue(COLINEAR_TOLERANCE);
+    ui->spinBox_bezierStep->setValue(BEZIER_STEP);
+    ui->spinBox_minPathLen->setValue(MIN_EDGE_SIZE);
+    SCALE_FACTOR = 1.0;
+    ui->comboBox_scaleFactor->setCurrentIndex(5);
+}
+
+void MainWindow::fuzzyJudgeFactor(double factor)
+{
+    if(abs(factor-0.5) < 0.01) {
+        SCALE_FACTOR = 0.5;
+        ui->comboBox_scaleFactor->setCurrentIndex(0);
+    }
+    else if(abs(factor-0.67) < 0.01) {
+        SCALE_FACTOR = 0.67;
+        ui->comboBox_scaleFactor->setCurrentIndex(1);
+    }
+    else if(abs(factor-0.75) < 0.01) {
+        SCALE_FACTOR = 0.75;
+        ui->comboBox_scaleFactor->setCurrentIndex(2);
+    }
+    else if(abs(factor-0.8) < 0.01) {
+        SCALE_FACTOR = 0.8;
+        ui->comboBox_scaleFactor->setCurrentIndex(3);
+    }
+    else if(abs(factor-0.9) < 0.01) {
+        SCALE_FACTOR = 0.9;
+        ui->comboBox_scaleFactor->setCurrentIndex(4);
+    }
+    else if(abs(factor-1.0) < 0.01) {
+        SCALE_FACTOR = 1.0;
+        ui->comboBox_scaleFactor->setCurrentIndex(5);
+    }
+    else if(abs(factor-1.1) < 0.01) {
+        SCALE_FACTOR = 1.1;
+        ui->comboBox_scaleFactor->setCurrentIndex(6);
+    }
+    else if(abs(factor-1.25) < 0.01) {
+        SCALE_FACTOR = 1.25;
+        ui->comboBox_scaleFactor->setCurrentIndex(7);
+    }
+    else if(abs(factor-1.5) < 0.01) {
+        SCALE_FACTOR = 1.5;
+        ui->comboBox_scaleFactor->setCurrentIndex(8);
+    }
+    else if(abs(factor-1.75) < 0.01) {
+        SCALE_FACTOR = 1.75;
+        ui->comboBox_scaleFactor->setCurrentIndex(9);
+    }
+    else if(abs(factor-2.0) < 0.01) {
+        SCALE_FACTOR = 2.0;
+        ui->comboBox_scaleFactor->setCurrentIndex(10);
+    }
+}
+
+void MainWindow::showResult()
+{
+    QPixmap tarmap = QPixmap::fromImage(resultImg);
+    ui->graphicResult->SetPixmap(tarmap);
 }

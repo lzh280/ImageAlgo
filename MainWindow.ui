@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1069</width>
-    <height>554</height>
+    <width>1140</width>
+    <height>573</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,16 +15,6 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="0" column="0">
-     <widget class="LB_ImageViewer" name="graphicSource">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-        <horstretch>12</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-     </widget>
-    </item>
     <item row="0" column="1">
      <widget class="LB_ImageViewer" name="graphicResult">
       <property name="sizePolicy">
@@ -35,15 +25,25 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="label_imgInfoSource">
-      <property name="text">
-       <string>Image not open</string>
+    <item row="0" column="0">
+     <widget class="LB_ImageViewer" name="graphicSource">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>12</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
       </property>
      </widget>
     </item>
     <item row="1" column="1">
      <widget class="QLabel" name="label_imgInfoResult">
+      <property name="text">
+       <string>Image not open</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_imgInfoSource">
       <property name="text">
        <string>Image not open</string>
       </property>
@@ -56,7 +56,7 @@
    <property name="minimumSize">
     <size>
      <width>200</width>
-     <height>42</height>
+     <height>245</height>
     </size>
    </property>
    <property name="maximumSize">
@@ -65,13 +65,16 @@
      <height>524287</height>
     </size>
    </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+   </property>
    <property name="windowTitle">
-    <string>Operation</string>
+    <string>Operation Record</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="QWidget" name="dockWidgetContents"/>
+   <widget class="QWidget" name="dockWidgetContents_3"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget_arguments">
    <property name="minimumSize">
@@ -97,53 +100,6 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2">
     <layout class="QGridLayout" name="gridLayout_2">
-     <item row="0" column="2" colspan="2">
-      <widget class="QSpinBox" name="spinBox_threshold">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-         <horstretch>2</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="maximum">
-        <number>255</number>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1" colspan="3">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_alpha">
-       <property name="toolTip">
-        <string>The larger the sharp coefficient, the more smooth corners of the image contour</string>
-       </property>
-       <property name="singleStep">
-        <double>0.050000000000000</double>
-       </property>
-       <property name="value">
-        <double>0.550000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0" colspan="3">
-      <widget class="QLabel" name="label_minPathLen">
-       <property name="text">
-        <string>Minimum edge length:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_scaleFactor">
-       <property name="text">
-        <string>Scale factor:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0" colspan="2">
-      <widget class="QLabel" name="label_bezierStep">
-       <property name="text">
-        <string>Interpolation count:</string>
-       </property>
-      </widget>
-     </item>
      <item row="1" column="2" colspan="2">
       <widget class="QComboBox" name="comboBox_scaleFactor">
        <property name="currentIndex">
@@ -206,13 +162,10 @@
        </item>
       </widget>
      </item>
-     <item row="6" column="0" colspan="4">
-      <widget class="QCheckBox" name="checkBox_showContours">
+     <item row="2" column="0" colspan="3">
+      <widget class="QLabel" name="label_minPathLen">
        <property name="text">
-        <string>Show contours</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
+        <string>Minimum edge length:</string>
        </property>
       </widget>
      </item>
@@ -223,16 +176,56 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="0" colspan="2">
-      <widget class="QLabel" name="label_threshold">
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_colinearTol">
+       <property name="text">
+        <string>Colinear tolerance:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2" colspan="2">
+      <widget class="QSpinBox" name="spinBox_threshold">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-         <horstretch>1</horstretch>
+        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+         <horstretch>2</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
+       <property name="maximum">
+        <number>255</number>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0" colspan="4">
+      <widget class="QCheckBox" name="checkBox_showVertex">
        <property name="text">
-        <string>Binarization threshold:</string>
+        <string>Show vertex</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="3">
+      <widget class="QSpinBox" name="spinBox_bezierStep">
+       <property name="toolTip">
+        <string>Number of smooth points replacing the original contour</string>
+       </property>
+       <property name="minimum">
+        <number>2</number>
+       </property>
+       <property name="maximum">
+        <number>15</number>
+       </property>
+       <property name="value">
+        <number>3</number>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0" colspan="2">
+      <widget class="QLabel" name="label_bezierStep">
+       <property name="text">
+        <string>Interpolation count:</string>
        </property>
       </widget>
      </item>
@@ -262,36 +255,46 @@
        </property>
       </widget>
      </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="label_colinearTol">
+     <item row="6" column="0" colspan="4">
+      <widget class="QCheckBox" name="checkBox_showContours">
        <property name="text">
-        <string>Colinear tolerance:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="3">
-      <widget class="QSpinBox" name="spinBox_bezierStep">
-       <property name="toolTip">
-        <string>Number of smooth points replacing the original contour</string>
-       </property>
-       <property name="minimum">
-        <number>2</number>
-       </property>
-       <property name="maximum">
-        <number>15</number>
-       </property>
-       <property name="value">
-        <number>5</number>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="0" colspan="4">
-      <widget class="QCheckBox" name="checkBox_showVertex">
-       <property name="text">
-        <string>Show vertex</string>
+        <string>Show contours</string>
        </property>
        <property name="checked">
         <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" colspan="2">
+      <widget class="QLabel" name="label_threshold">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Binarization threshold:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_scaleFactor">
+       <property name="text">
+        <string>Scale factor:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1" colspan="3">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_alpha">
+       <property name="toolTip">
+        <string>The larger the sharp coefficient, the more smooth corners of the image contour</string>
+       </property>
+       <property name="singleStep">
+        <double>0.050000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.550000000000000</double>
        </property>
       </widget>
      </item>
@@ -309,18 +312,69 @@
     <bool>false</bool>
    </attribute>
    <addaction name="action_openImg"/>
-   <addaction name="action_generateResult"/>
+   <addaction name="action_saveAsDXF"/>
+   <addaction name="action_saveAsImg"/>
    <addaction name="separator"/>
    <addaction name="action_back"/>
    <addaction name="action_next"/>
+   <addaction name="action_resetOperation"/>
    <addaction name="separator"/>
    <addaction name="action_filter"/>
    <addaction name="action_findContours"/>
    <addaction name="action_binary"/>
    <addaction name="action_findThreshold"/>
    <addaction name="separator"/>
-   <addaction name="action_saveAsImg"/>
-   <addaction name="action_saveAsDXF"/>
+   <addaction name="action_generateResult"/>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1140</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="action_openImg"/>
+    <addaction name="action_saveAsImg"/>
+    <addaction name="action_saveAsDXF"/>
+   </widget>
+   <widget class="QMenu" name="menuOperation">
+    <property name="title">
+     <string>Operation</string>
+    </property>
+    <addaction name="action_resetOperation"/>
+    <addaction name="separator"/>
+    <addaction name="action_back"/>
+    <addaction name="action_next"/>
+    <addaction name="separator"/>
+    <addaction name="action_gray"/>
+    <addaction name="action_binary"/>
+    <addaction name="action_sharpen"/>
+    <addaction name="action_filter"/>
+    <addaction name="action_thinning"/>
+    <addaction name="action_findThreshold"/>
+    <addaction name="action_findContours"/>
+    <addaction name="separator"/>
+    <addaction name="action_cannyContours"/>
+    <addaction name="action_sobelContours"/>
+   </widget>
+   <widget class="QMenu" name="menuVectorization">
+    <property name="title">
+     <string>Vectorization</string>
+    </property>
+    <addaction name="action_generateResult"/>
+    <addaction name="separator"/>
+    <addaction name="action_houghLine"/>
+    <addaction name="action_houghCircle"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuOperation"/>
+   <addaction name="menuVectorization"/>
   </widget>
   <action name="action_openImg">
    <property name="icon">
@@ -446,6 +500,126 @@
    </property>
    <property name="statusTip">
     <string>Save as dxf</string>
+   </property>
+  </action>
+  <action name="action_cannyContours">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_cannyEdge.png</normaloff>:/icons/img_cannyEdge.png</iconset>
+   </property>
+   <property name="text">
+    <string>Canny Contours</string>
+   </property>
+   <property name="toolTip">
+    <string>Canny Contours</string>
+   </property>
+   <property name="statusTip">
+    <string>Canny Contours</string>
+   </property>
+  </action>
+  <action name="action_sobelContours">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_sobelEdge.png</normaloff>:/icons/img_sobelEdge.png</iconset>
+   </property>
+   <property name="text">
+    <string>Sobel Contours</string>
+   </property>
+   <property name="toolTip">
+    <string>Sobel Contours</string>
+   </property>
+   <property name="statusTip">
+    <string>Sobel Contours</string>
+   </property>
+  </action>
+  <action name="action_gray">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_gray.png</normaloff>:/icons/img_gray.png</iconset>
+   </property>
+   <property name="text">
+    <string>Gray</string>
+   </property>
+   <property name="toolTip">
+    <string>Gray</string>
+   </property>
+   <property name="statusTip">
+    <string>Gray</string>
+   </property>
+  </action>
+  <action name="action_sharpen">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_sharpen.png</normaloff>:/icons/img_sharpen.png</iconset>
+   </property>
+   <property name="text">
+    <string>Sharpen</string>
+   </property>
+   <property name="toolTip">
+    <string>Sharpen</string>
+   </property>
+   <property name="statusTip">
+    <string>Sharpen</string>
+   </property>
+  </action>
+  <action name="action_thinning">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_thinning.png</normaloff>:/icons/img_thinning.png</iconset>
+   </property>
+   <property name="text">
+    <string>Thinning</string>
+   </property>
+   <property name="toolTip">
+    <string>Thinning</string>
+   </property>
+   <property name="statusTip">
+    <string>Thinning</string>
+   </property>
+  </action>
+  <action name="action_houghLine">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/hough_line.png</normaloff>:/icons/hough_line.png</iconset>
+   </property>
+   <property name="text">
+    <string>Detect Segment</string>
+   </property>
+   <property name="toolTip">
+    <string>Detect Segment</string>
+   </property>
+   <property name="statusTip">
+    <string>Detect Segment</string>
+   </property>
+  </action>
+  <action name="action_houghCircle">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/hough_circle.png</normaloff>:/icons/hough_circle.png</iconset>
+   </property>
+   <property name="text">
+    <string>Detect Circle</string>
+   </property>
+   <property name="toolTip">
+    <string>Detect Circle</string>
+   </property>
+   <property name="statusTip">
+    <string>Detect Circle</string>
+   </property>
+  </action>
+  <action name="action_resetOperation">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_resetOperation.png</normaloff>:/icons/img_resetOperation.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reset Operation</string>
+   </property>
+   <property name="toolTip">
+    <string>Reset Operation</string>
+   </property>
+   <property name="statusTip">
+    <string>Reset Operation</string>
    </property>
   </action>
  </widget>
