@@ -340,6 +340,7 @@
      <string>File</string>
     </property>
     <addaction name="action_openImg"/>
+    <addaction name="separator"/>
     <addaction name="action_saveAsImg"/>
     <addaction name="action_saveAsDXF"/>
    </widget>
@@ -356,6 +357,7 @@
     <addaction name="action_binary"/>
     <addaction name="action_sharpen"/>
     <addaction name="action_filter"/>
+    <addaction name="action_GaussianFilter"/>
     <addaction name="action_thinning"/>
     <addaction name="action_findThreshold"/>
     <addaction name="action_findContours"/>
@@ -620,6 +622,18 @@
    </property>
    <property name="statusTip">
     <string>Reset Operation</string>
+   </property>
+  </action>
+  <action name="action_GaussianFilter">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_gaussFilter.png</normaloff>:/icons/img_gaussFilter.png</iconset>
+   </property>
+   <property name="text">
+    <string>Gaussian filtering</string>
+   </property>
+   <property name="statusTip">
+    <string>Gaussian filtering</string>
    </property>
   </action>
  </widget>

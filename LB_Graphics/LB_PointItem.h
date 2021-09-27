@@ -8,8 +8,8 @@ class LB_PointItem : public QAbstractGraphicsShapeItem
 public:
     LB_PointItem(QAbstractGraphicsShapeItem* parent, const QPointF& p);
 
-    qreal x() const {return myPoint.x(); }
-    qreal y() const {return myPoint.y(); }
+    double x() const {return myPoint.x(); }
+    double y() const {return myPoint.y(); }
 
     QPointF getPoint() const { return myPoint; }
     void setPoint(const QPointF& p) { myPoint = p; }

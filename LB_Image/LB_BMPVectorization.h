@@ -41,10 +41,10 @@ bool colinear(const QVector<QPoint>::Iterator& start, const QVector<QPoint>::Ite
 double angle(const QPointF &a, const QPointF &b, const QPointF &c);
 
 //! simple linear interpolation between two points
-QPointF lerp(const QPointF &a, const QPointF &b, qreal t);
+QPointF lerp(const QPointF &a, const QPointF &b, double t);
 
 //! evaluate a point on a bezier-curve. t goes from 0 to 1.0
-QPointF bezier(const QPointF &a, const QPointF &b, const QPointF &c, const QPointF &d, qreal t);
+QPointF bezier(const QPointF &a, const QPointF &b, const QPointF &c, const QPointF &d, double t);
 
 //! Douglas-Peucker algorithm to simplify the edge into polygon
 QVector<QPolygon> DouglasSimplify(const QVector<QPolygon> &edges);

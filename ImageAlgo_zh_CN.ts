@@ -15,7 +15,7 @@
         <translation>图片未打开</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="348"/>
+        <location filename="MainWindow.ui" line="349"/>
         <source>Operation</source>
         <translation>图像操作</translation>
     </message>
@@ -155,128 +155,134 @@
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="368"/>
+        <location filename="MainWindow.ui" line="370"/>
         <source>Vectorization</source>
         <translation>矢量化</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="385"/>
-        <location filename="MainWindow.ui" line="388"/>
+        <location filename="MainWindow.ui" line="387"/>
+        <location filename="MainWindow.ui" line="390"/>
         <source>Open Image</source>
         <translation>打开图片</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="397"/>
-        <location filename="MainWindow.ui" line="400"/>
+        <location filename="MainWindow.ui" line="399"/>
+        <location filename="MainWindow.ui" line="402"/>
         <source>Generate results</source>
         <translation>生成提取结果</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="409"/>
-        <location filename="MainWindow.ui" line="412"/>
+        <location filename="MainWindow.ui" line="411"/>
+        <location filename="MainWindow.ui" line="414"/>
         <source>Last step</source>
         <translation>上一步</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="421"/>
-        <location filename="MainWindow.ui" line="424"/>
+        <location filename="MainWindow.ui" line="423"/>
+        <location filename="MainWindow.ui" line="426"/>
         <source>Next step</source>
         <translation>下一步</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="433"/>
-        <location filename="MainWindow.ui" line="436"/>
+        <location filename="MainWindow.ui" line="435"/>
+        <location filename="MainWindow.ui" line="438"/>
         <source>Median filter</source>
         <translation>中值滤波</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="445"/>
-        <location filename="MainWindow.ui" line="448"/>
+        <location filename="MainWindow.ui" line="447"/>
+        <location filename="MainWindow.ui" line="450"/>
         <source>Find contours</source>
         <translation>边缘检测</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="457"/>
-        <location filename="MainWindow.ui" line="460"/>
+        <location filename="MainWindow.ui" line="459"/>
+        <location filename="MainWindow.ui" line="462"/>
         <source>Binary</source>
         <translation>二值化</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="469"/>
-        <location filename="MainWindow.ui" line="472"/>
+        <location filename="MainWindow.ui" line="471"/>
+        <location filename="MainWindow.ui" line="474"/>
         <source>Best threshold</source>
         <translation>最佳阈值</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="481"/>
-        <location filename="MainWindow.ui" line="484"/>
-        <location filename="MainWindow.ui" line="487"/>
+        <location filename="MainWindow.ui" line="483"/>
+        <location filename="MainWindow.ui" line="486"/>
+        <location filename="MainWindow.ui" line="489"/>
         <source>Save as image</source>
         <translation>存为图片</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="496"/>
-        <location filename="MainWindow.ui" line="499"/>
-        <location filename="MainWindow.ui" line="502"/>
+        <location filename="MainWindow.ui" line="498"/>
+        <location filename="MainWindow.ui" line="501"/>
+        <location filename="MainWindow.ui" line="504"/>
         <source>Save as dxf</source>
         <translation>存为DXF文件</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="511"/>
-        <location filename="MainWindow.ui" line="514"/>
-        <location filename="MainWindow.ui" line="517"/>
+        <location filename="MainWindow.ui" line="513"/>
+        <location filename="MainWindow.ui" line="516"/>
+        <location filename="MainWindow.ui" line="519"/>
         <source>Canny Contours</source>
         <translation>Canny边缘</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="526"/>
-        <location filename="MainWindow.ui" line="529"/>
-        <location filename="MainWindow.ui" line="532"/>
+        <location filename="MainWindow.ui" line="528"/>
+        <location filename="MainWindow.ui" line="531"/>
+        <location filename="MainWindow.ui" line="534"/>
         <source>Sobel Contours</source>
         <translation>Sobel边缘</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="541"/>
-        <location filename="MainWindow.ui" line="544"/>
-        <location filename="MainWindow.ui" line="547"/>
+        <location filename="MainWindow.ui" line="543"/>
+        <location filename="MainWindow.ui" line="546"/>
+        <location filename="MainWindow.ui" line="549"/>
         <source>Gray</source>
         <translation>灰度化</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="556"/>
-        <location filename="MainWindow.ui" line="559"/>
-        <location filename="MainWindow.ui" line="562"/>
+        <location filename="MainWindow.ui" line="558"/>
+        <location filename="MainWindow.ui" line="561"/>
+        <location filename="MainWindow.ui" line="564"/>
         <source>Sharpen</source>
         <translation>锐化</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="571"/>
-        <location filename="MainWindow.ui" line="574"/>
-        <location filename="MainWindow.ui" line="577"/>
+        <location filename="MainWindow.ui" line="573"/>
+        <location filename="MainWindow.ui" line="576"/>
+        <location filename="MainWindow.ui" line="579"/>
         <source>Thinning</source>
         <translation>细化</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="586"/>
-        <location filename="MainWindow.ui" line="589"/>
-        <location filename="MainWindow.ui" line="592"/>
+        <location filename="MainWindow.ui" line="588"/>
+        <location filename="MainWindow.ui" line="591"/>
+        <location filename="MainWindow.ui" line="594"/>
         <source>Detect Segment</source>
         <translation>检测直线段</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="601"/>
-        <location filename="MainWindow.ui" line="604"/>
-        <location filename="MainWindow.ui" line="607"/>
+        <location filename="MainWindow.ui" line="603"/>
+        <location filename="MainWindow.ui" line="606"/>
+        <location filename="MainWindow.ui" line="609"/>
         <source>Detect Circle</source>
         <translation>检测圆</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="616"/>
-        <location filename="MainWindow.ui" line="619"/>
-        <location filename="MainWindow.ui" line="622"/>
+        <location filename="MainWindow.ui" line="618"/>
+        <location filename="MainWindow.ui" line="621"/>
+        <location filename="MainWindow.ui" line="624"/>
         <source>Reset Operation</source>
         <oldsource>ResetReset Operation</oldsource>
         <translation>重置操作</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.ui" line="633"/>
+        <location filename="MainWindow.ui" line="636"/>
+        <source>Gaussian filtering</source>
+        <translation>高斯滤波</translation>
     </message>
     <message>
         <location filename="MainWindow.cpp" line="35"/>
@@ -284,77 +290,86 @@
         <translation>&lt;空白&gt;</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="101"/>
+        <location filename="MainWindow.cpp" line="50"/>
         <source>chose one image</source>
         <translation>选择一副图像</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="169"/>
         <source>filter</source>
+        <translation type="vanished">中值滤波</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="132"/>
+        <source>median filter</source>
         <translation>中值滤波</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="177"/>
+        <location filename="MainWindow.cpp" line="140"/>
+        <source>Gaussian filter</source>
+        <translation>高斯滤波</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="148"/>
         <source>sharpen</source>
         <translation>锐化</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="185"/>
+        <location filename="MainWindow.cpp" line="156"/>
         <source>find contours</source>
         <translation>边缘检测</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="193"/>
+        <location filename="MainWindow.cpp" line="164"/>
         <source>sobel contours</source>
         <translation>Sobel边缘</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="201"/>
+        <location filename="MainWindow.cpp" line="172"/>
         <source>canny contours</source>
         <translation>Canny边缘</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="209"/>
+        <location filename="MainWindow.cpp" line="180"/>
         <source>gray</source>
         <translation>灰度化</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="217"/>
+        <location filename="MainWindow.cpp" line="188"/>
         <source>binary</source>
         <translation>二值化</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="234"/>
+        <location filename="MainWindow.cpp" line="205"/>
         <source>thinning</source>
         <translation>细化</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="254"/>
+        <location filename="MainWindow.cpp" line="225"/>
         <source>hough line</source>
         <translation>检测直线段</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="267"/>
+        <location filename="MainWindow.cpp" line="238"/>
         <source>Scanning, please wait</source>
         <translation>扫描中，请等待</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="267"/>
+        <location filename="MainWindow.cpp" line="238"/>
         <source>cancle</source>
         <translation>取消</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="268"/>
+        <location filename="MainWindow.cpp" line="239"/>
         <source>Hough Circle</source>
         <translation>检测圆</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="298"/>
+        <location filename="MainWindow.cpp" line="269"/>
         <source>hough circle</source>
         <translation>检测圆</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="349"/>
+        <location filename="MainWindow.cpp" line="320"/>
         <source>scale</source>
         <translation>缩放</translation>
     </message>

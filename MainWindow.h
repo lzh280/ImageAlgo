@@ -25,6 +25,7 @@ private slots:
     void on_action_resetOperation_triggered();
 
     void on_action_filter_triggered();
+    void on_action_GaussianFilter_triggered();
     void on_action_sharpen_triggered();
     void on_action_findContours_triggered();
     void on_action_sobelContours_triggered();
@@ -44,7 +45,7 @@ private slots:
     void on_doubleSpinBox_colinearTol_valueChanged(double arg1);
     void on_comboBox_scaleFactor_activated(int index);
     void on_checkBox_showContours_stateChanged(int arg1);
-    void on_checkBox_showVertex_stateChanged(int arg1);    
+    void on_checkBox_showVertex_stateChanged(int arg1);
 
 private:
     Ui::MainWindow *ui;

@@ -97,7 +97,7 @@ void LB_ImageViewer::wheelEvent(QWheelEvent *event)
 
     this->setTransformationAnchor(QGraphicsView::AnchorUnderMouse);
 
-    qreal factor = 1.1;
+    double factor = 1.1;
 
     if(event->delta() < 0)
         factor = 1.0 / factor;

@@ -122,83 +122,47 @@ QImage Gray(const QImage &img)
 
 QImage Scale(const QImage &img, const QSize &size)
 {
-    return img.scaled(size);
+    QImage scaledImg (size, QImage::Format_ARGB32);
+    int scaleW = size.width();
+    int scaleH = size.height();
+    double factor = (double)scaleW / (double)img.width();
 
-//    unsigned int OutWidth = (unsigned int)(img.width() * size +0.5);
-//    unsigned int OutHeight = (unsigned int)(img.height() * size +0.5 );
-//    QImage scaledImg (OutWidth, OutHeight ,QImage::Format_ARGB32);
+    double oriX, oriY = 0; // the float coordinate of "img" corresponding to (i,j)
+    int x1, x2, y1, y2 = 0; // the 4 int coordinate of the float
 
-//    double  x = 0;
-//    double  y = 0;
-//    int r,g,b;
-//    for (unsigned int  j = 0; j < OutHeight- size; j++)
-//    {
-//        y = j / size  ;
+    double u, v=0;
 
-//        for(unsigned int i =0; i < OutWidth; i++)
-//        {
-//            x = i / size ;
+    // the qRgb hasn't define the operate* and operate+
+    auto lerpColor = [](QRgb l, QRgb r, double f) {
+        return qRgb(qRed(l)*(1-f) + qRed(r)*f,
+                    qGreen(l)*(1-f) + qGreen(r)*f,
+                    qBlue(l)*(1-f) + qBlue(r)*f);
+    };
 
-//            int x1, x2, y1, y2;
-//            x1= ( int)x;
-//            x2 = x1 + 1;
-//            y1 = ( int)y;
-//            y2 = y1 + 1;
+    QRgb color;
+    for(int i=0;i<scaleW;++i) {
+        // https://www.cnblogs.com/funny-world/p/3162003.html
+        oriX = (i+0.5) / factor - 0.5;
+        for(int j=0;j<scaleH;++j) {
+            oriY = (j+0.5) / factor - 0.5;
 
-//            QColor oldcolor1;
-//            QColor oldcolor2;
-//            QColor oldcolor3;
-//            QColor oldcolor4;
-//            double u, v;
-//            u = x - x1;
-//            v = y - y1;
-//            if ((x >=img.width() - 1 ) && (y >=img.height() - 1 ))
-//            {
-//                oldcolor1 = QColor(img.pixel(x1,y1));
-//                r = oldcolor1.red();
-//                g = oldcolor1.green();
-//                b = oldcolor1.blue();
-//            }
-//            else if (x >= img.width() - 1)
-//            {
-//                oldcolor1 = QColor(img.pixel(x1,y1));
-//                oldcolor3 = QColor(img.pixel(x1,y2));
-//                r = oldcolor1.red() * (1 - v) + oldcolor3.red() * v;
-//                g = oldcolor1.green() * (1 - v) + oldcolor3.green() * v;
-//                b = oldcolor1.blue() * (1 - v) + oldcolor3.blue() * v;
-//            }
-//            else if (x >=img.height() - 1)
-//            {
-//                oldcolor1 = QColor(img.pixel(x1,y1));
-//                oldcolor2 = QColor(img.pixel(x2,y1));
-//                r = oldcolor1.red() * (1 - u) + oldcolor2.red() * u;
-//                g = oldcolor1.green() * (1 - u) + oldcolor2.green() * u;
-//                b = oldcolor1.blue() * (1 - u) + oldcolor2.blue() * u;
-//            }
-//            else
-//            {
-//                oldcolor1 = QColor(img.pixel(x1,y1));
-//                oldcolor2 = QColor(img.pixel(x2,y1));
-//                oldcolor3 = QColor(img.pixel(x1,y2));
-//                oldcolor4 = QColor(img.pixel(x2,y2));
-//                int r1,g1,b1;
-//                r = oldcolor1.red() * (1 - u) + oldcolor2.red() * u;
-//                g = oldcolor1.green() * (1 - u) + oldcolor2.green() * u;
-//                b = oldcolor1.blue() * (1 - u) + oldcolor2.blue() * u;
+            x1 = oriX;
+            x2 = qBound(0,x1 + 1,img.width()-1);
+            y1 = oriY;
+            y2 = qBound(0,y1 + 1,img.height()-1);
 
-//                r1 = oldcolor3.red() * (1 - u) + oldcolor4.red() * u;
-//                g1 = oldcolor3.green() * (1 - u) + oldcolor4.green() * u;
-//                b1 = oldcolor3.blue() * (1 - u) + oldcolor4.blue() * u;
+            u = oriX - x1;
+            v = oriY - y1;
 
-//                r = r * (1 - v) + r1 * v;
-//                g = g * (1 - v) + g1 * v;
-//                b = b * (1 - v) + b1 * v;
-//            }
+            // lerp horizon first with u, then lerp vertical with v
+            color = lerpColor(lerpColor(img.pixel(x1,y1),img.pixel(x2,y1),u),
+                              lerpColor(img.pixel(x1,y2),img.pixel(x2,y2),u),v);
 
-//            scaledImg.setPixel(i, j, qRgb(r, g, b));
-//        }
-//    }
-//    return scaledImg;
+            scaledImg.setPixel(i,j,color);
+        }
+    }
+
+    return scaledImg;
 }
 
 QImage Binary(const QImage &img, int threshold)
@@ -308,9 +272,9 @@ QImage MedianFilter(const QImage &img, const int &winSize)
 
 QImage GaussFilter(const QImage &img)
 {
-    double kernel [3][3]= {{0.0625, 0.125, 0.0625},
-                           {0.125, 0.25, 0.125},
-                           {0.0625, 0.125, 0.0625}};
+    double kernel [3][3]= {{0.07511, 0.12384, 0.07511},
+                           {0.12384, 0.20418, 0.12384},
+                           {0.07511, 0.12384, 0.07511}};
     return Convolution(img,(double**)kernel,3);
 }
 
@@ -461,7 +425,7 @@ QImage CannyContours(const QImage &img)
             else if (value_gx == 0)
                 sobel_direction[x+width*y] = 3;
             else {
-                qreal a = atan(qreal(value_gy) / value_gx) * RAD2DEG;
+                double a = atan(double(value_gy) / value_gx) * RAD2DEG;
 
                 if (a >= -22.5 && a < 22.5)
                     sobel_direction[x+width*y] = 0;

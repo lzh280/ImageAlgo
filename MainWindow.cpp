@@ -54,7 +54,7 @@ void MainWindow::on_action_openImg_triggered()
     }
     setWindowTitle(filename);
 
-    //get the image, find the best threshold as well
+    // get the image, find the best threshold as well
     sourceImg.load(filename);
     resultImg = sourceImg;
     THRESHOLD = ThresholdDetect(sourceImg);
@@ -66,8 +66,12 @@ void MainWindow::on_action_openImg_triggered()
     ui->label_imgInfoSource->setText(QString("%1px X %2px").arg(sourcemap.width()).arg(sourcemap.height()));
 
     ui->graphicResult->ResetContours();
-    ui->graphicResult->SetPixmap(sourcemap.scaled(sourcemap.size()*SCALE_FACTOR));
-    ui->label_imgInfoResult->setText(QString("%1px X %2px").arg(resultImg.width()).arg(resultImg.height()));
+    ui->graphicResult->SetPixmap(sourcemap);
+    ui->label_imgInfoResult->setText(QString("%1px X %2px").arg(sourcemap.width()).arg(sourcemap.height()));
+
+    // reset the scale factor
+    SCALE_FACTOR = 1.0;
+    ui->comboBox_scaleFactor->setCurrentIndex(5);
 
     undoStack->clear();
 }
@@ -125,7 +129,15 @@ void MainWindow::on_action_filter_triggered()
     QImage before = resultImg;
     resultImg = MedianFilter(resultImg,3);
     showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},tr("filter"),ui->graphicResult));
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("median filter"),ui->graphicResult));
+}
+
+void MainWindow::on_action_GaussianFilter_triggered()
+{
+    QImage before = resultImg;
+    resultImg = GaussFilter(resultImg);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("Gaussian filter"),ui->graphicResult));
 }
 
 void MainWindow::on_action_sharpen_triggered()

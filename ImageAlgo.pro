@@ -39,3 +39,9 @@ RESOURCES += \
     ImageAlgo.qrc
 
 TRANSLATIONS = ImageAlgo_zh_CN.ts
+
+CONFIG(debug, debug|release) {
+    DESTDIR = $$PWD/bind
+} else {
+    DESTDIR = $$PWD/bin
+}

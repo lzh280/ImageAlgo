@@ -43,6 +43,7 @@ QVector<QPolygon> RadialSweepTracing(const QImage &img)
     QPoint nextP;
     QPoint lastP;
     QPoint aNeighbor;
+    int index;
 
     // 3.trace
     while(!borderPnts.isEmpty())
@@ -57,7 +58,7 @@ QVector<QPolygon> RadialSweepTracing(const QImage &img)
             neighbor = clockwiseNeighbor(currP);
 
             // find the position of last point in current group
-            int index = indexOfNeighbor(lastP,currP);
+            index = indexOfNeighbor(lastP,currP);
             if(index == -1)
                 index = 0;
 
@@ -108,6 +109,7 @@ QVector<QPolygon> SimplifyEdge(const QVector<QPolygon> &edges)
     QPolygon simpleGroup;
     QVector<QPoint>::Iterator startPtr;
     QVector<QPoint>::Iterator endPtr;
+    int indexN = -1;
 
     for(int i=0;i<edges.size();++i) {
         aGroup = edges[i];
@@ -119,7 +121,7 @@ QVector<QPolygon> SimplifyEdge(const QVector<QPolygon> &edges)
         while(endPtr != aGroup.end()) {
             if(!colinear(startPtr,endPtr)) {
                 // back track the end to the last corner
-                int indexN = indexOfNeighbor(*(endPtr-1),*endPtr);
+                indexN = indexOfNeighbor(*(endPtr-1),*endPtr);
                 endPtr--;
                 while(endPtr != startPtr) {
                     if(indexN != indexOfNeighbor(*(endPtr-1),*endPtr)) {
@@ -152,35 +154,38 @@ QVector<QPolygonF> SmoothEdge(const QVector<QPolygon> &edges)
     QPolygon aGroup;
     QVector<QPointF> midPnts;
     QPolygonF aBezireGroup;
+    int last;
+    int next;
+    double dis; // distance of vertec to line which formed by two mid-point
+    double alpha; // the factor of "dis" and COLINEAR_TOLERANCE
+    QPointF c1,c2; // the two control point of bezier curve
 
     for(int i=0;i<edges.size();++i) {
         aGroup = edges[i];
         aBezireGroup.clear();
 
         // 1.generate the middle point of two edge point
-        midPnts.clear();
-        int last;
+        midPnts.clear();        
         for(int j=0;j<aGroup.size();++j) {
             last = (j+aGroup.size()-1)%aGroup.size();
             midPnts.append(QPointF((aGroup[j].x()+aGroup[last].x())/2.0,
                            (aGroup[j].y()+aGroup[last].y())/2.0));
         }
 
-        // 2.jude if need to use bezier
-        int next;
+        // 2.jude if need to use bezier        
         for(int k=0;k<midPnts.size();++k) {
             next = (k+1)%midPnts.size();
             HLineF aLin(midPnts[k],midPnts[next]);
-            double dis = aLin.distance(aGroup[k]);
-            double alpha = (dis-COLINEAR_TOLERANCE)/dis;
+            dis = aLin.distance(aGroup[k]);
+            alpha = (dis-COLINEAR_TOLERANCE)/dis;
 
             if(alpha < SMOOTH_ALPHA) {
                 // calculate the control point
-                QPointF c1 = lerp(aGroup[k],midPnts[k],0.15);
-                QPointF c2 = lerp(aGroup[k],midPnts[next],0.15);
+                c1 = lerp(aGroup[k],midPnts[k],0.15);
+                c2 = lerp(aGroup[k],midPnts[next],0.15);
 
-                for (int i = 0; i < BEZIER_STEP; ++i) {
-                    aBezireGroup << bezier(midPnts[k], c1, c2, midPnts[next], static_cast<qreal>(i) / BEZIER_STEP);
+                for (int m = 0; m < BEZIER_STEP; ++m) {
+                    aBezireGroup << bezier(midPnts[k], c1, c2, midPnts[next], static_cast<double>(m) / BEZIER_STEP);
                 }
             }
             else {
@@ -196,7 +201,7 @@ QVector<QPolygonF> SmoothEdge(const QVector<QPolygon> &edges)
 
 QVector<QPolygonF> ScaleEdge(const QVector<QPolygonF> &edges)
 {
-    qreal factor = 1.0/SCALE_FACTOR;
+    double factor = 1.0/SCALE_FACTOR;
     QVector<QPolygonF> result;
     QPolygonF oneEdge;
     foreach(const QPolygonF& poly, edges) {
@@ -373,12 +378,12 @@ double angle(const QPointF &a, const QPointF &b, const QPointF &c)
     return acos(dot/mod);
 }
 
-QPointF lerp(const QPointF &a, const QPointF &b, qreal t)
+QPointF lerp(const QPointF &a, const QPointF &b, double t)
 {
     return a + (b - a) * t;
 }
 
-QPointF bezier(const QPointF &a, const QPointF &b, const QPointF &c, const QPointF &d, qreal t)
+QPointF bezier(const QPointF &a, const QPointF &b, const QPointF &c, const QPointF &d, double t)
 {
     QPointF ab = lerp(a, b, t);           // point between a and b (green)
     QPointF bc = lerp(b, c, t);           // point between b and c (green)
@@ -393,6 +398,7 @@ QVector<QPolygon> DouglasSimplify(const QVector<QPolygon> &edges)
     QVector<QPolygon> result;
     QPolygon anEdge;
     QPolygon dougEdge;
+    QPolygon sortedDouEdge;
     QPolygon::Iterator start;
     QPolygon::Iterator end;
     QPolygon::Iterator ptr;
@@ -401,6 +407,7 @@ QVector<QPolygon> DouglasSimplify(const QVector<QPolygon> &edges)
         return pow(p2.x()-p1.x(), 2) + pow(p2.y()-p1.y(), 2);
     };
 
+    double dis;
     for(int i=0;i<edges.size();++i) {
         anEdge = edges[i];
         start = anEdge.begin();
@@ -408,7 +415,7 @@ QVector<QPolygon> DouglasSimplify(const QVector<QPolygon> &edges)
         // 1.find the point furthest from start point
         end = start;
         ptr = start;
-        double dis = 0;
+        dis = 0;
         while(end != anEdge.end()) {
             if(distance(*start,*end) > dis) {
                 dis = distance(*start,*end);
@@ -425,14 +432,14 @@ QVector<QPolygon> DouglasSimplify(const QVector<QPolygon> &edges)
         Douglas_Peucker(start,end,ptr,dougEdge);
 
         // 4.sort the dougEdge by the order of source
-        QPolygon tmp;
+        sortedDouEdge.clear();
         for(int j=0;j<anEdge.size();++j) {
             if(dougEdge.contains(anEdge[j])) {
-                tmp.append(anEdge[j]);
+                sortedDouEdge.append(anEdge[j]);
             }
         }
 
-        result.append(tmp);
+        result.append(sortedDouEdge);
         dougEdge.clear();
     }
 
