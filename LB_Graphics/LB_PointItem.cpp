@@ -26,7 +26,14 @@ void LB_PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
-    painter->setPen(Qt::NoPen);
+    if(this->isSelected()) {
+        QPen apen;
+        apen.setWidthF(0.5);
+        apen.setColor(Qt::gray);
+        painter->setPen(apen);
+    }
+    else
+        painter->setPen(Qt::NoPen);
     painter->setBrush(this->brush());
     this->setPos(myPoint);
 

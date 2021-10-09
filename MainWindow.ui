@@ -80,13 +80,13 @@
    <property name="minimumSize">
     <size>
      <width>200</width>
-     <height>230</height>
+     <height>250</height>
     </size>
    </property>
    <property name="maximumSize">
     <size>
      <width>200</width>
-     <height>230</height>
+     <height>250</height>
     </size>
    </property>
    <property name="allowedAreas">
@@ -100,6 +100,112 @@
    </attribute>
    <widget class="QWidget" name="dockWidgetContents_2">
     <layout class="QGridLayout" name="gridLayout_2">
+     <item row="4" column="3">
+      <widget class="QSpinBox" name="spinBox_bezierStep">
+       <property name="toolTip">
+        <string>Number of smooth points replacing the original contour</string>
+       </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>15</number>
+       </property>
+       <property name="value">
+        <number>3</number>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_scaleFactor">
+       <property name="text">
+        <string>Scale factor:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0" colspan="4">
+      <widget class="QCheckBox" name="checkBox_showVertex">
+       <property name="text">
+        <string>Show vertex</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="3">
+      <widget class="QSpinBox" name="spinBox_minPathLen">
+       <property name="toolTip">
+        <string>The minimum number of pixels of an outline</string>
+       </property>
+       <property name="maximum">
+        <number>999</number>
+       </property>
+       <property name="value">
+        <number>10</number>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0" colspan="2">
+      <widget class="QLabel" name="label_bezierStep">
+       <property name="text">
+        <string>Interpolation count:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_ahpha">
+       <property name="text">
+        <string>Sharpness coefficient:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1" colspan="3">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_alpha">
+       <property name="toolTip">
+        <string>The larger the sharp coefficient, the more smooth corners of the image contour</string>
+       </property>
+       <property name="singleStep">
+        <double>0.050000000000000</double>
+       </property>
+       <property name="value">
+        <double>0.550000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0" colspan="4">
+      <widget class="QCheckBox" name="checkBox_DouglasSimplify">
+       <property name="text">
+        <string>Use Douglas-Poucker</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="3">
+      <widget class="QDoubleSpinBox" name="doubleSpinBox_colinearTol">
+       <property name="toolTip">
+        <string>In the vectorization process, pixels are in the maximum tolerance of a straight line</string>
+       </property>
+       <property name="singleStep">
+        <double>0.100000000000000</double>
+       </property>
+       <property name="value">
+        <double>1.000000000000000</double>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" colspan="2">
+      <widget class="QLabel" name="label_threshold">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+         <horstretch>1</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="text">
+        <string>Binarization threshold:</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="2" colspan="2">
       <widget class="QComboBox" name="comboBox_scaleFactor">
        <property name="currentIndex">
@@ -162,24 +268,20 @@
        </item>
       </widget>
      </item>
+     <item row="6" column="0" colspan="4">
+      <widget class="QCheckBox" name="checkBox_showContours">
+       <property name="text">
+        <string>Show contours</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
      <item row="2" column="0" colspan="3">
       <widget class="QLabel" name="label_minPathLen">
        <property name="text">
         <string>Minimum edge length:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_ahpha">
-       <property name="text">
-        <string>Sharpness coefficient:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="label_colinearTol">
-       <property name="text">
-        <string>Colinear tolerance:</string>
        </property>
       </widget>
      </item>
@@ -196,105 +298,17 @@
        </property>
       </widget>
      </item>
-     <item row="7" column="0" colspan="4">
-      <widget class="QCheckBox" name="checkBox_showVertex">
+     <item row="5" column="0">
+      <widget class="QLabel" name="label_colinearTol">
        <property name="text">
-        <string>Show vertex</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
+        <string>Colinear tolerance:</string>
        </property>
       </widget>
      </item>
-     <item row="4" column="3">
-      <widget class="QSpinBox" name="spinBox_bezierStep">
-       <property name="toolTip">
-        <string>Number of smooth points replacing the original contour</string>
-       </property>
-       <property name="minimum">
-        <number>2</number>
-       </property>
-       <property name="maximum">
-        <number>15</number>
-       </property>
-       <property name="value">
-        <number>3</number>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="0" colspan="2">
-      <widget class="QLabel" name="label_bezierStep">
+     <item row="9" column="0" colspan="4">
+      <widget class="QCheckBox" name="checkBox_frameSelection">
        <property name="text">
-        <string>Interpolation count:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="3">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_colinearTol">
-       <property name="toolTip">
-        <string>In the vectorization process, pixels are in the maximum tolerance of a straight line</string>
-       </property>
-       <property name="singleStep">
-        <double>0.100000000000000</double>
-       </property>
-       <property name="value">
-        <double>1.000000000000000</double>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="3">
-      <widget class="QSpinBox" name="spinBox_minPathLen">
-       <property name="toolTip">
-        <string>The minimum number of pixels of an outline</string>
-       </property>
-       <property name="maximum">
-        <number>999</number>
-       </property>
-       <property name="value">
-        <number>10</number>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="0" colspan="4">
-      <widget class="QCheckBox" name="checkBox_showContours">
-       <property name="text">
-        <string>Show contours</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0" colspan="2">
-      <widget class="QLabel" name="label_threshold">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-         <horstretch>1</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Binarization threshold:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_scaleFactor">
-       <property name="text">
-        <string>Scale factor:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1" colspan="3">
-      <widget class="QDoubleSpinBox" name="doubleSpinBox_alpha">
-       <property name="toolTip">
-        <string>The larger the sharp coefficient, the more smooth corners of the image contour</string>
-       </property>
-       <property name="singleStep">
-        <double>0.050000000000000</double>
-       </property>
-       <property name="value">
-        <double>0.550000000000000</double>
+        <string>Frame selection</string>
        </property>
       </widget>
      </item>
@@ -325,6 +339,8 @@
    <addaction name="action_findThreshold"/>
    <addaction name="separator"/>
    <addaction name="action_generateResult"/>
+   <addaction name="separator"/>
+   <addaction name="action_convertToArc"/>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -373,6 +389,8 @@
     <addaction name="separator"/>
     <addaction name="action_houghLine"/>
     <addaction name="action_houghCircle"/>
+    <addaction name="separator"/>
+    <addaction name="action_convertToArc"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuOperation"/>
@@ -634,6 +652,18 @@
    </property>
    <property name="statusTip">
     <string>Gaussian filtering</string>
+   </property>
+  </action>
+  <action name="action_convertToArc">
+   <property name="icon">
+    <iconset resource="ImageAlgo.qrc">
+     <normaloff>:/icons/img_toArc.png</normaloff>:/icons/img_toArc.png</iconset>
+   </property>
+   <property name="text">
+    <string>Convert to Arc</string>
+   </property>
+   <property name="toolTip">
+    <string>Convert to Arc</string>
    </property>
   </action>
  </widget>

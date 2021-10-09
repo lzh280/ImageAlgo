@@ -12,14 +12,13 @@ public:
     explicit LB_ImageViewer(QWidget *parent = nullptr);
     ~LB_ImageViewer();
 
-    void ResetContours();
+    void ResetPolygons();
     void SetContoursVisible(bool ret);
     void SetVertexVisible(bool ret);
     void SetPixmap(const QPixmap &map);
-    void SetImageContours(const QVector<QPolygonF>& contours);
+    void SetImagePolygons(const QVector<QPolygonF>& contours);
 
 protected:
-
     virtual void resizeEvent(QResizeEvent * event) override;
     virtual void wheelEvent(QWheelEvent *event) override;
 

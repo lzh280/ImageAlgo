@@ -25,10 +25,10 @@ LB_ImageViewer::~LB_ImageViewer()
         myPixmapItem = nullptr;
     }
 
-    ResetContours();
+    ResetPolygons();
 }
 
-void LB_ImageViewer::ResetContours()
+void LB_ImageViewer::ResetPolygons()
 {
     foreach(LB_PolygonItem* item, myPolyItems) {
         if(item) {
@@ -71,15 +71,16 @@ void LB_ImageViewer::SetPixmap(const QPixmap &map)
     this->setDragMode(ScrollHandDrag);
 }
 
-void LB_ImageViewer::SetImageContours(const QVector<QPolygonF> &contours)
+void LB_ImageViewer::SetImagePolygons(const QVector<QPolygonF> &contours)
 {
-    ResetContours();
+    ResetPolygons();
 
     foreach(const QPolygonF& poly, contours) {
         LB_PolygonItem* item = new LB_PolygonItem(poly);
         myPolyItems.append(item);
         myGraphicScene->addItem(item);
     }
+    this->setDragMode(ScrollHandDrag);
 }
 
 void LB_ImageViewer::resizeEvent(QResizeEvent *event)

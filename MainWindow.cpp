@@ -16,6 +16,7 @@
 #include "LB_Image/LB_ImagePreProcess.h"
 #include "LB_Image/LB_BMPVectorization.h"
 #include "LB_Image/LB_ElementDetection.h"
+#include "LB_Graphics/LB_PointItem.h"
 #include "ImageProcessCommand.h"
 
 #include <QDebug>
@@ -26,7 +27,8 @@ int THRESHOLD = 128;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    useDouglas(false)
 {
     ui->setupUi(this);
 
@@ -45,6 +47,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+// file
 void MainWindow::on_action_openImg_triggered()
 {
     QString filename = QFileDialog::getOpenFileName(this,tr("chose one image"),"","*.jpg *.png *bmp *.jpeg *.jfif");
@@ -65,7 +68,7 @@ void MainWindow::on_action_openImg_triggered()
     ui->graphicSource->SetPixmap(sourcemap);
     ui->label_imgInfoSource->setText(QString("%1px X %2px").arg(sourcemap.width()).arg(sourcemap.height()));
 
-    ui->graphicResult->ResetContours();
+    ui->graphicResult->ResetPolygons();
     ui->graphicResult->SetPixmap(sourcemap);
     ui->label_imgInfoResult->setText(QString("%1px X %2px").arg(sourcemap.width()).arg(sourcemap.height()));
 
@@ -76,45 +79,15 @@ void MainWindow::on_action_openImg_triggered()
     undoStack->clear();
 }
 
-void MainWindow::on_action_generateResult_triggered()
+void MainWindow::on_action_saveAsImg_triggered()
 {
-    if(resultImg.isNull())
-        return;
-
-    QElapsedTimer testTimer;
-    testTimer.start();
-    QVector<QPolygon> edges = RadialSweepTracing(resultImg);qDebug()<<"tracing cost:"<<testTimer.elapsed()<<"ms";testTimer.restart();
-    edges = SimplifyEdge(edges);qDebug()<<"simplify cost:"<<testTimer.elapsed()<<"ms";testTimer.restart();
-    QVector<QPolygonF> result = SmoothEdge(edges);qDebug()<<"smooth cost:"<<testTimer.elapsed()<<"ms";
-    result = ScaleEdge(result);
-
-    ui->graphicResult->ResetContours();
-    ui->graphicResult->SetImageContours(result);
-
-    ui->checkBox_showContours->setChecked(true);
-    ui->checkBox_showVertex->setChecked(true);
 }
 
-void MainWindow::on_action_back_triggered()
+void MainWindow::on_action_saveAsDXF_triggered()
 {
-    undoStack->undo();
-    int index = undoStack->index();
-    const ImageProcessCommand *cmd = static_cast<const ImageProcessCommand*>(undoStack->command(index));
-    resultImg = cmd->GetInput();
-    double scaleF = (double)resultImg.width() / (double)sourceImg.width();
-    fuzzyJudgeFactor(scaleF);
 }
 
-void MainWindow::on_action_next_triggered()
-{
-    undoStack->redo();
-    int index = qBound(0,undoStack->index()-1,undoStack->count()-1);
-    const ImageProcessCommand *cmd = static_cast<const ImageProcessCommand*>(undoStack->command(index));
-    resultImg = cmd->GetOutput();
-    double scaleF = (double)resultImg.width() / (double)sourceImg.width();
-    fuzzyJudgeFactor(scaleF);
-}
-
+// operation
 void MainWindow::on_action_resetOperation_triggered()
 {
     undoStack->clear();
@@ -122,6 +95,54 @@ void MainWindow::on_action_resetOperation_triggered()
     ui->comboBox_scaleFactor->setCurrentIndex(5);
     resultImg = sourceImg;
     showResult();
+}
+
+void MainWindow::on_action_back_triggered()
+{
+    undoStack->undo();
+    int index = undoStack->index();
+    const ImageProcessCommand *cmd = static_cast<const ImageProcessCommand*>(undoStack->command(index));
+    if(cmd) {
+        resultImg = cmd->GetInput();
+        double scaleF = (double)resultImg.width() / (double)sourceImg.width();
+        fuzzyJudgeFactor(scaleF);
+    }
+}
+
+void MainWindow::on_action_next_triggered()
+{
+    undoStack->redo();
+    int index = qBound(0,undoStack->index()-1,undoStack->count()-1);
+    const ImageProcessCommand *cmd = static_cast<const ImageProcessCommand*>(undoStack->command(index));
+    if(cmd) {
+        resultImg = cmd->GetOutput();
+        double scaleF = (double)resultImg.width() / (double)sourceImg.width();
+        fuzzyJudgeFactor(scaleF);
+    }
+}
+
+void MainWindow::on_action_gray_triggered()
+{
+    QImage before = resultImg;
+    resultImg = Gray(resultImg);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("gray"),ui->graphicResult));
+}
+
+void MainWindow::on_action_binary_triggered()
+{
+    QImage before = resultImg;
+    resultImg = Binary(resultImg,THRESHOLD);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("binary"),ui->graphicResult));
+}
+
+void MainWindow::on_action_sharpen_triggered()
+{
+    QImage before = resultImg;
+    resultImg = Sharpen(resultImg);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("sharpen"),ui->graphicResult));
 }
 
 void MainWindow::on_action_filter_triggered()
@@ -140,12 +161,18 @@ void MainWindow::on_action_GaussianFilter_triggered()
     undoStack->push(new ImageProcessCommand({before,resultImg},tr("Gaussian filter"),ui->graphicResult));
 }
 
-void MainWindow::on_action_sharpen_triggered()
+void MainWindow::on_action_thinning_triggered()
 {
     QImage before = resultImg;
-    resultImg = Sharpen(resultImg);
+    resultImg = Thinning(resultImg);
     showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},tr("sharpen"),ui->graphicResult));
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("thinning"),ui->graphicResult));
+}
+
+void MainWindow::on_action_findThreshold_triggered()
+{
+    THRESHOLD = ThresholdDetect(resultImg);
+    ui->spinBox_threshold->setValue(THRESHOLD);
 }
 
 void MainWindow::on_action_findContours_triggered()
@@ -172,37 +199,44 @@ void MainWindow::on_action_cannyContours_triggered()
     undoStack->push(new ImageProcessCommand({before,resultImg},tr("canny contours"),ui->graphicResult));
 }
 
-void MainWindow::on_action_gray_triggered()
+// vectorization
+void MainWindow::on_action_generateResult_triggered()
 {
-    QImage before = resultImg;
-    resultImg = Gray(resultImg);
-    showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},tr("gray"),ui->graphicResult));
-}
+    if(resultImg.isNull())
+        return;
 
-void MainWindow::on_action_binary_triggered()
-{
-    QImage before = resultImg;
-    resultImg = Binary(resultImg,THRESHOLD);
-    showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},tr("binary"),ui->graphicResult));
-}
+    QElapsedTimer testTimer;
+    testTimer.start();
 
-void MainWindow::on_spinBox_threshold_valueChanged(int arg1)
-{
-    THRESHOLD = arg1;
-}
+    // 1.scan and tracing
+    QVector<QPolygon> edges = RadialSweepTracing(resultImg);
+    qDebug()<<"tracing cost:"<<testTimer.elapsed()<<"ms";testTimer.restart();
 
-void MainWindow::on_action_saveAsImg_triggered()
-{
-}
+    // 2.simplify
+    if(useDouglas) {
+        edges = DouglasSimplify(edges);
+        qDebug()<<"Douglas simplify cost:"<<testTimer.elapsed()<<"ms";testTimer.restart();
+    }
+    else {
+        edges = SimplifyEdge(edges);
+        qDebug()<<"colinear simplify cost:"<<testTimer.elapsed()<<"ms";testTimer.restart();
+    }
 
-void MainWindow::on_action_thinning_triggered()
-{
-    QImage before = resultImg;
-    resultImg = Thinning(resultImg);
-    showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},tr("thinning"),ui->graphicResult));
+    // 3.smooth
+    QVector<QPolygonF> result = SmoothEdge(edges);
+    qDebug()<<"smooth cost:"<<testTimer.elapsed()<<"ms";
+    result = ScaleEdge(result);
+
+    // 4.descirbe
+//    QVector<LB_Contour> result = DescribeEdge(edges);
+//    result = MergeContour(result);
+//    qDebug()<<"describe cost:"<<testTimer.elapsed()<<"ms";
+
+    ui->graphicResult->SetImagePolygons(result);
+
+    ui->checkBox_showContours->setChecked(true);
+    ui->checkBox_showVertex->setChecked(true);
+    ui->checkBox_frameSelection->setChecked(false);
 }
 
 void MainWindow::on_action_houghLine_triggered()
@@ -269,10 +303,28 @@ void MainWindow::on_action_houghCircle_triggered()
     undoStack->push(new ImageProcessCommand({before,resultImg},tr("hough circle"),ui->graphicResult));
 }
 
-void MainWindow::on_action_findThreshold_triggered()
+void MainWindow::on_action_convertToArc_triggered()
 {
-    THRESHOLD = ThresholdDetect(resultImg);
-    ui->spinBox_threshold->setValue(THRESHOLD);
+    QList<QGraphicsItem*> itemList = ui->graphicResult->items();
+    QVector<QPointF> pList;
+    for(int i=0;i<itemList.size();++i) {
+        QGraphicsItem* item = itemList[i];
+        if(item->isSelected()) {
+            LB_PointItem* pItem = dynamic_cast<LB_PointItem*>(item);
+            if(pItem) {
+                pList.append(pItem->getPoint());
+            }
+        }
+    }
+    pList = LeastSquaresCircle(pList);
+    ui->graphicResult->SetImagePolygons({pList});
+    ui->checkBox_frameSelection->setChecked(false);
+}
+
+// arguments
+void MainWindow::on_spinBox_threshold_valueChanged(int arg1)
+{
+    THRESHOLD = arg1;
 }
 
 void MainWindow::on_spinBox_minPathLen_valueChanged(int arg1)
@@ -337,6 +389,26 @@ void MainWindow::on_checkBox_showVertex_stateChanged(int arg1)
     }
     else if(arg1 == Qt::Unchecked) {
         ui->graphicResult->SetVertexVisible(false);
+    }
+}
+
+void MainWindow::on_checkBox_DouglasSimplify_stateChanged(int arg1)
+{
+    if(arg1 == Qt::Checked) {
+        useDouglas = true;
+    }
+    else if(arg1 == Qt::Unchecked) {
+        useDouglas = false;
+    }
+}
+
+void MainWindow::on_checkBox_frameSelection_stateChanged(int arg1)
+{
+    if(arg1 == Qt::Checked) {
+        ui->graphicResult->setDragMode(QGraphicsView::RubberBandDrag);
+    }
+    else if(arg1 == Qt::Unchecked) {
+        ui->graphicResult->setDragMode(QGraphicsView::ScrollHandDrag);
     }
 }
 

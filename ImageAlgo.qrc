@@ -21,5 +21,6 @@
         <file>icons/img_saveImg.png</file>
         <file>icons/img_resetOperation.png</file>
         <file>icons/img_gaussFilter.png</file>
+        <file>icons/img_toArc.png</file>
     </qresource>
 </RCC>

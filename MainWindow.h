@@ -18,27 +18,40 @@ public:
     ~MainWindow();
 
 private slots:
+    // file
     void on_action_openImg_triggered();
-    void on_action_generateResult_triggered();
-    void on_action_back_triggered();
-    void on_action_next_triggered();
+
+    void on_action_saveAsImg_triggered();
+    void on_action_saveAsDXF_triggered();
+
+    // operation
     void on_action_resetOperation_triggered();
 
+    void on_action_back_triggered();
+    void on_action_next_triggered();
+
+    void on_action_gray_triggered();
+    void on_action_binary_triggered();
+    void on_action_sharpen_triggered();
     void on_action_filter_triggered();
     void on_action_GaussianFilter_triggered();
-    void on_action_sharpen_triggered();
+    void on_action_thinning_triggered();
+    void on_action_findThreshold_triggered();
+
     void on_action_findContours_triggered();
     void on_action_sobelContours_triggered();
     void on_action_cannyContours_triggered();
-    void on_action_gray_triggered();
-    void on_action_binary_triggered();
-    void on_spinBox_threshold_valueChanged(int arg1);
-    void on_action_thinning_triggered();
+
+    // vectorization
+    void on_action_generateResult_triggered();
+
     void on_action_houghLine_triggered();
     void on_action_houghCircle_triggered();
-    void on_action_findThreshold_triggered();
-    void on_action_saveAsImg_triggered();
 
+    void on_action_convertToArc_triggered();
+
+    // arguments
+    void on_spinBox_threshold_valueChanged(int arg1);
     void on_spinBox_minPathLen_valueChanged(int arg1);
     void on_doubleSpinBox_alpha_valueChanged(double arg1);
     void on_spinBox_bezierStep_valueChanged(int arg1);
@@ -46,6 +59,8 @@ private slots:
     void on_comboBox_scaleFactor_activated(int index);
     void on_checkBox_showContours_stateChanged(int arg1);
     void on_checkBox_showVertex_stateChanged(int arg1);
+    void on_checkBox_DouglasSimplify_stateChanged(int arg1);
+    void on_checkBox_frameSelection_stateChanged(int arg1);
 
 private:
     Ui::MainWindow *ui;
@@ -54,6 +69,7 @@ private:
     QImage resultImg;
 
     QUndoStack *undoStack;
+    bool useDouglas;
 
     void loadArguments();
     void fuzzyJudgeFactor(double factor);

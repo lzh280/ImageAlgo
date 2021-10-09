@@ -201,6 +201,9 @@ QVector<QPolygonF> SmoothEdge(const QVector<QPolygon> &edges)
 
 QVector<QPolygonF> ScaleEdge(const QVector<QPolygonF> &edges)
 {
+    if(qFuzzyCompare(1.0, SCALE_FACTOR))
+        return edges;
+
     double factor = 1.0/SCALE_FACTOR;
     QVector<QPolygonF> result;
     QPolygonF oneEdge;
@@ -267,18 +270,38 @@ QVector<LB_Contour> MergeContour(const QVector<LB_Contour> &contours)
         aContour = contours[i];
         merged.clear();
 
-        int next;
+        // deal with one contour
+        if(aContour.size() == 1) {
+            result.append(aContour);
+            continue;
+        }
+
+        bool merge = false;
+        LB_SplineContour* multi = nullptr;
         for(int j=0;j<aContour.size();++j) {
-            next = (j+1)%aContour.size();
-            if(aContour[i]->Type() == 1 && aContour[next]->Type() == 1) {
-                LB_SplineContour* spline1 = dynamic_cast<LB_SplineContour*>(aContour[i]);
-                LB_SplineContour* spline2 = dynamic_cast<LB_SplineContour*>(aContour[next]);
-                spline1->GetFitPnts().append(spline2->GetFitPnts());
-                merged.append(spline1);
+            if(aContour[j]->Type() == 1) {
+                if(!merge) {
+                    multi = new LB_SplineContour;
+                }
+
+                LB_SplineContour* spline = dynamic_cast<LB_SplineContour*>(aContour[j]);
+                multi->Truncation();
+                multi->Append(spline->GetFitPnts());
+                merge = true;
             }
             else {
-                merged.append(aContour[i]);
+                if(merge) {
+                    merged.append(multi);
+                }
+
+                merged.append(aContour[j]);
+                merge = false;
             }
+        }
+
+        // in case of the spline is the only/last item of contour
+        if(merge&&multi!=nullptr) {
+            merged.append(multi);
         }
 
         result.append(merged);
@@ -385,12 +408,12 @@ QPointF lerp(const QPointF &a, const QPointF &b, double t)
 
 QPointF bezier(const QPointF &a, const QPointF &b, const QPointF &c, const QPointF &d, double t)
 {
-    QPointF ab = lerp(a, b, t);           // point between a and b (green)
-    QPointF bc = lerp(b, c, t);           // point between b and c (green)
-    QPointF cd = lerp(c, d, t);           // point between c and d (green)
-    QPointF abbc = lerp(ab, bc, t);       // point between ab and bc (blue)
-    QPointF bccd = lerp(bc, cd, t);       // point between bc and cd (blue)
-    return lerp(abbc, bccd, t);   // point on the bezier-curve (black)
+    QPointF ab = lerp(a, b, t);
+    QPointF bc = lerp(b, c, t);
+    QPointF cd = lerp(c, d, t);
+    QPointF abbc = lerp(ab, bc, t);
+    QPointF bccd = lerp(bc, cd, t);
+    return lerp(abbc, bccd, t);
 }
 
 QVector<QPolygon> DouglasSimplify(const QVector<QPolygon> &edges)

@@ -4,7 +4,7 @@
 
 LB_BasicGraphicsItem::LB_BasicGraphicsItem()
 {
-    myNoSelectedPen.setColor(QColor(0, 160, 255));
+    myNoSelectedPen.setColor(QColor(0, 200, 255));
     myNoSelectedPen.setWidth(1);
     mySelectedPen.setColor(Qt::magenta);
     mySelectedPen.setWidth(1);
@@ -33,19 +33,16 @@ LB_PolygonItem::LB_PolygonItem(const QPolygonF &poly) : LB_BasicGraphicsItem()
         LB_PointItem *point = new LB_PointItem(this, pnt);
         point->setParentItem(this);
         myPoints.append(point);
-        myPoints.setColor(Qt::green);
+        myPoints.setColor(Qt::darkGreen);
     }
 }
 
 void LB_PolygonItem::UpdatePolygon(const QPointF &origin, const QPointF &end)
 {
-    QPolygonF poly;
-
     for (auto &temp : myPoints) {
         if (temp->getPoint() == origin) {
             temp->setPoint(end);
         }
-        poly.append(temp->getPoint());
     }
 }
 

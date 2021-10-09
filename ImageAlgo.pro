@@ -19,7 +19,7 @@ SOURCES += \
         main.cpp \
         MainWindow.cpp \
 
-HEADERS += \    
+HEADERS += \
         ImageProcessCommand.h \
         LB_Graphics/LB_GraphicsItem.h \
         LB_Graphics/LB_PointItem.h \

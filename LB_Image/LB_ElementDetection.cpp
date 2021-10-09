@@ -1,7 +1,7 @@
 #include "LB_ElementDetection.h"
 #include "LB_ImagePreProcess.h"
 #include <QMap>
-
+#include <QDebug>
 namespace LB_Image
 {
 
@@ -255,6 +255,91 @@ QVector<QCircle> HoughCircle(const QImage &img, const int &radius, const int &di
         free(countArray);
 
     return circs;
+}
+
+QVector<QPointF> LeastSquaresCircle(const QVector<QPointF>& points)
+{
+    if (points.size()<3)
+    {
+        return points;
+    }
+
+    double px,py,r;
+    LeastSquaresCircle(points, px, py, r);
+
+    // 1.get the angle
+    QVector<double> angles;
+    foreach(const QPointF& pnt, points) {
+        angles.append(atan2(pnt.y()-py, pnt.x()-px));
+    }
+
+    // 2.find the maximum gap between angles
+    std::sort(angles.begin(), angles.end());
+    qDebug()<<angles;
+
+    double thetaMin = 4, thetaMax = -4;
+    double step = (thetaMax-thetaMin)/(double)points.size();
+
+    QVector<QPointF> result;
+//    for(double tht = thetaMin;tht<thetaMax;tht+=step) {
+//        result.append(QPointF(px+r*cos(tht), py+r*sin(tht)));
+//    }
+    return result;
+}
+
+void LeastSquaresCircle(const QVector<QPointF> &points, double &px, double &py, double &radius)
+{
+    if (points.size()<3)
+    {
+        return;
+    }
+
+    int i=0;
+
+    double X1=0;
+    double Y1=0;
+    double X2=0;
+    double Y2=0;
+    double X3=0;
+    double Y3=0;
+    double X1Y1=0;
+    double X1Y2=0;
+    double X2Y1=0;
+
+    for(i=0;i<points.size();i++) {
+        X1 = X1 + points[i].x();
+        Y1 = Y1 + points[i].y();
+        X2 = X2 + points[i].x()*points[i].x();
+        Y2 = Y2 + points[i].y()*points[i].y();
+        X3 = X3 + points[i].x()*points[i].x()*points[i].x();
+        Y3 = Y3 + points[i].y()*points[i].y()*points[i].y();
+        X1Y1 = X1Y1 + points[i].x()*points[i].y();
+        X1Y2 = X1Y2 + points[i].x()*points[i].y()*points[i].y();
+        X2Y1 = X2Y1 + points[i].x()*points[i].x()*points[i].y();
+    }
+
+    double C,D,E,G,H,N;
+    double a,b,c;
+    N = points.size();
+    C = N*X2 - X1*X1;
+    D = N*X1Y1 - X1*Y1;
+    E = N*X3 + N*X1Y2 - (X2+Y2)*X1;
+    G = N*Y2 - Y1*Y1;
+    H = N*X2Y1 + N*Y3 - (X2+Y2)*Y1;
+    a = (H*D-E*G)/(C*G-D*D);
+    b = (H*C-E*D)/(D*D-G*C);
+    c = -(a*X1 + b*Y1 + X2 + Y2)/N;
+
+    double A,B,R;
+    A = a/(-2);
+    B = b/(-2);
+    R = sqrt(a*a+b*b-4*c)/2;
+
+    px = A;
+    py = B;
+    radius = R;
+
+    return;
 }
 
 }
