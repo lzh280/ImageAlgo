@@ -44,6 +44,7 @@ void LB_PolygonItem::UpdatePolygon(const QPointF &origin, const QPointF &end)
             temp->setPoint(end);
         }
     }
+    this->update();
 }
 
 QRectF LB_PolygonItem::boundingRect() const
@@ -85,6 +86,11 @@ void LB_PolygonItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     Q_UNUSED(widget);
     painter->setPen(this->pen());
     painter->setBrush(this->brush());
+
+    // ensure the points are selected when this is focused in
+    if(!myPoints.isSelected()) {
+        myPoints.setSelect(this->pen().color() == Qt::magenta);
+    }
 
     QPolygonF poly;
     for (auto &temp : myPoints)

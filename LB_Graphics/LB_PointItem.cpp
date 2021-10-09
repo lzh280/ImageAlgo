@@ -73,3 +73,21 @@ void LB_PointItemVector::setVisible(bool visible)
         temp->setVisible(visible);
     }
 }
+
+void LB_PointItemVector::setSelect(bool selected)
+{
+    for (auto &temp : *this)
+    {
+        temp->setSelected(selected);
+    }
+}
+
+bool LB_PointItemVector::isSelected()
+{
+    for (auto &temp : *this)
+    {
+        if(temp->isSelected())
+            return true;
+    }
+    return false;
+}

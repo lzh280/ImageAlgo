@@ -17,6 +17,7 @@
 #include "LB_Image/LB_BMPVectorization.h"
 #include "LB_Image/LB_ElementDetection.h"
 #include "LB_Graphics/LB_PointItem.h"
+#include "LB_Graphics/LB_GraphicsItem.h"
 #include "ImageProcessCommand.h"
 
 #include <QDebug>
@@ -307,18 +308,29 @@ void MainWindow::on_action_convertToArc_triggered()
 {
     QList<QGraphicsItem*> itemList = ui->graphicResult->items();
     QVector<QPointF> pList;
+    QVector<LB_PointItem*> ptrList;
     for(int i=0;i<itemList.size();++i) {
         QGraphicsItem* item = itemList[i];
         if(item->isSelected()) {
             LB_PointItem* pItem = dynamic_cast<LB_PointItem*>(item);
             if(pItem) {
                 pList.append(pItem->getPoint());
+                ptrList.append(pItem);
             }
         }
     }
     pList = LeastSquaresCircle(pList);
-    ui->graphicResult->SetImagePolygons({pList});
-    ui->checkBox_frameSelection->setChecked(false);
+
+    for(int k=0;k<pList.size();++k) {
+        LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(ptrList[k]->parentItem());
+        if(item) {
+            LB_PolygonItem *polygon = dynamic_cast<LB_PolygonItem *>(item);
+            if(polygon) {
+                polygon->UpdatePolygon(ptrList[k]->getPoint(),
+                                       pList[k]);
+            }
+        }
+    }
 }
 
 // arguments

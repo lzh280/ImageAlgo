@@ -32,6 +32,8 @@ class LB_PointItemVector: public QVector<LB_PointItem *>
 public:
     void setColor(const QColor& color);
     void setVisible(bool visible);
+    void setSelect(bool selected);
+    bool isSelected();
 };
 
 #endif // LB_POINTITEM_H

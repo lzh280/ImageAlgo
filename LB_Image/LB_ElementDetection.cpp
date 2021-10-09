@@ -80,7 +80,6 @@ QVector<QLine> HoughLine(const QImage &img)
                     continue;
 
                 int x1, y1, x2, y2;
-                x1 = y1 = x2 = y2 = 0;
 
                 if(t >= 45 && t <= 135)
                 {
@@ -273,17 +272,11 @@ QVector<QPointF> LeastSquaresCircle(const QVector<QPointF>& points)
         angles.append(atan2(pnt.y()-py, pnt.x()-px));
     }
 
-    // 2.find the maximum gap between angles
-    std::sort(angles.begin(), angles.end());
-    qDebug()<<angles;
-
-    double thetaMin = 4, thetaMax = -4;
-    double step = (thetaMax-thetaMin)/(double)points.size();
-
+    // 2.calculate point with each angle
     QVector<QPointF> result;
-//    for(double tht = thetaMin;tht<thetaMax;tht+=step) {
-//        result.append(QPointF(px+r*cos(tht), py+r*sin(tht)));
-//    }
+    for(int i=0;i<angles.size();++i) {
+        result.append(QPointF(px+r*cos(angles[i]), py+r*sin(angles[i])));
+    }
     return result;
 }
 
@@ -291,6 +284,7 @@ void LeastSquaresCircle(const QVector<QPointF> &points, double &px, double &py, 
 {
     if (points.size()<3)
     {
+        px=0,py=0,radius=0;
         return;
     }
 
