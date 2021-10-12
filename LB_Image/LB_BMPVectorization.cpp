@@ -1,5 +1,7 @@
 #include "LB_BMPVectorization.h"
 
+#include <QSet>
+
 namespace LB_Image
 {
 
@@ -38,12 +40,14 @@ QVector<QPolygon> RadialSweepTracing(const QImage &img)
     QVector<QPolygon> roughEdge;
     QVector<QPoint> neighbor;
     QPolygon aGroup;
-    QPolygon aDiscard;
+    QSet<int> aDiscard;
+    QList<int> aDiscardList;
     QPoint currP = borderPnts[0];
     QPoint nextP;
     QPoint lastP;
     QPoint aNeighbor;
     int index;
+    int indexInEdge;
 
     // 3.trace
     while(!borderPnts.isEmpty())
@@ -66,11 +70,12 @@ QVector<QPolygon> RadialSweepTracing(const QImage &img)
             nextP = INVALID_PNT;
             for(int i=1;i<9;++i) {
                 aNeighbor = neighbor[(i+index)%8];
-                if(borderPnts.contains(aNeighbor)) {
+                indexInEdge = borderPnts.indexOf(aNeighbor);
+                if(indexInEdge != -1) {
                     if(nextP == INVALID_PNT)
                         nextP = aNeighbor;
-                    else
-                        aDiscard.append(aNeighbor);
+
+                    aDiscard<<indexInEdge;
                 }
             }
 
@@ -87,13 +92,15 @@ QVector<QPolygon> RadialSweepTracing(const QImage &img)
             }
         }
 
-        // the points of 'aGroup' have been used, remove them from the borderPnts
-        for(int i=0;i<aGroup.size();++i) {
-            borderPnts.removeOne(aGroup[i]);
-        }
-        // remove the discard 8-neighbours
-        for(int j=0;j<aDiscard.size();++j) {
-            borderPnts.removeOne(aDiscard[j]);
+        // remove the discard
+        aDiscardList.clear();
+        aDiscardList = QList(aDiscard.begin(), aDiscard.end());
+        std::sort(aDiscardList.begin(), aDiscardList.end());
+        QList<int>::iterator ite = aDiscardList.begin();
+        int k=0;
+        for(;ite!=aDiscardList.end();++ite) {
+            borderPnts.removeAt(*ite-k);
+            k++;
         }
 
         aGroup.clear();
