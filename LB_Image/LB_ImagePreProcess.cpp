@@ -1,68 +1,66 @@
 #include "LB_ImagePreProcess.h"
 #include "LB_BaseUtil.h"
 #include <QtMath>
+#include <QDebug>
 
 namespace LB_Image
 {
 
 int ThresholdDetect(const QImage &img)
 {
-    int lThrehold = 0;
+    int threshold = 0;
 
     int height = img.height();
     int width = img.width();
 
-    int F[256] = { 0 };
+    int pixCount[256] = { 0 };
+    double pixPer[256] = { 0.0 };
+    int pixSum = height * width;
     int grayVal;
 
-    int lNewThrehold=0;
-    int lMaxGrayValue = 0, lMinGrayValue = 255;
-    int lMeanGrayValue1 = 0, lMeanGrayValue2 = 0;
-    int lSum1 = 0, lSum2 = 0;
-
-    // 1.get the pixel value, and find the max&min
-    for (int i = 0; i < width; i++)
-    {
-        for (int j = 0; j < height; j++)
-        {
+    // 1.get the pixel value
+    for(int i=0; i<width; i++) {
+        for(int j=0; j<height; j++) {
             grayVal = qGray(img.pixel(i,j));
-            F[grayVal]++;
-
-            if(grayVal>lMaxGrayValue)
-                lMaxGrayValue = grayVal;
-
-            if(grayVal<lMinGrayValue)
-                lMinGrayValue = grayVal;
+            pixCount[grayVal]++;
         }
     }
 
-    // 2.set the init value of iterator as the means of max&min
-    lNewThrehold = (lMaxGrayValue + lMinGrayValue)/2;
-
-    // 3.calculate the mean gray of background and foreground
-    while(lThrehold != lNewThrehold)
-    {
-        lSum1 = 0, lSum2 = 0;
-        lMeanGrayValue1 = 0, lMeanGrayValue2 = 0;
-        lThrehold = lNewThrehold;
-
-        for(int k=0;k<lThrehold;++k)
-        {
-            lSum1 += F[k];
-            lMeanGrayValue1 += k*F[k];
-        }
-        lMeanGrayValue1 /= lSum1;
-
-        for(int k=lThrehold;k<=255;++k)
-        {
-            lSum2 += F[k];
-            lMeanGrayValue2 += k*F[k];
-        }
-        lMeanGrayValue2 /= lSum2;
-        lNewThrehold = (lMeanGrayValue1+lMeanGrayValue2)/2;
+    // 2.get the percentage of each gray value
+    for(int k=0; k<256; ++k) {
+        pixPer[k] = (double)pixCount[k] / (double)pixSum;
     }
 
-    return lThrehold;
+    // 3.calculate the max variance, which corresonding to threshold
+    double per1, per2, u0tmp, u1tmp, u0, u1, u, aVari, maxVari = 0;
+    for(int m=0; m<256; m++) {
+        per1 = per2 = u0tmp = u1tmp = 0;
+
+        for (int n=0; n<256; n++) {
+            if (n <= m) {
+                per1 += pixPer[n];
+                u0tmp += n * pixPer[n];
+            }
+            else {
+                per2 += pixPer[n];
+                u1tmp += n * pixPer[n];
+            }
+        }
+
+        u0 = u0tmp / per1; // first part's average gray value
+        u1 = u1tmp / per2; // second part's average gray value
+        u = u0tmp + u1tmp; // image's average gray value
+
+        // variance
+        aVari = per1 * (u0 - u)*(u0 - u) + per2 * (u1 - u)*(u1 - u);
+
+        if (aVari > maxVari) {
+            maxVari = aVari;
+            threshold = m;
+        }
+    }
+
+    return threshold;
 }
 
 void CannyThresholdDetec(const QImage &img, int &ThL, int &ThH)

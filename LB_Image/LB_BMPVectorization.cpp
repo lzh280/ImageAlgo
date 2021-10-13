@@ -40,7 +40,8 @@ QVector<QPolygon> RadialSweepTracing(const QImage &img)
     QVector<QPolygon> roughEdge;
     QVector<QPoint> neighbor;
     QPolygon aGroup;
-    QSet<int> aDiscard;
+    QSet<int> aDiscard; // this set include the index of points which shouldn't be use in next loop,
+                        // both the point of 'aGroup' and neighbour
     QList<int> aDiscardList;
     QPoint currP = borderPnts[0];
     QPoint nextP;
@@ -55,6 +56,7 @@ QVector<QPolygon> RadialSweepTracing(const QImage &img)
         currP = borderPnts[0];
         lastP = INVALID_PNT;
         aGroup.append(currP);
+        aDiscard<<0;
 
         while(1)
         {
@@ -95,7 +97,7 @@ QVector<QPolygon> RadialSweepTracing(const QImage &img)
         // remove the discard
         aDiscardList.clear();
         aDiscardList = QList(aDiscard.begin(), aDiscard.end());
-        std::sort(aDiscardList.begin(), aDiscardList.end());
+        std::sort(aDiscardList.begin(), aDiscardList.end()); // sort to make index correct
         QList<int>::iterator ite = aDiscardList.begin();
         int k=0;
         for(;ite!=aDiscardList.end();++ite) {
