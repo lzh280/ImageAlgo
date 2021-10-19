@@ -21,6 +21,8 @@ protected:
                        const QStyleOptionGraphicsItem *option,
                        QWidget *widget) override;
 
+    virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
 
 private:
@@ -34,6 +36,7 @@ public:
     void setVisible(bool visible);
     void setSelect(bool selected);
     bool isSelected();
+    bool equal(const LB_PointItemVector& other);
 };
 
 #endif // LB_POINTITEM_H

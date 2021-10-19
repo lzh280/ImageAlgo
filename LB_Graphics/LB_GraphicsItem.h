@@ -8,8 +8,30 @@
 
 class LB_BasicGraphicsItem : public QAbstractGraphicsShapeItem
 {
+public:
+    void SetMultiSelectBegin(LB_PointItem* item) {
+        myMultiBegin = item;
+    }
+    void SetMultiSelectEnd(LB_PointItem* item, bool inverse = false) {
+        myMultiEnd = item;
+        multiSelect(inverse);
+    }
+
+    bool HasMultiSelectBegin() {
+        return myMultiBegin!=nullptr;
+    }
+    bool HasMultiSelectEnd() {
+        return myMultiEnd!=nullptr;
+    }
+
+    void SelectAllPoints() {
+        myPoints.setSelect(true);
+    }
+
 protected:
     LB_BasicGraphicsItem();
+
+    void multiSelect(bool inverse = false);
 
     virtual void focusInEvent(QFocusEvent *event) override;
     virtual void focusOutEvent(QFocusEvent *event) override;
@@ -19,6 +41,9 @@ protected:
 
     QPen mySelectedPen;
     QPen myNoSelectedPen;
+
+    LB_PointItem* myMultiBegin;
+    LB_PointItem* myMultiEnd;
 };
 
 class LB_PolygonItem : public LB_BasicGraphicsItem

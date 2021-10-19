@@ -5,6 +5,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsScene>
 #include <QCursor>
+#include <QDebug>
 
 LB_PointItem::LB_PointItem(QAbstractGraphicsShapeItem* parent, const QPointF &p)
     : QAbstractGraphicsShapeItem(parent)
@@ -38,6 +39,41 @@ void LB_PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
     this->setPos(myPoint);
 
     painter->drawRect(QRectF(-1, -1, 2, 2));
+}
+
+void LB_PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
+{
+    // shift: multi-connective selection
+    if(event->modifiers() == Qt::ShiftModifier) {
+        LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(this->parentItem());
+        if(item->HasMultiSelectBegin()) {
+            if(event->button() == Qt::LeftButton) {
+                item->SetMultiSelectEnd(this);
+            }
+            else if(event->button() == Qt::RightButton) {
+                item->SetMultiSelectEnd(this,true);
+            }
+        }
+        else {
+            item->SetMultiSelectBegin(this);
+            this->setSelected(true);
+        }
+    }
+    // ctrl: select whole parent item
+    else if(event->modifiers() == Qt::ControlModifier) {
+        LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(this->parentItem());
+        item->SelectAllPoints();
+    }
+    // others: just select the item
+    else {
+        this->setSelected(true);
+    }
+}
+
+void LB_PointItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    // block the release event, otherwise the point will be unselected
+    Q_UNUSED(event)
 }
 
 void LB_PointItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
@@ -90,4 +126,16 @@ bool LB_PointItemVector::isSelected()
             return true;
     }
     return false;
+}
+
+bool LB_PointItemVector::equal(const LB_PointItemVector &other)
+{
+    if(this->size() != other.size())
+        return false;
+
+    for(int i=0;i<this->size();++i) {
+        if(this->operator[](i)->getPoint() != other[i]->getPoint())
+            return false;
+    }
+    return true;
 }

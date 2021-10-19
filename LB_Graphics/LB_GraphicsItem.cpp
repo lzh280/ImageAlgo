@@ -3,14 +3,44 @@
 #include <QPainter>
 
 LB_BasicGraphicsItem::LB_BasicGraphicsItem()
+    : mySelectedPen(Qt::magenta,1),
+      myNoSelectedPen(QColor(0, 200, 255),1),
+      myMultiBegin(nullptr),
+      myMultiEnd(nullptr)
 {
-    myNoSelectedPen.setColor(QColor(0, 200, 255));
-    myNoSelectedPen.setWidth(1);
-    mySelectedPen.setColor(Qt::magenta);
-    mySelectedPen.setWidth(1);
-
     this->setPen(myNoSelectedPen);
     this->setFlags(QGraphicsItem::ItemIsFocusable);
+}
+
+void LB_BasicGraphicsItem::multiSelect(bool inverse)
+{
+    if(myMultiBegin == nullptr || myMultiEnd == nullptr) {
+        return;
+    }
+
+    LB_BasicGraphicsItem* itemA = static_cast<LB_BasicGraphicsItem *>(myMultiBegin->parentItem());
+    LB_BasicGraphicsItem* itemB = static_cast<LB_BasicGraphicsItem *>(myMultiEnd->parentItem());
+    if(itemA->myPoints.equal(itemB->myPoints)) {
+        // find the index of two point
+        int indexA = myPoints.indexOf(myMultiBegin);
+        int indexB = myPoints.indexOf(myMultiEnd);
+        if(inverse) {
+            for(int i=0;i<=qMin(indexA,indexB);++i) {
+                myPoints[i]->setSelected(true);
+            }
+            for(int i=qMax(indexA,indexB);i<myPoints.size();++i) {
+                myPoints[i]->setSelected(true);
+            }
+        }
+        else {
+            for(int i=qMin(indexA,indexB);i<=qMax(indexA,indexB);++i) {
+                myPoints[i]->setSelected(true);
+            }
+        }
+    }
+
+    myMultiBegin = nullptr;
+    myMultiEnd = nullptr;
 }
 
 void LB_BasicGraphicsItem::focusInEvent(QFocusEvent *event)
@@ -86,11 +116,6 @@ void LB_PolygonItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     Q_UNUSED(widget);
     painter->setPen(this->pen());
     painter->setBrush(this->brush());
-
-    // ensure the points are selected when this is focused in
-    if(!myPoints.isSelected()) {
-        myPoints.setSelect(this->pen().color() == Qt::magenta);
-    }
 
     QPolygonF poly;
     for (auto &temp : myPoints)
