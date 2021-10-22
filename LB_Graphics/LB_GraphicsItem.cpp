@@ -1,7 +1,9 @@
 ﻿#include "LB_GraphicsItem.h"
 
 #include <QPainter>
-#include <QDebug>
+
+#include "LB_Image/LB_BMPVectorization.h"
+#include "LB_Image/LB_ElementDetection.h"
 
 LB_BasicGraphicsItem::LB_BasicGraphicsItem()
     : myMultiBegin(nullptr),
@@ -32,15 +34,21 @@ void LB_BasicGraphicsItem::multiSelect(bool inverse)
         int indexB = myPoints.indexOf(myMultiEnd);
         if(inverse) {
             for(int i=0;i<=qMin(indexA,indexB);++i) {
-                myPoints[i]->setSelected(true);
+                if(myPoints[i]->IsEditable()) {
+                    myPoints[i]->setSelected(true);
+                }
             }
             for(int i=qMax(indexA,indexB);i<myPoints.size();++i) {
-                myPoints[i]->setSelected(true);
+                if(myPoints[i]->IsEditable()) {
+                    myPoints[i]->setSelected(true);
+                }
             }
         }
         else {
             for(int i=qMin(indexA,indexB);i<=qMax(indexA,indexB);++i) {
-                myPoints[i]->setSelected(true);
+                if(myPoints[i]->IsEditable()) {
+                    myPoints[i]->setSelected(true);
+                }
             }
         }
     }
@@ -147,4 +155,135 @@ void LB_PolygonItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
         painter->setPen(getPenByPoints(myPoints[i], myPoints[next]));
         painter->drawLine(myPoints[i]->GetPoint(),myPoints[next]->GetPoint());
     }
+}
+
+namespace LB_Graphics
+{
+using namespace LB_Image;
+
+void ConvertToArc(const QList<QGraphicsItem *> &itemList)
+{
+    // 1.get points
+    QVector<QPointF> pList;
+    LB_PointItemVector ptrList;
+    for(int i=0;i<itemList.size();++i) {
+        QGraphicsItem* item = itemList[i];
+        if(item->isSelected()) {
+            LB_PointItem* pItem = dynamic_cast<LB_PointItem*>(item);
+            if(pItem) {
+                pList.append(pItem->GetPoint());
+                ptrList.append(pItem);
+            }
+        }
+    }
+
+    if(itemList.size() < 3)
+        return;
+
+    // 2.fit
+    QPointF center;
+    pList = LeastSquaresCircle(pList, center);
+
+    // 3.update all point item to new position
+    for(int k=0;k<pList.size();++k) {
+        ptrList[k]->SetPoint(pList[k]);
+        ptrList[k]->SetEditable(false);
+        ptrList[k]->SetLayer(LB_PointLayer::Circle);
+    }
+
+    // 4.judge if close shape
+    double ang, maxAng=0;
+    int index1, index2, next;
+    for(int m=0;m<pList.size();++m) {
+        next = (m+1)%pList.size();
+        ang = angle(pList[m], center, pList[next]);
+        if(ang > maxAng) {
+            maxAng = ang;
+            index1 = m;
+            index2 = next;
+        }
+    }
+
+    // the min gap between head and tail
+    if(distance(pList[index1], pList[index2]) > 20) {
+        ptrList[index1]->SetEditable(true);
+        ptrList[index2]->SetEditable(true);
+    }
+}
+
+void ConvertToEllipse(const QList<QGraphicsItem *> &itemList)
+{
+    QVector<QPointF> pList;
+    LB_PointItemVector ptrList;
+    for(int i=0;i<itemList.size();++i) {
+        QGraphicsItem* item = itemList[i];
+        if(item->isSelected()) {
+            LB_PointItem* pItem = dynamic_cast<LB_PointItem*>(item);
+            if(pItem) {
+                pList.append(pItem->GetPoint());
+                ptrList.append(pItem);
+            }
+        }
+    }
+
+    if(ptrList.size() < 5)
+        return;
+
+    QPointF center;
+    pList = LeastSquaresEllipse(pList, center);
+
+    for(int k=0;k<pList.size();++k) {
+        ptrList[k]->SetPoint(pList[k]);
+        ptrList[k]->SetEditable(false);
+        ptrList[k]->SetLayer(LB_PointLayer::Ellipse);
+    }
+
+    double ang, maxAng=0;
+    int index1, index2, next;
+    for(int m=0;m<pList.size();++m) {
+        next = (m+1)%pList.size();
+        ang = angle(pList[m], center, pList[next]);
+        if(ang > maxAng) {
+            maxAng = ang;
+            index1 = m;
+            index2 = next;
+        }
+    }
+
+    if(distance(pList[index1], pList[index2]) > 20) {
+        ptrList[index1]->SetEditable(true);
+        ptrList[index2]->SetEditable(true);
+    }
+}
+
+void ConvertToSegment(const QList<QGraphicsItem *> &itemList)
+{
+    LB_PointItemVector ptrList;
+    for(int i=0;i<itemList.size();++i) {
+        QGraphicsItem* item = itemList[i];
+        if(item->isSelected()) {
+            LB_PointItem* pItem = dynamic_cast<LB_PointItem*>(item);
+            if(pItem) {
+                ptrList.append(pItem);
+            }
+        }
+    }
+
+    if(ptrList.size() < 2)
+        return;
+
+    for(int k=1;k<ptrList.size()-1;++k) {
+        LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(ptrList[k]->parentItem());
+        if(item) {
+            LB_PolygonItem *polygon = dynamic_cast<LB_PolygonItem *>(item);
+            if(polygon) {
+                ptrList[k]->SetEditable(false);
+                polygon->RemoveVertex(ptrList[k]);
+            }
+        }
+    }
+    ptrList.first()->SetLayer(LB_PointLayer::Segement);
+    ptrList.last()->SetLayer(LB_PointLayer::Segement);
+}
+
 }

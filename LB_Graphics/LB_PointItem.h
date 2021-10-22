@@ -5,7 +5,7 @@
 #include <QGraphicsScene>
 #include <QCursor>
 
-enum LB_PointLayer
+enum class LB_PointLayer
 {
     PolyLine,
     Segement,
@@ -29,10 +29,16 @@ public:
 
     void SetEditable(bool ret) {
         myEditable = ret;
-        if(ret)
+        if(ret) {
             this->setCursor(Qt::PointingHandCursor);
-        else
+        }
+        else {
             this->setCursor(Qt::OpenHandCursor);
+            this->setSelected(false);
+        }
+    }
+    bool IsEditable() const {
+        return myEditable;
     }
 
     void SetLayer(const LB_PointLayer& layer) {
@@ -66,8 +72,9 @@ public:
     void setVisible(bool visible);
     void setEditable(bool ret);
     void setSelect(bool selected);
-    bool isSelected();
-    bool equal(const LB_PointItemVector& other);
+    bool isSelected() const;
+    bool equal(const LB_PointItemVector& other) const;
+    QVector<QPointF> points() const;
 };
 
 #endif // LB_POINTITEM_H

@@ -110,11 +110,12 @@ void LB_PointItemVector::setSelect(bool selected)
 {
     for (auto &temp : *this)
     {
-        temp->setSelected(selected);
+        if(temp->IsEditable())
+            temp->setSelected(selected);
     }
 }
 
-bool LB_PointItemVector::isSelected()
+bool LB_PointItemVector::isSelected() const
 {
     for (auto &temp : *this)
     {
@@ -124,7 +125,7 @@ bool LB_PointItemVector::isSelected()
     return false;
 }
 
-bool LB_PointItemVector::equal(const LB_PointItemVector &other)
+bool LB_PointItemVector::equal(const LB_PointItemVector &other) const
 {
     if(this->size() != other.size())
         return false;
@@ -134,4 +135,14 @@ bool LB_PointItemVector::equal(const LB_PointItemVector &other)
             return false;
     }
     return true;
+}
+
+QVector<QPointF> LB_PointItemVector::points() const
+{
+    QVector<QPointF> points;
+    for (auto &temp : *this)
+    {
+        points.append(temp->GetPoint());
+    }
+    return points;
 }

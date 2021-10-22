@@ -69,4 +69,11 @@ protected:
                        QWidget *widget) override;
 };
 
+namespace LB_Graphics
+{
+    void ConvertToArc(const QList<QGraphicsItem*>& itemList);
+    void ConvertToEllipse(const QList<QGraphicsItem*>& itemList);
+    void ConvertToSegment(const QList<QGraphicsItem*>& itemList);
+}
+
 #endif // BQGRAPHICSITEM_H
