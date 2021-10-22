@@ -1,0 +1,26 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/background.png</file>
+        <file>ImageVectorization_zh_CN.qm</file>
+        <file>icons/file/open.png</file>
+        <file>icons/file/saveDXF.png</file>
+        <file>icons/file/saveImage.png</file>
+        <file>icons/operation/binary.png</file>
+        <file>icons/operation/calculateTh.png</file>
+        <file>icons/operation/cannyEdge.png</file>
+        <file>icons/operation/findEdge.png</file>
+        <file>icons/operation/gaussFilter.png</file>
+        <file>icons/operation/gray.png</file>
+        <file>icons/operation/lastStep.png</file>
+        <file>icons/operation/medianFilter.png</file>
+        <file>icons/operation/nextStep.png</file>
+        <file>icons/operation/resetOperation.png</file>
+        <file>icons/operation/sharpen.png</file>
+        <file>icons/operation/sobelEdge.png</file>
+        <file>icons/operation/thinning.png</file>
+        <file>icons/vectorization/generate.png</file>
+        <file>icons/vectorization/toArc.png</file>
+        <file>icons/vectorization/toEllipse.png</file>
+        <file>icons/vectorization/toLine.png</file>
+    </qresource>
+</RCC>
