@@ -8,16 +8,16 @@
 namespace LB_Image
 {
 
-//! Hough transform for line detection
-QVector<QLine> HoughLine(const QImage &img);
-
-//! Hough transform for circle detection
-QVector<QCircle> HoughCircle(const QImage &img, const int &radius, const int &dividing);
-
 //! Least square method to fitting circle
 //! Output the points on circle, same count as input
-QVector<QPointF> LeastSquaresCircle(const QVector<QPointF>& points);
+QVector<QPointF> LeastSquaresCircle(const QVector<QPointF>& points, QPointF& center);
 void LeastSquaresCircle(const QVector<QPointF>& points, double& px, double& py, double& radius);
+
+//! Least square method to fitting ellipse
+QVector<QPointF> LeastSquaresEllipse(const QVector<QPointF>& points, QPointF& center);
+void LeastSquaresEllipse(const QVector<QPointF>& points,
+                                     double& Xc, double& Yc, double& a, double& b, double& theta);
+bool RGauss(const QVector<QVector<double> > & A, QVector<double> & x);
 
 }
 

@@ -2,6 +2,16 @@
 #define LB_POINTITEM_H
 
 #include <QAbstractGraphicsShapeItem>
+#include <QGraphicsScene>
+#include <QCursor>
+
+enum LB_PointLayer
+{
+    PolyLine,
+    Segement,
+    Circle,
+    Ellipse
+};
 
 class LB_PointItem : public QAbstractGraphicsShapeItem
 {
@@ -11,8 +21,27 @@ public:
     double x() const {return myPoint.x(); }
     double y() const {return myPoint.y(); }
 
-    QPointF getPoint() const { return myPoint; }
-    void setPoint(const QPointF& p) { myPoint = p; }
+    QPointF GetPoint() const { return myPoint; }
+    void SetPoint(const QPointF& p) {
+        myPoint = p;
+        this->scene()->update();
+    }
+
+    void SetEditable(bool ret) {
+        myEditable = ret;
+        if(ret)
+            this->setCursor(Qt::PointingHandCursor);
+        else
+            this->setCursor(Qt::OpenHandCursor);
+    }
+
+    void SetLayer(const LB_PointLayer& layer) {
+        if(!myLayers.contains(layer))
+            myLayers.append(layer);
+    }
+    QVector<LB_PointLayer> GetLayers() const {
+        return myLayers;
+    }
 
 protected:
     virtual QRectF boundingRect() const override;
@@ -27,13 +56,15 @@ protected:
 
 private:
     QPointF myPoint;
+    bool myEditable;
+    QVector<LB_PointLayer> myLayers;
 };
 
 class LB_PointItemVector: public QVector<LB_PointItem *>
 {
 public:
-    void setColor(const QColor& color);
     void setVisible(bool visible);
+    void setEditable(bool ret);
     void setSelect(bool selected);
     bool isSelected();
     bool equal(const LB_PointItemVector& other);

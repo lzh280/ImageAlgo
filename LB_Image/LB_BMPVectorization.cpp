@@ -184,8 +184,8 @@ QVector<QPolygonF> SmoothEdge(const QVector<QPolygon> &edges)
         // 2.jude if need to use bezier        
         for(int k=0;k<midPnts.size();++k) {
             next = (k+1)%midPnts.size();
-            HLineF aLin(midPnts[k],midPnts[next]);
-            dis = aLin.distance(aGroup[k]);
+            QLineF aLin(midPnts[k],midPnts[next]);
+            dis = distance(aLin, aGroup[k]);
             alpha = (dis-COLINEAR_TOLERANCE)/dis;
 
             if(alpha < SMOOTH_ALPHA) {
@@ -250,8 +250,8 @@ QVector<LB_Contour> DescribeEdge(const QVector<QPolygon> &edges)
         int next;
         for(int k=0;k<midPnts.size();++k) {
             next = (k+1)%midPnts.size();
-            HLineF aLin(midPnts[k],midPnts[next]);
-            double dis = aLin.distance(aGroup[k]);
+            QLineF aLin(midPnts[k],midPnts[next]);
+            double dis = distance(aLin, aGroup[k]);
             double alpha = (dis-COLINEAR_TOLERANCE)/dis;
 
             if(alpha >= SMOOTH_ALPHA) {
@@ -372,7 +372,7 @@ double areaOfPolygon(const QPolygonF &poly)
 
 bool colinear(const QVector<QPoint>::Iterator& start, const QVector<QPoint>::Iterator& end)
 {
-    HLine aLine(*start,*end,8848);
+    QLine aLine(*start,*end);
     QVector<QPoint>::Iterator ptr = start;
     QVector<QPoint>::Iterator next = ptr+1;
     double dis=0;
@@ -382,7 +382,7 @@ bool colinear(const QVector<QPoint>::Iterator& start, const QVector<QPoint>::Ite
 
     while(next != end) {
         // 1.calculate the distance
-        dis = aLine.distance(*next);
+        dis = distance(aLine, *next);
         if(dis >= COLINEAR_TOLERANCE)
             return false;
 
@@ -410,6 +410,20 @@ double angle(const QPointF &a, const QPointF &b, const QPointF &c)
     return acos(dot/mod);
 }
 
+double distance(const QLineF &line, const QPointF &pnt)
+{
+    double kA = line.dy();
+    double kB = -line.dx();
+    double kC = -line.p2().x()*line.dy()+line.p2().y()*line.dx();
+
+    return qAbs(kA*pnt.x()+kB*pnt.y()+kC)/sqrt(pow(kA,2)+pow(kB,2));
+}
+
+double distance(const QPointF& a, const QPointF& b)
+{
+    return pow(b.x()-a.x(), 2) + pow(b.y()-a.y(), 2);
+}
+
 QPointF lerp(const QPointF &a, const QPointF &b, double t)
 {
     return a + (b - a) * t;
@@ -434,10 +448,6 @@ QVector<QPolygon> DouglasSimplify(const QVector<QPolygon> &edges)
     QPolygon::Iterator start;
     QPolygon::Iterator end;
     QPolygon::Iterator ptr;
-
-    auto distance = [](const QPoint& p1, const QPoint& p2) {
-        return pow(p2.x()-p1.x(), 2) + pow(p2.y()-p1.y(), 2);
-    };
 
     double dis;
     for(int i=0;i<edges.size();++i) {
@@ -494,19 +504,19 @@ void Douglas_Peucker(const QPolygon::iterator &start, const QPolygon::iterator &
     }
 }
 
-QPolygon::iterator furthestPnt(const QPolygon::iterator &start, const QPolygon::iterator &end, double &distance)
+QPolygon::iterator furthestPnt(const QPolygon::iterator &start, const QPolygon::iterator &end, double &dis)
 {
     QPolygon::iterator furthest = start;
     if(end == start)
         return furthest;
 
     QPolygon::iterator tmp = start+1;
-    distance = 0;
+    dis = 0;
 
-    HLine aLin(*start, *end, 8848);
+    QLine aLin(*start, *end);
     while(tmp != end) {
-        if(aLin.distance(*tmp) > distance) {
-            distance = aLin.distance(*tmp);
+        if(distance(aLin, *tmp) > dis) {
+            dis = distance(aLin, *tmp);
             furthest = tmp;
         }
         tmp++;

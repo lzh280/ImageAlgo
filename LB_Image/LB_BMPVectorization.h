@@ -40,6 +40,12 @@ bool colinear(const QVector<QPoint>::Iterator& start, const QVector<QPoint>::Ite
 //! calculate the angle of abc
 double angle(const QPointF &a, const QPointF &b, const QPointF &c);
 
+//! calculate distance from point to line
+double distance(const QLineF& line, const QPointF& pnt);
+
+//! distance of two points
+double distance(const QPointF& a, const QPointF& b);
+
 //! simple linear interpolation between two points
 QPointF lerp(const QPointF &a, const QPointF &b, double t);
 
@@ -49,7 +55,7 @@ QPointF bezier(const QPointF &a, const QPointF &b, const QPointF &c, const QPoin
 //! Douglas-Peucker algorithm to simplify the edge into polygon
 QVector<QPolygon> DouglasSimplify(const QVector<QPolygon> &edges);
 void Douglas_Peucker(const QPolygon::iterator& start, const QPolygon::iterator& end, const QPolygon::Iterator& furthest, QPolygon& result);
-QPolygon::iterator furthestPnt(const QPolygon::iterator& start, const QPolygon::iterator& end, double& distance);
+QPolygon::iterator furthestPnt(const QPolygon::iterator& start, const QPolygon::iterator& end, double& dis);
 
 }
 

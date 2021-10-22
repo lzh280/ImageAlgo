@@ -1,14 +1,16 @@
-QT       += core gui widgets
+QT += core gui widgets
 
 TEMPLATE = app
 
-TARGET      = ImageAlgo
+TARGET = ImageAlgo
 
 DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += c++17
 
-SOURCES += \    
+RC_FILE += $$PWD/icons/ImageAlgo.rc
+
+SOURCES += \
         ImageProcessCommand.cpp \
         LB_Graphics/LB_GraphicsItem.cpp \
         LB_Graphics/LB_PointItem.cpp \
@@ -32,9 +34,6 @@ HEADERS += \
         LB_ImageViewer.h \
         MainWindow.h
 
-FORMS += \
-        MainWindow.ui
-
 RESOURCES += \
     ImageAlgo.qrc
 
@@ -45,3 +44,5 @@ CONFIG(debug, debug|release) {
 } else {
     DESTDIR = $$PWD/bin
 }
+
+include($$PWD/3rd/SARibbon/SARibbonBar.pri)

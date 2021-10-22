@@ -3,42 +3,43 @@
 
 #include <QPainter>
 #include <QGraphicsSceneMouseEvent>
-#include <QGraphicsScene>
-#include <QCursor>
-#include <QDebug>
 
 LB_PointItem::LB_PointItem(QAbstractGraphicsShapeItem* parent, const QPointF &p)
     : QAbstractGraphicsShapeItem(parent)
     , myPoint(p)
+    , myEditable(true)
+    , myLayers({LB_PointLayer::PolyLine})
 {
     this->setPos(myPoint);
-    this->setFlags(QGraphicsItem::ItemIsSelectable |
-                   QGraphicsItem::ItemIsMovable |
-                   QGraphicsItem::ItemIsFocusable);
+    this->setFlags(ItemIsSelectable |
+                   ItemIsMovable |
+                   ItemIsFocusable);
     this->setCursor(Qt::PointingHandCursor);
 }
 
 QRectF LB_PointItem::boundingRect() const
 {
-    return QRectF(-1, -1, 2, 2);
+    return QRectF(-1.5, -1.5, 3, 3);
 }
 
 void LB_PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option);
     Q_UNUSED(widget);
-    if(this->isSelected()) {
-        QPen apen;
-        apen.setWidthF(0.5);
-        apen.setColor(Qt::gray);
-        painter->setPen(apen);
-    }
-    else
-        painter->setPen(Qt::NoPen);
-    painter->setBrush(this->brush());
-    this->setPos(myPoint);
 
-    painter->drawRect(QRectF(-1, -1, 2, 2));
+    if(!myEditable)
+        return;
+
+    painter->setPen(Qt::NoPen);
+    this->setPos(myPoint);
+    if(this->isSelected()) {
+        painter->setBrush(Qt::magenta);
+        painter->drawRect(QRectF(-1.5, -1.5, 3, 3));
+    }
+    else {
+        painter->setBrush(Qt::darkGreen);
+        painter->drawEllipse(QRectF(-1.5, -1.5, 3, 3));
+    }
 }
 
 void LB_PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
@@ -56,7 +57,7 @@ void LB_PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         }
         else {
             item->SetMultiSelectBegin(this);
-            this->setSelected(true);
+            this->setSelected(!this->isSelected());
         }
     }
     // ctrl: select whole parent item
@@ -66,7 +67,7 @@ void LB_PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
     // others: just select the item
     else {
-        this->setSelected(true);
+        this->setSelected(!this->isSelected());
     }
 }
 
@@ -78,35 +79,30 @@ void LB_PointItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 
 void LB_PointItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-    if ( event->buttons() == Qt::LeftButton ) {
-        LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(this->parentItem());
+    if(!myEditable)
+        return QAbstractGraphicsShapeItem::mouseMoveEvent(event);
 
+    if ( event->buttons() == Qt::LeftButton ) {
         myPoint = this->mapToParent( event->pos() );
         this->setPos(myPoint);
         this->scene()->update();
-
-        LB_PolygonItem *polygon = dynamic_cast<LB_PolygonItem *>(item);
-        if(polygon) {
-            polygon->UpdatePolygon(QPointF(event->lastScenePos().x(), event->lastScenePos().y()),
-                                   QPointF(event->scenePos().x(), event->scenePos().y()));
-        }
     }
 }
 
-
-void LB_PointItemVector::setColor(const QColor &color)
-{
-    for (auto &temp : *this)
-    {
-        temp->setBrush(QBrush(color));
-    }
-}
 
 void LB_PointItemVector::setVisible(bool visible)
 {
     for (auto &temp : *this)
     {
         temp->setVisible(visible);
+    }
+}
+
+void LB_PointItemVector::setEditable(bool ret)
+{
+    for (auto &temp : *this)
+    {
+        temp->SetEditable(ret);
     }
 }
 
@@ -134,7 +130,7 @@ bool LB_PointItemVector::equal(const LB_PointItemVector &other)
         return false;
 
     for(int i=0;i<this->size();++i) {
-        if(this->operator[](i)->getPoint() != other[i]->getPoint())
+        if(this->operator[](i)->GetPoint() != other[i]->GetPoint())
             return false;
     }
     return true;

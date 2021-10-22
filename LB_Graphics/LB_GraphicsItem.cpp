@@ -1,15 +1,21 @@
 ﻿#include "LB_GraphicsItem.h"
 
 #include <QPainter>
+#include <QDebug>
 
 LB_BasicGraphicsItem::LB_BasicGraphicsItem()
-    : mySelectedPen(Qt::magenta,1),
-      myNoSelectedPen(QColor(0, 200, 255),1),
-      myMultiBegin(nullptr),
-      myMultiEnd(nullptr)
+    : myMultiBegin(nullptr),
+      myMultiEnd(nullptr),
+      myPolyLine(QPen(QColor(0, 200, 255),1)),
+      mySegement(QPen(QColor(176, 224, 87), 3)),
+      myCircle(QPen(QColor(106, 90, 205), 3)),
+      myEllipse(QPen(QColor(255, 153, 18), 3))
 {
-    this->setPen(myNoSelectedPen);
-    this->setFlags(QGraphicsItem::ItemIsFocusable);
+    myPolyLine.setCapStyle(Qt::RoundCap);
+    mySegement.setCapStyle(Qt::RoundCap);
+    myCircle.setCapStyle(Qt::RoundCap);
+    myEllipse.setCapStyle(Qt::RoundCap);
+    this->setPen(myPolyLine);
 }
 
 void LB_BasicGraphicsItem::multiSelect(bool inverse)
@@ -43,16 +49,21 @@ void LB_BasicGraphicsItem::multiSelect(bool inverse)
     myMultiEnd = nullptr;
 }
 
-void LB_BasicGraphicsItem::focusInEvent(QFocusEvent *event)
+void LB_BasicGraphicsItem::RemoveVertex(const QPointF &pnt)
 {
-    Q_UNUSED(event);
-    this->setPen(mySelectedPen);
+    for (auto &temp : myPoints) {
+        if(temp->GetPoint() == pnt) {
+            myPoints.removeOne(temp);
+            break;
+        }
+    }
+    this->scene()->update();
 }
 
-void LB_BasicGraphicsItem::focusOutEvent(QFocusEvent *event)
+void LB_BasicGraphicsItem::RemoveVertex(LB_PointItem *item)
 {
-    Q_UNUSED(event);
-    this->setPen(myNoSelectedPen);
+    myPoints.removeOne(item);
+    this->scene()->update();
 }
 
 
@@ -63,18 +74,7 @@ LB_PolygonItem::LB_PolygonItem(const QPolygonF &poly) : LB_BasicGraphicsItem()
         LB_PointItem *point = new LB_PointItem(this, pnt);
         point->setParentItem(this);
         myPoints.append(point);
-        myPoints.setColor(Qt::darkGreen);
     }
-}
-
-void LB_PolygonItem::UpdatePolygon(const QPointF &origin, const QPointF &end)
-{
-    for (auto &temp : myPoints) {
-        if (temp->getPoint() == origin) {
-            temp->setPoint(end);
-        }
-    }
-    this->update();
 }
 
 QRectF LB_PolygonItem::boundingRect() const
@@ -110,6 +110,30 @@ QRectF LB_PolygonItem::boundingRect() const
                   ymax-ymin);
 }
 
+QPen LB_PolygonItem::getPenByPoints(LB_PointItem *last, LB_PointItem *next)
+{
+    QPen pen;
+    if(last->GetLayers().contains(LB_PointLayer::Segement) &&
+            next->GetLayers().contains(LB_PointLayer::Segement))
+    {
+        pen = mySegement;
+    }
+    else if(last->GetLayers().contains(LB_PointLayer::Circle) &&
+            next->GetLayers().contains(LB_PointLayer::Circle))
+    {
+        pen = myCircle;
+    }
+    else if(last->GetLayers().contains(LB_PointLayer::Ellipse) &&
+            next->GetLayers().contains(LB_PointLayer::Ellipse))
+    {
+        pen = myEllipse;
+    }
+    else {
+        pen = myPolyLine;
+    }
+    return pen;
+}
+
 void LB_PolygonItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option);
@@ -117,11 +141,10 @@ void LB_PolygonItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     painter->setPen(this->pen());
     painter->setBrush(this->brush());
 
-    QPolygonF poly;
-    for (auto &temp : myPoints)
-    {
-        poly.append(temp->getPoint());
+    int next;
+    for(int i=0;i<myPoints.size();++i) {
+        next = (i+1)%myPoints.size();
+        painter->setPen(getPenByPoints(myPoints[i], myPoints[next]));
+        painter->drawLine(myPoints[i]->GetPoint(),myPoints[next]->GetPoint());
     }
-
-    painter->drawPolygon(poly);
 }

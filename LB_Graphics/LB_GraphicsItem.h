@@ -28,22 +28,29 @@ public:
         myPoints.setSelect(true);
     }
 
+    void SetVertexVisible(bool ret) {
+        myPoints.setVisible(ret);
+    }
+
+    void RemoveVertex(const QPointF& pnt);
+    void RemoveVertex(LB_PointItem *item);
+
 protected:
     LB_BasicGraphicsItem();
 
     void multiSelect(bool inverse = false);
 
-    virtual void focusInEvent(QFocusEvent *event) override;
-    virtual void focusOutEvent(QFocusEvent *event) override;
-
 protected:
     LB_PointItemVector myPoints;
 
-    QPen mySelectedPen;
-    QPen myNoSelectedPen;
-
     LB_PointItem* myMultiBegin;
     LB_PointItem* myMultiEnd;
+
+    // 4 pen corresonding to 4 layers
+    QPen myPolyLine;
+    QPen mySegement;
+    QPen myCircle;
+    QPen myEllipse;
 };
 
 class LB_PolygonItem : public LB_BasicGraphicsItem
@@ -52,13 +59,10 @@ public:
     LB_PolygonItem() : LB_BasicGraphicsItem() {}
     LB_PolygonItem(const QPolygonF& poly);
 
-    void SetVertexVisible(bool ret) {
-        myPoints.setVisible(ret);
-    }
-    void UpdatePolygon(const QPointF& origin, const QPointF& end);
-
 protected:
     virtual QRectF boundingRect() const override;
+
+    QPen getPenByPoints(LB_PointItem* last, LB_PointItem* next);
 
     virtual void paint(QPainter *painter,
                        const QStyleOptionGraphicsItem *option,

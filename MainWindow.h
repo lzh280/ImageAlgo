@@ -3,13 +3,21 @@
 
 #include <QMainWindow>
 
-namespace Ui {
-class MainWindow;
-}
+#include "SARibbonMainWindow.h"
 
 class QUndoStack;
+class QSpinBox;
+class QDoubleSpinBox;
+class QLabel;
+class QComboBox;
+class QCheckBox;
 
-class MainWindow : public QMainWindow
+class SARibbonCategory;
+class SARibbonContextCategory;
+
+class LB_ImageViewer;
+
+class MainWindow : public SARibbonMainWindow
 {
     Q_OBJECT
 
@@ -17,54 +25,50 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private:
+    void initUI();
+    void initCenter();
+    void initDock();
+
+    void createCategoryFile(SARibbonCategory* page);
+    void createCategoryOperation(SARibbonCategory* page);
+    void createCategoryVectorization(SARibbonCategory* page);
+
+private:
+    QSpinBox* spinBox_threshold;
+    QSpinBox* spinBox_bezierStep;
+    QSpinBox* spinBox_minPathLen;
+    QDoubleSpinBox* doubleSpinBox_alpha;
+    QDoubleSpinBox* doubleSpinBox_colinearTol;
+    QDockWidget* dockWidget_undo;
+    QLabel* label_imgInfoSource;
+    QLabel* label_imgInfoResult;
+    QComboBox* comboBox_scaleFactor;
+    QCheckBox* checkBox_showContours;
+    QCheckBox* checkBox_showVertex;
+    QCheckBox* checkBox_useDouglas;
+    QCheckBox* checkBox_frameSelection;
+    QToolBar* toolBar_function;
+
+    LB_ImageViewer* graphicSource;
+    LB_ImageViewer* graphicResult;
+
 private slots:
     // file
     void on_action_openImg_triggered();
-
     void on_action_saveAsImg_triggered();
     void on_action_saveAsDXF_triggered();
 
-    // operation
-    void on_action_resetOperation_triggered();
-
-    void on_action_back_triggered();
-    void on_action_next_triggered();
-
-    void on_action_gray_triggered();
-    void on_action_binary_triggered();
-    void on_action_sharpen_triggered();
-    void on_action_filter_triggered();
-    void on_action_GaussianFilter_triggered();
-    void on_action_thinning_triggered();
-    void on_action_findThreshold_triggered();
-
-    void on_action_findContours_triggered();
-    void on_action_sobelContours_triggered();
-    void on_action_cannyContours_triggered();
-
     // vectorization
     void on_action_generateResult_triggered();
-
-    void on_action_houghLine_triggered();
-    void on_action_houghCircle_triggered();
-
     void on_action_convertToArc_triggered();
+    void on_action_convertToLine_triggered();
+    void on_action_convertToEllipse_triggered();
 
     // arguments
-    void on_spinBox_threshold_valueChanged(int arg1);
-    void on_spinBox_minPathLen_valueChanged(int arg1);
-    void on_doubleSpinBox_alpha_valueChanged(double arg1);
-    void on_spinBox_bezierStep_valueChanged(int arg1);
-    void on_doubleSpinBox_colinearTol_valueChanged(double arg1);
     void on_comboBox_scaleFactor_activated(int index);
-    void on_checkBox_showContours_stateChanged(int arg1);
-    void on_checkBox_showVertex_stateChanged(int arg1);
-    void on_checkBox_DouglasSimplify_stateChanged(int arg1);
-    void on_checkBox_frameSelection_stateChanged(int arg1);
 
 private:
-    Ui::MainWindow *ui;
-
     QImage sourceImg;
     QImage resultImg;
 

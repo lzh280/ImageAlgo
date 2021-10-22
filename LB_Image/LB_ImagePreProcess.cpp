@@ -1,7 +1,6 @@
 #include "LB_ImagePreProcess.h"
 #include "LB_BaseUtil.h"
 #include <QtMath>
-#include <QDebug>
 
 namespace LB_Image
 {

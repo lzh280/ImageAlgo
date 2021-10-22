@@ -16,6 +16,7 @@ LB_ImageViewer::LB_ImageViewer(QWidget *parent)
     this->setBackgroundBrush(QPixmap(":/icons/background.png"));
     this->setDragMode(NoDrag);
     this->setRenderHints(QPainter::Antialiasing);
+    this->setMinimumWidth(50);
 }
 
 LB_ImageViewer::~LB_ImageViewer()
