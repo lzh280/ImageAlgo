@@ -22,5 +22,8 @@
         <file>icons/vectorization/toArc.png</file>
         <file>icons/vectorization/toEllipse.png</file>
         <file>icons/vectorization/toLine.png</file>
+        <file>icons/help/about.png</file>
+        <file>icons/help/example.png</file>
+        <file>icons/help/help.png</file>
     </qresource>
 </RCC>

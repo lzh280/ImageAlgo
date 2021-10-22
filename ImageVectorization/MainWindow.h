@@ -33,6 +33,7 @@ private:
     void createCategoryFile(SARibbonCategory* page);
     void createCategoryOperation(SARibbonCategory* page);
     void createCategoryVectorization(SARibbonCategory* page);
+    void createCategoryHelp(SARibbonCategory* page);
 
 private:
     QSpinBox* spinBox_threshold;

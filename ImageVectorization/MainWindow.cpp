@@ -21,6 +21,7 @@
 #include <QFileInfo>
 #include <QUndoStack>
 #include <QUndoView>
+#include <QMessageBox>
 #include <QElapsedTimer>
 
 #include "SARibbonBar.h"
@@ -59,7 +60,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::initUI()
 {
-    setWindowTitle(tr("ImageAlgo"));
+    setWindowTitle(tr("Image Vectorization"));
     SARibbonBar* ribbon = ribbonBar();
     QFont f = ribbon->font();
     f.setFamily("Microsoft YaHei UI");
@@ -75,6 +76,8 @@ void MainWindow::initUI()
     createCategoryOperation(categoryOperation);
     SARibbonCategory* categoryVectorization = ribbon->addCategoryPage(tr("Vectorization"));
     createCategoryVectorization(categoryVectorization);
+    SARibbonCategory* categoryHelp = ribbon->addCategoryPage(tr("Help"));
+    createCategoryHelp(categoryHelp);
 }
 
 void MainWindow::initCenter()
@@ -462,6 +465,34 @@ void MainWindow::createCategoryVectorization(SARibbonCategory *page)
     pannel->addLargeAction(act);
     toolBar_function->addAction(act);
     connect(act,&QAction::triggered,this,&MainWindow::on_action_convertToEllipse_triggered);
+}
+
+void MainWindow::createCategoryHelp(SARibbonCategory *page)
+{
+    SARibbonPannel* pannel = page->addPannel("");
+
+    QAction* act = new QAction(this);
+    act->setIcon(QIcon(":/icons/help/help.png"));
+    act->setText(tr("Help"));
+    pannel->addLargeAction(act);
+
+    act = new QAction(this);
+    act->setIcon(QIcon(":/icons/help/example.png"));
+    act->setText(tr("Example"));
+    pannel->addLargeAction(act);
+
+    act = new QAction(this);
+    act->setIcon(QIcon(":/icons/help/about.png"));
+    act->setText(tr("About"));
+    pannel->addLargeAction(act);
+    connect(act, &QAction::triggered, this, [this]() {
+        QMessageBox* aboutBox = new QMessageBox(this);
+        QString str1 = tr("This software is developed by Lieber.");
+        aboutBox->setText(str1);
+        aboutBox->setTextInteractionFlags(Qt::TextSelectableByMouse);
+        aboutBox->setButtonText(QMessageBox::Ok, tr("I Know"));
+        aboutBox->exec();
+    });
 }
 
 // file
