@@ -5,13 +5,8 @@
 #include <QGraphicsScene>
 #include <QCursor>
 
-enum class LB_PointLayer
-{
-    PolyLine,
-    Segement,
-    Circle,
-    Ellipse
-};
+#include "LB_Image/LB_ContourElement.h"
+using namespace LB_Image;
 
 class LB_PointItem : public QAbstractGraphicsShapeItem
 {
@@ -41,11 +36,11 @@ public:
         return myEditable;
     }
 
-    void SetLayer(const LB_PointLayer& layer) {
+    void SetLayer(const QSharedPointer<LB_Element>& layer) {
         if(!myLayers.contains(layer))
             myLayers.append(layer);
     }
-    QVector<LB_PointLayer> GetLayers() const {
+    ContourElements GetLayers() const {
         return myLayers;
     }
 
@@ -63,7 +58,7 @@ protected:
 private:
     QPointF myPoint;
     bool myEditable;
-    QVector<LB_PointLayer> myLayers;
+    ContourElements myLayers;
 };
 
 class LB_PointItemVector: public QVector<LB_PointItem *>

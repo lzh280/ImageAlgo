@@ -40,11 +40,14 @@ RESOURCES += \
 TRANSLATIONS = ImageVectorization_zh_CN.ts
 
 INCLUDEPATH += $$PWD/../SARibbonBar
+INCLUDEPATH += $$PWD/../dxflib
 
 CONFIG(debug, debug|release) {
-    LIBS += $$PWD/../bind/SARibbonBar.dll
+    LIBS += $$PWD/../bind/SARibbonBar.dll \
+            $$PWD/../bind/dxflib.dll
     DESTDIR = $$PWD/../bind
 } else {
-    LIBS += $$PWD/../bin/SARibbonBar.dll
+    LIBS += $$PWD/../bin/SARibbonBar.dll \
+            $$PWD/../bin/dxflib.dll
     DESTDIR = $$PWD/../bin
 }

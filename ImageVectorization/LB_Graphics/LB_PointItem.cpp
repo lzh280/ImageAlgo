@@ -8,7 +8,7 @@ LB_PointItem::LB_PointItem(QAbstractGraphicsShapeItem* parent, const QPointF &p)
     : QAbstractGraphicsShapeItem(parent)
     , myPoint(p)
     , myEditable(true)
-    , myLayers({LB_PointLayer::PolyLine})
+    , myLayers({})
 {
     this->setPos(myPoint);
     this->setFlags(ItemIsSelectable |

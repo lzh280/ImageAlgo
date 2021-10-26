@@ -5,6 +5,7 @@
 #include <QPen>
 
 #include "LB_PointItem.h"
+using namespace LB_Image;
 
 class LB_BasicGraphicsItem : public QAbstractGraphicsShapeItem
 {
@@ -58,6 +59,7 @@ class LB_PolygonItem : public LB_BasicGraphicsItem
 public:
     LB_PolygonItem() : LB_BasicGraphicsItem() {}
     LB_PolygonItem(const QPolygonF& poly);
+    ContourElements FetchElements() const;
 
 protected:
     virtual QRectF boundingRect() const override;

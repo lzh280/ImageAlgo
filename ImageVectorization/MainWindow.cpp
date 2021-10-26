@@ -28,6 +28,9 @@
 #include "SARibbonPannel.h"
 #include "SARibbonCategory.h"
 
+#include "dl_dxf.h"
+#include "dl_creationadapter.h"
+
 #include "LB_Image/LB_ImageViewer.h"
 #include "LB_Image/LB_ImagePreProcess.h"
 #include "LB_Image/LB_BMPVectorization.h"
@@ -533,6 +536,108 @@ void MainWindow::on_action_saveAsImg_triggered()
 
 void MainWindow::on_action_saveAsDXF_triggered()
 {
+    if(resultImg.isNull())
+            return;
+
+        QString imgName = QFileDialog::getSaveFileName(this,tr("save result"),"",tr("DXF(*.dxf)"));
+        if(imgName.isEmpty())
+            return;
+
+        QFileInfo aInfo(imgName);
+        if(aInfo.suffix() == "dxf") {
+            // 1.trace the edge
+            // 2.save the polygons into dxf
+            DL_Dxf* dxf = new DL_Dxf();
+            DL_Codes::version exportVersion = DL_Codes::AC1015;
+            DL_WriterA* dw = dxf->out(imgName.toUtf8(), exportVersion);
+
+            dxf->writeHeader(*dw);
+            dw->sectionEnd();
+            dw->sectionTables();
+            dxf->writeVPort(*dw);
+
+            dw->tableLinetypes(1);
+            dxf->writeLinetype(*dw, DL_LinetypeData("CONTINUOUS", "Continuous", 0, 0, 0.0));
+            dw->tableEnd();
+
+            int numberOfLayers = 3;
+            dw->tableLayers(numberOfLayers);
+
+            dxf->writeLayer(*dw,
+                            DL_LayerData("0", 0),
+                            DL_Attributes(
+                                std::string(""),      // leave empty
+                                DL_Codes::red,        // default color
+                                100,                  // default width
+                                "CONTINUOUS", 1.0));       // default line style
+
+            dw->tableEnd();
+
+            dw->tableStyle(1);
+            dxf->writeStyle(*dw, DL_StyleData("standard", 0, 2.5, 1.0, 0.0, 0, 2.5, "txt", ""));
+            dw->tableEnd();
+
+            dxf->writeView(*dw);
+            dxf->writeUcs(*dw);
+
+            dw->tableAppid(1);
+            dxf->writeAppid(*dw, "ACAD");
+            dw->tableEnd();
+
+            dxf->writeDimStyle(*dw, 1, 1, 1, 1, 1);
+
+            dxf->writeBlockRecord(*dw);
+            dw->tableEnd();
+
+            dw->sectionEnd();
+
+            dw->sectionBlocks();
+            dxf->writeBlock(*dw, DL_BlockData("*Model_Space", 0, 0.0, 0.0, 0.0));
+            dxf->writeEndBlock(*dw, "*Model_Space");
+
+            dw->sectionEnd();
+            dw->sectionEntities();
+
+            // write all entities in model space:
+            QVector<QPolygon> edges = RadialSweepTracing(resultImg);
+            if(useDouglas) {
+                edges = DouglasSimplify(edges);
+            }
+            else {
+                edges = SimplifyEdge(edges);
+            }
+            QVector<QPolygonF> result = SmoothEdge(edges);
+            result = ScaleEdge(result);
+            foreach (QPolygonF aPoly, result) {
+                if(aPoly.first() != aPoly.last())
+                    aPoly.append(aPoly.first());
+
+                dxf->writePolyline(*dw,
+                               DL_PolylineData(aPoly.size(),0,0,DL_CLOSED_PLINE),
+                               DL_Attributes("0", 256, -1, "CONTINUOUS", 1.0));
+                foreach(QPointF pnt, aPoly) {
+                    dxf->writeVertex(*dw,
+                                     DL_VertexData(
+                                         pnt.x(),
+                                         -pnt.y(),
+                                         0, 0));
+                }
+                dxf->writePolylineEnd(*dw);
+            }
+
+            dw->sectionEnd();
+
+            dxf->writeObjects(*dw);
+            dxf->writeObjectsEnd(*dw);
+
+            dw->dxfEOF();
+            dw->close();
+            delete dw;
+            delete dxf;
+        }
+        else {
+            resultImg.save(imgName);
+        }
 }
 
 // vectorization
@@ -562,11 +667,6 @@ void MainWindow::on_action_generateResult_triggered()
     QVector<QPolygonF> result = SmoothEdge(edges);
     qDebug()<<"smooth cost:"<<testTimer.elapsed()<<"ms";
     result = ScaleEdge(result);
-
-    // 4.descirbe
-//    QVector<LB_Contour> result = DescribeEdge(edges);
-//    result = MergeContour(result);
-//    qDebug()<<"describe cost:"<<testTimer.elapsed()<<"ms";
 
     graphicResult->SetImagePolygons(result);
 

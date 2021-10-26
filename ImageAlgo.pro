@@ -4,4 +4,5 @@ CONFIG += ordered
 
 SUBDIRS += \
     SARibbonBar \
+    dxflib \
     ImageVectorization

@@ -32,24 +32,35 @@ void LB_BasicGraphicsItem::multiSelect(bool inverse)
         // find the index of two point
         int indexA = myPoints.indexOf(myMultiBegin);
         int indexB = myPoints.indexOf(myMultiEnd);
+        LB_PointItemVector::iterator ite;
+        LB_PointItem* item = nullptr;
         if(inverse) {
-            for(int i=0;i<=qMin(indexA,indexB);++i) {
-                if(myPoints[i]->IsEditable()) {
-                    myPoints[i]->setSelected(true);
+            ite = myPoints.begin()+indexB;
+            while(*ite != myMultiBegin) {
+                item = *ite;
+                if(item->IsEditable()) {
+                    item->setSelected(true);
+                }
+                ite++;
+                if(ite == myPoints.end()) {
+                    ite = myPoints.begin();
                 }
             }
-            for(int i=qMax(indexA,indexB);i<myPoints.size();++i) {
-                if(myPoints[i]->IsEditable()) {
-                    myPoints[i]->setSelected(true);
-                }
-            }
+            myMultiBegin->setSelected(true);
         }
         else {
-            for(int i=qMin(indexA,indexB);i<=qMax(indexA,indexB);++i) {
-                if(myPoints[i]->IsEditable()) {
-                    myPoints[i]->setSelected(true);
+                ite = myPoints.begin()+indexA;
+                while(*ite != myMultiEnd) {
+                    item = *ite;
+                    if(item->IsEditable()) {
+                        item->setSelected(true);
+                    }
+                    ite++;
+                    if(ite == myPoints.end()) {
+                        ite = myPoints.begin();
+                    }
                 }
-            }
+                myMultiEnd->setSelected(true);
         }
     }
 
@@ -83,6 +94,18 @@ LB_PolygonItem::LB_PolygonItem(const QPolygonF &poly) : LB_BasicGraphicsItem()
         point->setParentItem(this);
         myPoints.append(point);
     }
+}
+
+ContourElements LB_PolygonItem::FetchElements() const
+{
+    LB_PointItemVector::const_iterator ite = myPoints.cbegin();
+    ContourElements result;
+    while(ite != myPoints.cend()) {
+        LB_PointItem* item = *ite;
+        /// TODO
+        ite++;
+    }
+    return result;
 }
 
 QRectF LB_PolygonItem::boundingRect() const
@@ -121,18 +144,23 @@ QRectF LB_PolygonItem::boundingRect() const
 QPen LB_PolygonItem::getPenByPoints(LB_PointItem *last, LB_PointItem *next)
 {
     QPen pen;
-    if(last->GetLayers().contains(LB_PointLayer::Segement) &&
-            next->GetLayers().contains(LB_PointLayer::Segement))
+    QVector<int> typesA, typesB;
+    foreach(const QSharedPointer<LB_Element>& ele, last->GetLayers()) {
+        typesA.append(ele.get()->type());
+    }
+    foreach(const QSharedPointer<LB_Element>& ele, next->GetLayers()) {
+        typesB.append(ele.get()->type());
+    }
+
+    if(typesA.contains(0) && typesB.contains(0))
     {
         pen = mySegement;
     }
-    else if(last->GetLayers().contains(LB_PointLayer::Circle) &&
-            next->GetLayers().contains(LB_PointLayer::Circle))
+    else if(typesA.contains(1) && typesB.contains(1))
     {
         pen = myCircle;
     }
-    else if(last->GetLayers().contains(LB_PointLayer::Ellipse) &&
-            next->GetLayers().contains(LB_PointLayer::Ellipse))
+    else if(typesA.contains(2) && typesB.contains(2))
     {
         pen = myEllipse;
     }
@@ -177,35 +205,23 @@ void ConvertToArc(const QList<QGraphicsItem *> &itemList)
         }
     }
 
-    if(itemList.size() < 3)
+    if(ptrList.size() < 3)
         return;
 
     // 2.fit
-    QPointF center;
-    pList = LeastSquaresCircle(pList, center);
+    LB_Circle circle;
+    bool closed;
+    int index1, index2;
+    pList = LeastSquaresCircle(pList, circle, closed, index1, index2);
 
     // 3.update all point item to new position
     for(int k=0;k<pList.size();++k) {
         ptrList[k]->SetPoint(pList[k]);
         ptrList[k]->SetEditable(false);
-        ptrList[k]->SetLayer(LB_PointLayer::Circle);
+        ptrList[k]->SetLayer(QSharedPointer<LB_Circle>(new LB_Circle(circle)));
     }
 
-    // 4.judge if close shape
-    double ang, maxAng=0;
-    int index1, index2, next;
-    for(int m=0;m<pList.size();++m) {
-        next = (m+1)%pList.size();
-        ang = angle(pList[m], center, pList[next]);
-        if(ang > maxAng) {
-            maxAng = ang;
-            index1 = m;
-            index2 = next;
-        }
-    }
-
-    // the min gap between head and tail
-    if(distance(pList[index1], pList[index2]) > 20) {
+    if(!closed) {
         ptrList[index1]->SetEditable(true);
         ptrList[index2]->SetEditable(true);
     }
@@ -229,28 +245,18 @@ void ConvertToEllipse(const QList<QGraphicsItem *> &itemList)
     if(ptrList.size() < 5)
         return;
 
-    QPointF center;
-    pList = LeastSquaresEllipse(pList, center);
+    LB_Ellipse ellipse;
+    bool closed;
+    int index1, index2;
+    pList = LeastSquaresEllipse(pList, ellipse, closed, index1, index2);
 
     for(int k=0;k<pList.size();++k) {
         ptrList[k]->SetPoint(pList[k]);
         ptrList[k]->SetEditable(false);
-        ptrList[k]->SetLayer(LB_PointLayer::Ellipse);
+        ptrList[k]->SetLayer(QSharedPointer<LB_Ellipse>(new LB_Ellipse(ellipse)));
     }
 
-    double ang, maxAng=0;
-    int index1, index2, next;
-    for(int m=0;m<pList.size();++m) {
-        next = (m+1)%pList.size();
-        ang = angle(pList[m], center, pList[next]);
-        if(ang > maxAng) {
-            maxAng = ang;
-            index1 = m;
-            index2 = next;
-        }
-    }
-
-    if(distance(pList[index1], pList[index2]) > 20) {
+    if(!closed) {
         ptrList[index1]->SetEditable(true);
         ptrList[index2]->SetEditable(true);
     }
@@ -259,11 +265,13 @@ void ConvertToEllipse(const QList<QGraphicsItem *> &itemList)
 void ConvertToSegment(const QList<QGraphicsItem *> &itemList)
 {
     LB_PointItemVector ptrList;
+    QVector<QPointF> pList;
     for(int i=0;i<itemList.size();++i) {
         QGraphicsItem* item = itemList[i];
         if(item->isSelected()) {
             LB_PointItem* pItem = dynamic_cast<LB_PointItem*>(item);
             if(pItem) {
+                pList.append(pItem->GetPoint());
                 ptrList.append(pItem);
             }
         }
@@ -272,18 +280,36 @@ void ConvertToSegment(const QList<QGraphicsItem *> &itemList)
     if(ptrList.size() < 2)
         return;
 
-    for(int k=1;k<ptrList.size()-1;++k) {
+    // find the farest two
+    int index1, index2 = -1;
+    double dis,maxDis=0;
+    for(int m=0;m<pList.size();++m) {
+        for(int n=m+1;n<pList.size();++n) {
+            dis = distance(pList[m],pList[n]);
+            if(dis>maxDis) {
+                maxDis = dis;
+                index1 = m;
+                index2 = n;
+            }
+        }
+    }
+    QSharedPointer<LB_Segement> line = QSharedPointer<LB_Segement>(new LB_Segement(pList[index1],pList[index2]));
+
+    for(int k=0;k<ptrList.size();++k) {
         LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(ptrList[k]->parentItem());
         if(item) {
             LB_PolygonItem *polygon = dynamic_cast<LB_PolygonItem *>(item);
             if(polygon) {
-                ptrList[k]->SetEditable(false);
-                polygon->RemoveVertex(ptrList[k]);
+                if(k!=index1 && k!= index2) {
+                    ptrList[k]->SetEditable(false);
+                    polygon->RemoveVertex(ptrList[k]);
+                }
+                else {
+                    ptrList[k]->SetLayer(line);
+                }
             }
         }
     }
-    ptrList.first()->SetLayer(LB_PointLayer::Segement);
-    ptrList.last()->SetLayer(LB_PointLayer::Segement);
 }
 
 }

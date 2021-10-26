@@ -1,11 +1,10 @@
 #include "LB_ElementDetection.h"
-#include "LB_ImagePreProcess.h"
-#include <QMap>
+#include "LB_BMPVectorization.h"
 
 namespace LB_Image
 {
 
-QVector<QPointF> LeastSquaresCircle(const QVector<QPointF>& points, QPointF &center)
+QVector<QPointF> LeastSquaresCircle(const QVector<QPointF>& points, LB_Circle &circle, bool &close, int &begin, int &end)
 {
     if (points.size()<3)
     {
@@ -14,20 +13,60 @@ QVector<QPointF> LeastSquaresCircle(const QVector<QPointF>& points, QPointF &cen
 
     double px,py,r;
     LeastSquaresCircle(points, px, py, r);
-    center.setX(px);center.setY(py);
+    QPointF center(px,py);
 
-    // 1.get the angle
-    QVector<double> angles;
-    foreach(const QPointF& pnt, points) {
-        angles.append(atan2(pnt.y()-py, pnt.x()-px));
+    // 1.find the start and end position
+    double gap, maxGap=0;
+    int next;
+    for(int m=0;m<points.size();++m) {
+        next = (m+1)%points.size();
+        gap = angle(points[m], center, points[next]);
+        if(gap > maxGap) {
+            maxGap = gap;
+            end = m;
+            begin = next;
+        }
     }
 
-    // 2.calculate point with each angle
+    if(maxGap * RAD2DEG > 30)
+        close = false;
+    else
+        close = true;
+
+    // 2.get their angle
+    double ang1 = atan2(points[begin].y()-py, points[begin].x()-px);
+    double ang2 = atan2(points[end].y()-py, points[end].x()-px);
+
+    if(areaOfPolygon(points) < 0) {
+        if(ang2 < ang1) // anti-clockwise, ang2>ang1
+            ang2 += 2*M_PI;
+    }
+    else {
+        if(ang2 > ang1) // ang1 should be max for points are in clockwise
+            ang2 -= 2*M_PI;
+    }
+
+    circle.SetArguments(center, r, ang1, ang2);
+
+    // 3.interplot within angle
     QVector<QPointF> result;
-    for(int i=0;i<angles.size();++i) {
-        result.append(QPointF(px+r*cos(angles[i]), py+r*sin(angles[i])));
+    double step = (ang2-ang1)/(double)(points.size()-1);
+    for(int k=0;k<points.size();++k) {
+        result.append(QPointF(px+r*cos(ang1+k*step), py+r*sin(ang1+k*step)));
     }
-    return result;
+
+    // 4.reset the result to old order
+    // the last 'begin' items move to head
+    QVector<QPointF> newResult;
+    if(begin != 0) {
+        const QVector<QPointF> copy = result;
+        for(int n=copy.size()-begin;n<copy.size();++n) {
+            newResult.append(copy[n]);
+            result.removeLast();
+        }
+    }
+    newResult.append(result);
+    return newResult;
 }
 
 void LeastSquaresCircle(const QVector<QPointF> &points, double &px, double &py, double &radius)
@@ -86,39 +125,83 @@ void LeastSquaresCircle(const QVector<QPointF> &points, double &px, double &py, 
     return;
 }
 
-QVector<QPointF> LeastSquaresEllipse(const QVector<QPointF> &points, QPointF& center)
+QVector<QPointF> LeastSquaresEllipse(const QVector<QPointF> &points, LB_Ellipse& ellipse, bool& close, int& begin, int& end)
 {
     double xc, yc, a, b, theta;
     LeastSquaresEllipse(points,xc,yc,a,b,theta);
-    center.setX(xc);center.setY(yc);
+    QPointF center(xc,yc);
     theta *= DEG2RAD;
 
-    QVector<QPointF> result;
-    double ang = 0;
-    foreach(const QPointF& pnt, points) {
-        ang = atan2(pnt.y()-yc, pnt.x()-xc)-theta;
-        if(ang < -M_PI)
-            ang += 2*M_PI;
-        else if(ang > M_PI)
-            ang -= 2*M_PI;
+    double gap, maxGap=0;
+    int next;
+    for(int m=0;m<points.size();++m) {
+        next = (m+1)%points.size();
+        gap = angle(points[m], center, points[next]);
+        if(gap > maxGap) {
+            maxGap = gap;
+            end = m;
+            begin = next;
+        }
+    }
 
+    if(maxGap * RAD2DEG > 30)
+        close = false;
+    else
+        close = true;
+
+    double ang1 = atan2(points[begin].y()-yc, points[begin].x()-xc) - theta;
+    double ang2 = atan2(points[end].y()-yc, points[end].x()-xc) - theta;
+
+    if(areaOfPolygon(points) < 0) {
+        if(ang2 < ang1)
+            ang2 += 2*M_PI;
+    }
+    else {
+        if(ang2 > ang1)
+            ang2 -= 2*M_PI;
+    }
+
+    ellipse.SetArguments(center, a, b, theta, ang1, ang2);
+
+    QVector<QPointF> result;
+    double step = (ang2-ang1)/(double)(points.size()-1);
+    double angle = 0;
+    for(int k=0;k<points.size();++k) {
+        angle = ang1+k*step;
         // intersect point of line and ellipse
-        double px = a*b/sqrt(b*b+a*a*pow(tan(ang),2));
-        if(ang < -0.5*M_PI || ang > 0.5*M_PI) {
+        double px = a*b/sqrt(b*b+a*a*pow(tan(angle),2));
+        // judge if need to inverse x coordinate
+        bool leftHalf1 = (angle < -0.5*M_PI && angle > -M_PI)
+                || (angle > 0.5*M_PI && angle < M_PI);
+        bool leftHalf2 = (angle < -2.5*M_PI && angle > -3*M_PI)
+                || (angle > -1.5*M_PI && angle < -M_PI);
+        bool leftHalf3 = (angle < 1.5*M_PI && angle > M_PI)
+                || (angle > 2.5*M_PI && angle < 3*M_PI);
+        if(leftHalf1 || leftHalf2 || leftHalf3) {
             px = -px;
         }
-        result.append(QPointF(px,px*tan(ang)));
+        result.append(QPointF(px,px*tan(angle)));
     }
+
+    QVector<QPointF> newResult;
+    if(begin != 0) {
+        const QVector<QPointF> copy = result;
+        for(int n=copy.size()-begin;n<copy.size();++n) {
+            newResult.append(copy[n]);
+            result.removeLast();
+        }
+    }
+    newResult.append(result);
 
     // rotate to correct position
     double nx, ny;
-    for(int i=0;i<result.size();++i) {
-        nx = result[i].x()*cos(theta) - result[i].y()*sin(theta);
-        ny = result[i].x()*sin(theta) + result[i].y()*cos(theta);
-        result[i] = QPointF(xc+nx, yc+ny);
+    for(int i=0;i<newResult.size();++i) {
+        nx = newResult[i].x()*cos(theta) - newResult[i].y()*sin(theta);
+        ny = newResult[i].x()*sin(theta) + newResult[i].y()*cos(theta);
+        newResult[i] = QPointF(xc+nx, yc+ny);
     }
 
-    return result;
+    return newResult;
 }
 
 void LeastSquaresEllipse(const QVector<QPointF> &points,
