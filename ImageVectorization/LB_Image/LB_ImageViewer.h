@@ -17,6 +17,9 @@ public:
     void SetVertexVisible(bool ret);
     void SetPixmap(const QPixmap &map);
     void SetImagePolygons(const QVector<QPolygonF>& contours);
+    QVector<LB_PolygonItem*> GetPolygonItems() const {
+        return myPolyItems;
+    }
 
 protected:
     virtual void resizeEvent(QResizeEvent * event) override;

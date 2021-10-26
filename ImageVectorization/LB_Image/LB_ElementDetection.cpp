@@ -37,16 +37,19 @@ QVector<QPointF> LeastSquaresCircle(const QVector<QPointF>& points, LB_Circle &c
     double ang1 = atan2(points[begin].y()-py, points[begin].x()-px);
     double ang2 = atan2(points[end].y()-py, points[end].x()-px);
 
+    bool clock;
     if(areaOfPolygon(points) < 0) {
+        clock = false;
         if(ang2 < ang1) // anti-clockwise, ang2>ang1
             ang2 += 2*M_PI;
     }
     else {
+        clock = true;
         if(ang2 > ang1) // ang1 should be max for points are in clockwise
             ang2 -= 2*M_PI;
     }
 
-    circle.SetArguments(center, r, ang1, ang2);
+    circle.SetArguments(center, r, ang1, ang2, clock);
 
     // 3.interplot within angle
     QVector<QPointF> result;
@@ -152,16 +155,19 @@ QVector<QPointF> LeastSquaresEllipse(const QVector<QPointF> &points, LB_Ellipse&
     double ang1 = atan2(points[begin].y()-yc, points[begin].x()-xc) - theta;
     double ang2 = atan2(points[end].y()-yc, points[end].x()-xc) - theta;
 
+    bool clock;
     if(areaOfPolygon(points) < 0) {
+        clock = false;
         if(ang2 < ang1)
             ang2 += 2*M_PI;
     }
     else {
+        clock = true;
         if(ang2 > ang1)
             ang2 -= 2*M_PI;
     }
 
-    ellipse.SetArguments(center, a, b, theta, ang1, ang2);
+    ellipse.SetArguments(center, a, b, theta, ang1, ang2, clock);
 
     QVector<QPointF> result;
     double step = (ang2-ang1)/(double)(points.size()-1);
@@ -264,8 +270,8 @@ void LeastSquaresEllipse(const QVector<QPointF> &points,
     long double fenzi=2*(A*C*D-B*C*C-D*D+4*E*B-A*A*E);
     long double fenmu=(A*A-4*B)*(B-sqrt(A*A+(1-B)*(1-B))+1);
     long double fenmu2=(A*A-4*B)*(B+sqrt(A*A+(1-B)*(1-B))+1);
-    a=sqrt(fabs(fenzi/fenmu));
-    b=sqrt(fabs(fenzi/fenmu2));
+    a=sqrt(qAbs(fenzi/fenmu));
+    b=sqrt(qAbs(fenzi/fenmu2));
     theta=0.5*atan(A/(1-B))*RAD2DEG;
     if(B<1)
         theta+=90;

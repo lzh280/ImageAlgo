@@ -532,6 +532,14 @@ void MainWindow::on_action_openImg_triggered()
 
 void MainWindow::on_action_saveAsImg_triggered()
 {
+    QVector<LB_PolygonItem*> itemList = graphicResult->GetPolygonItems();
+//    for(int m=0;m<itemList.size();++m) {
+        LB_PolygonItem* poly = itemList[0];
+        ContourElements elements = poly->FetchElements();
+        for(int k=0;k<elements.size();++k) {
+            qDebug()<<elements[k].get()->Info();
+        }
+//    }
 }
 
 void MainWindow::on_action_saveAsDXF_triggered()

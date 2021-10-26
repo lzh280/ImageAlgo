@@ -1,6 +1,7 @@
 ﻿#include "LB_GraphicsItem.h"
 
 #include <QPainter>
+#include <QDebug>
 
 #include "LB_Image/LB_BMPVectorization.h"
 #include "LB_Image/LB_ElementDetection.h"
@@ -98,13 +99,43 @@ LB_PolygonItem::LB_PolygonItem(const QPolygonF &poly) : LB_BasicGraphicsItem()
 
 ContourElements LB_PolygonItem::FetchElements() const
 {
-    LB_PointItemVector::const_iterator ite = myPoints.cbegin();
     ContourElements result;
-    while(ite != myPoints.cend()) {
-        LB_PointItem* item = *ite;
-        /// TODO
-        ite++;
+    QPolygonF poly;
+    for(int i=0;i<myPoints.size();++i) {
+        LB_PointItem* item = myPoints[i];
+        ContourElements layers = item->GetLayers();
+        if(layers.isEmpty()) {
+            poly.append(item->GetPoint());
+        }
+        else {
+            // 1.add the polygon
+            if(!poly.isEmpty()) {
+                QSharedPointer<LB_PolyLine> polyline = QSharedPointer<LB_PolyLine>(new LB_PolyLine(poly));
+                result.append(polyline);
+                poly.clear();
+            }
+
+            // 2.add the other type element
+            foreach(const QSharedPointer<LB_Element>& ele, layers) {
+                if(!result.isEmpty()) {
+                    if(!result.last().get()->IsSame(ele)) {
+                        result.append(ele);
+                    }
+                }
+                else {
+                    result.append(ele);
+                }
+            }
+        }
     }
+
+    // in case of polyline is last/only part of contour
+    if(!poly.isEmpty()) {
+        QSharedPointer<LB_PolyLine> polyline = QSharedPointer<LB_PolyLine>(new LB_PolyLine(poly));
+        result.append(polyline);
+        poly.clear();
+    }
+
     return result;
 }
 
@@ -146,10 +177,10 @@ QPen LB_PolygonItem::getPenByPoints(LB_PointItem *last, LB_PointItem *next)
     QPen pen;
     QVector<int> typesA, typesB;
     foreach(const QSharedPointer<LB_Element>& ele, last->GetLayers()) {
-        typesA.append(ele.get()->type());
+        typesA.append(ele.get()->Type());
     }
     foreach(const QSharedPointer<LB_Element>& ele, next->GetLayers()) {
-        typesB.append(ele.get()->type());
+        typesB.append(ele.get()->Type());
     }
 
     if(typesA.contains(0) && typesB.contains(0))
