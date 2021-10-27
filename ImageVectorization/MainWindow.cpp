@@ -22,6 +22,7 @@
 #include <QUndoStack>
 #include <QUndoView>
 #include <QMessageBox>
+#include <QDesktopServices>
 #include <QElapsedTimer>
 
 #include "SARibbonBar.h"
@@ -128,6 +129,7 @@ void MainWindow::initDock()
     // 2.1 row 0
     QLabel* label1 = new QLabel(tr("Binarization threshold:"),this);
     spinBox_threshold = new QSpinBox(this);
+    spinBox_threshold->setToolTip(tr("The value of seperating foreground and background"));
     spinBox_threshold->setMaximum(255);
     connect(spinBox_threshold, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int arg) {
         THRESHOLD = arg;
@@ -139,6 +141,7 @@ void MainWindow::initDock()
     QLabel* label2 = new QLabel(tr("Minimum edge length:"),this);
     spinBox_minPathLen = new QSpinBox(this);
     spinBox_minPathLen->setMaximum(999);
+    spinBox_minPathLen->setToolTip(tr("The minimum count of pixel that one path contains"));
     connect(spinBox_minPathLen, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int arg) {
         MIN_EDGE_SIZE = arg;
     });
@@ -149,6 +152,7 @@ void MainWindow::initDock()
     QLabel* label3 = new QLabel(tr("Interpolation count:"),this);
     spinBox_bezierStep = new QSpinBox(this);
     spinBox_bezierStep->setRange(2,15);
+    spinBox_bezierStep->setToolTip(tr("The number of points used to replace a section of curve"));
     connect(spinBox_bezierStep, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int arg) {
         BEZIER_STEP = arg;
     });
@@ -159,6 +163,7 @@ void MainWindow::initDock()
     QLabel* label4 = new QLabel(tr("Sharpness coefficient:"),this);
     doubleSpinBox_alpha = new QDoubleSpinBox(this);
     doubleSpinBox_alpha->setSingleStep(0.05);
+    doubleSpinBox_alpha->setToolTip(tr("The value to control the smoothness of result, lower value means sharper"));
     connect(doubleSpinBox_alpha, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [=](double arg) {
         SMOOTH_ALPHA = arg;
     });
@@ -169,6 +174,7 @@ void MainWindow::initDock()
     QLabel* label5 = new QLabel(tr("Colinear tolerance:"),this);
     doubleSpinBox_colinearTol = new QDoubleSpinBox(this);
     doubleSpinBox_colinearTol->setSingleStep(0.1);
+    doubleSpinBox_colinearTol->setToolTip(tr("The max pixel value of distace from each point to their approximate line"));
     connect(doubleSpinBox_colinearTol, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [=](double arg) {
         COLINEAR_TOLERANCE = arg;
     });
@@ -212,6 +218,7 @@ void MainWindow::initDock()
 
     // 2.1 row 8
     checkBox_useDouglas = new QCheckBox(tr("Use Douglas"),this);
+    checkBox_useDouglas->setToolTip(tr("Auxiliary way to get path, faster if the image has a large size"));
     connect(checkBox_useDouglas, &QCheckBox::stateChanged, this, [=](int arg) {
         if(arg == Qt::Checked) {
             useDouglas = true;
@@ -247,6 +254,7 @@ void MainWindow::createCategoryFile(SARibbonCategory *page)
     QAction* act = new QAction(this);
     act->setIcon(QIcon(":/icons/file/open.png"));
     act->setText(tr("Open"));
+    act->setToolTip(tr("Select an image to processing"));
     pannel->addLargeAction(act);
     toolBar_function->addAction(act);
     toolBar_function->addSeparator();
@@ -257,23 +265,47 @@ void MainWindow::createCategoryFile(SARibbonCategory *page)
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/file/saveImage.png"));
     act->setText(tr("Save as image"));
+    act->setToolTip(tr("Save the image in right half window"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered, this, &MainWindow::on_action_saveAsImg_triggered);
 
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/file/saveDXF.png"));
     act->setText(tr("Save as DXF"));
+    act->setToolTip(tr("Save the path you get into a DXF file"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered, this, &MainWindow::on_action_saveAsDXF_triggered);
+
+    pannel = page->addPannel("");
+
+    act = new QAction(this);
+    act->setIcon(QIcon(":/icons/file/autoDone.png"));
+    act->setText(tr("Auto Done"));
+    act->setToolTip(tr("Extract the processing path automated by this function"));
+    pannel->addLargeAction(act);
+    connect(act,&QAction::triggered, this, [=]() {
+        if(!resultImg.isNull()) {
+            QImage before = resultImg;
+            resultImg = MedianFilter(resultImg,3);
+            resultImg = GaussFilter(resultImg);
+            resultImg = FindContours(resultImg);
+            showResult();
+            undoStack->push(new ImageProcessCommand({before,resultImg},tr("Auto Done"),graphicResult));
+            on_action_generateResult_triggered();
+        }
+        else
+            QMessageBox::critical(this,tr("error"),tr("Image not open"));
+    });
 }
 
 void MainWindow::createCategoryOperation(SARibbonCategory *page)
 {
-    SARibbonPannel* pannel = page->addPannel("");
+    SARibbonPannel* pannel = page->addPannel(tr("Operation"));
 
     QAction* act = new QAction(this);
     act->setIcon(QIcon(":/icons/operation/resetOperation.png"));
     act->setText(tr("Reset operation"));
+    act->setToolTip(tr("Remove all the opearion on input"));
     pannel->addLargeAction(act);
     toolBar_function->addAction(act);
     connect(act,&QAction::triggered,this,[=](){
@@ -284,11 +316,10 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
         showResult();
     });
 
-    pannel = page->addPannel("");
-
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/operation/lastStep.png"));
     act->setText(tr("Last step"));
+    act->setToolTip(tr("Undo the action you just"));
     pannel->addLargeAction(act);
     toolBar_function->addAction(act);
     connect(act,&QAction::triggered,this,[=](){
@@ -305,6 +336,7 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/operation/nextStep.png"));
     act->setText(tr("Next step"));
+    act->setToolTip(tr("Redo the action you just"));
     pannel->addLargeAction(act);
     toolBar_function->addAction(act);
     connect(act,&QAction::triggered,this,[=](){
@@ -318,11 +350,12 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
         }
     });
 
-    pannel = page->addPannel("");
+    pannel = page->addPannel(tr("Preprocessing"));
 
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/operation/gray.png"));
     act->setText(tr("Gray"));
+    act->setToolTip(tr("Change a colorful image into gray one"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered,this,[=](){
         QImage before = resultImg;
@@ -334,6 +367,7 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/operation/binary.png"));
     act->setText(tr("Binary"));
+    act->setToolTip(tr("Change a image into black and white one"));
     pannel->addLargeAction(act);
     toolBar_function->addAction(act);
     connect(act,&QAction::triggered,this,[=](){
@@ -346,6 +380,7 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/operation/sharpen.png"));
     act->setText(tr("Sharpen"));
+    act->setToolTip(tr("Make the boreder of foreground more clear"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered,this,[=](){
         QImage before = resultImg;
@@ -357,6 +392,7 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/operation/medianFilter.png"));
     act->setText(tr("Median filtering"));
+    act->setToolTip(tr("Remove the noise in image effective"));
     pannel->addLargeAction(act);
     toolBar_function->addAction(act);
     connect(act,&QAction::triggered,this,[=](){
@@ -369,6 +405,7 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/operation/gaussFilter.png"));
     act->setText(tr("Gaussion filtering"));
+    act->setToolTip(tr("Smooth the border in a vague way"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered,this,[=](){
         QImage before = resultImg;
@@ -380,6 +417,7 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/operation/thinning.png"));
     act->setText(tr("Thinning"));
+    act->setToolTip(tr("Make the binary area in image more representative"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered,this,[=](){
         QImage before = resultImg;
@@ -391,17 +429,19 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/operation/calculateTh.png"));
     act->setText(tr("Best threshold"));
+    act->setToolTip(tr("Calculate the most suitable value for binary operation"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered,this,[=](){
         THRESHOLD = ThresholdDetect(resultImg);
         spinBox_threshold->setValue(THRESHOLD);
     });
 
-    pannel = page->addPannel("");
+    pannel = page->addPannel(tr("Edge operation"));
 
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/operation/findEdge.png"));
     act->setText(tr("Find contours"));
+    act->setToolTip(tr("Most useful function to get the contour of foreground"));
     pannel->addLargeAction(act);
     toolBar_function->addAction(act);
     toolBar_function->addSeparator();
@@ -415,6 +455,7 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/operation/cannyEdge.png"));
     act->setText(tr("Canny contour"));
+    act->setToolTip(tr("An auxiliary way to find contour when image has noise"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered,this,[=](){
         QImage before = resultImg;
@@ -426,6 +467,7 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/operation/sobelEdge.png"));
     act->setText(tr("Sobel contour"));
+    act->setToolTip(tr("An auxiliary way to find contour when image has weak border"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered,this,[=](){
         QImage before = resultImg;
@@ -442,6 +484,7 @@ void MainWindow::createCategoryVectorization(SARibbonCategory *page)
     QAction* act = new QAction(this);
     act->setIcon(QIcon(":/icons/vectorization/generate.png"));
     act->setText(tr("Generate results"));
+    act->setToolTip(tr("Get the processing path after contour has been found"));
     pannel->addLargeAction(act);
     toolBar_function->addAction(act);
     connect(act,&QAction::triggered,this,&MainWindow::on_action_generateResult_triggered);
@@ -451,6 +494,7 @@ void MainWindow::createCategoryVectorization(SARibbonCategory *page)
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/vectorization/toArc.png"));
     act->setText(tr("Convert to arc"));
+    act->setToolTip(tr("Convert the selected points into arc whether the shape fits or not"));
     pannel->addLargeAction(act);
     toolBar_function->addAction(act);
     connect(act,&QAction::triggered,this,&MainWindow::on_action_convertToArc_triggered);
@@ -458,6 +502,7 @@ void MainWindow::createCategoryVectorization(SARibbonCategory *page)
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/vectorization/toLine.png"));
     act->setText(tr("Convert to segment"));
+    act->setToolTip(tr("Convert the selected points into segement whether the shape fits or not"));
     pannel->addLargeAction(act);
     toolBar_function->addAction(act);
     connect(act,&QAction::triggered,this,&MainWindow::on_action_convertToLine_triggered);
@@ -465,6 +510,7 @@ void MainWindow::createCategoryVectorization(SARibbonCategory *page)
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/vectorization/toEllipse.png"));
     act->setText(tr("Convert to ellipse"));
+    act->setToolTip(tr("Convert the selected points into ellipse whether the shape fits or not"));
     pannel->addLargeAction(act);
     toolBar_function->addAction(act);
     connect(act,&QAction::triggered,this,&MainWindow::on_action_convertToEllipse_triggered);
@@ -477,11 +523,28 @@ void MainWindow::createCategoryHelp(SARibbonCategory *page)
     QAction* act = new QAction(this);
     act->setIcon(QIcon(":/icons/help/help.png"));
     act->setText(tr("Help"));
+    act->setToolTip(tr("Open the user's manual"));
     pannel->addLargeAction(act);
+    connect(act, &QAction::triggered, this, []() {
+        QDesktopServices::openUrl(QUrl(QApplication::applicationDirPath()+"/help/guide.pdf"));
+    });
 
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/help/example.png"));
     act->setText(tr("Example"));
+    act->setToolTip(tr("Open the example video of processing a logo image"));
+    QMenu* exampleMenu = new QMenu(this);
+    QAction* exam1 = new QAction(tr("linux logo"),this);
+    connect(exam1, &QAction::triggered, this, []() {
+        QDesktopServices::openUrl(QUrl(QApplication::applicationDirPath()+"/help/linux.mp4"));
+    });
+    QAction* exam2 = new QAction(tr("wechat logo"),this);
+    connect(exam2, &QAction::triggered, this, []() {
+        QDesktopServices::openUrl(QUrl(QApplication::applicationDirPath()+"/help/wechat.mp4"));
+    });
+    exampleMenu->addAction(exam1);
+    exampleMenu->addAction(exam2);
+    act->setMenu(exampleMenu);
     pannel->addLargeAction(act);
 
     act = new QAction(this);
@@ -491,7 +554,8 @@ void MainWindow::createCategoryHelp(SARibbonCategory *page)
     connect(act, &QAction::triggered, this, [this]() {
         QMessageBox* aboutBox = new QMessageBox(this);
         QString str1 = tr("This software is developed by Lieber.");
-        aboutBox->setText(str1);
+        QString str2 = tr("Contact me with: hawkins123h@163.com");
+        aboutBox->setText(str1+'\n'+'\n'+str2);
         aboutBox->setTextInteractionFlags(Qt::TextSelectableByMouse);
         aboutBox->setButtonText(QMessageBox::Ok, tr("I Know"));
         aboutBox->exec();
@@ -532,127 +596,138 @@ void MainWindow::on_action_openImg_triggered()
 
 void MainWindow::on_action_saveAsImg_triggered()
 {
-    QVector<LB_PolygonItem*> itemList = graphicResult->GetPolygonItems();
+    if(resultImg.isNull()) {
+        QMessageBox::critical(this,tr("error"),tr("Image not open"));
+        return;
+    }
+
+    QString filename = QFileDialog::getSaveFileName(this,tr("chose one image"),"","*.jpg *.png *bmp *.jpeg *.jfif");
+    if(filename.isEmpty())
+    {
+        return;
+    }
+    resultImg.save(filename);
+
+
+//    QVector<LB_PolygonItem*> itemList = graphicResult->GetPolygonItems();
 //    for(int m=0;m<itemList.size();++m) {
-        LB_PolygonItem* poly = itemList[0];
-        ContourElements elements = poly->FetchElements();
-        for(int k=0;k<elements.size();++k) {
-            qDebug()<<elements[k].get()->Info();
-        }
+//        LB_PolygonItem* poly = itemList[m];
+//        ContourElements elements = poly->FetchElements();
+//        for(int k=0;k<elements.size();++k) {
+//            qDebug()<<elements[k].get()->Info();
+//        }
 //    }
 }
 
 void MainWindow::on_action_saveAsDXF_triggered()
 {
-    if(resultImg.isNull())
-            return;
+    if(resultImg.isNull()) {
+        QMessageBox::critical(this,tr("error"),tr("Image not open"));
+        return;
+    }
 
-        QString imgName = QFileDialog::getSaveFileName(this,tr("save result"),"",tr("DXF(*.dxf)"));
-        if(imgName.isEmpty())
-            return;
+    QString imgName = QFileDialog::getSaveFileName(this,tr("save result"),"",tr("DXF(*.dxf)"));
+    if(imgName.isEmpty())
+        return;
 
-        QFileInfo aInfo(imgName);
-        if(aInfo.suffix() == "dxf") {
-            // 1.trace the edge
-            // 2.save the polygons into dxf
-            DL_Dxf* dxf = new DL_Dxf();
-            DL_Codes::version exportVersion = DL_Codes::AC1015;
-            DL_WriterA* dw = dxf->out(imgName.toUtf8(), exportVersion);
+    // 1.trace the edge
+    // 2.save the polygons into dxf
+    DL_Dxf* dxf = new DL_Dxf();
+    DL_Codes::version exportVersion = DL_Codes::AC1015;
+    DL_WriterA* dw = dxf->out(imgName.toUtf8(), exportVersion);
 
-            dxf->writeHeader(*dw);
-            dw->sectionEnd();
-            dw->sectionTables();
-            dxf->writeVPort(*dw);
+    dxf->writeHeader(*dw);
+    dw->sectionEnd();
+    dw->sectionTables();
+    dxf->writeVPort(*dw);
 
-            dw->tableLinetypes(1);
-            dxf->writeLinetype(*dw, DL_LinetypeData("CONTINUOUS", "Continuous", 0, 0, 0.0));
-            dw->tableEnd();
+    dw->tableLinetypes(1);
+    dxf->writeLinetype(*dw, DL_LinetypeData("CONTINUOUS", "Continuous", 0, 0, 0.0));
+    dw->tableEnd();
 
-            int numberOfLayers = 3;
-            dw->tableLayers(numberOfLayers);
+    int numberOfLayers = 3;
+    dw->tableLayers(numberOfLayers);
 
-            dxf->writeLayer(*dw,
-                            DL_LayerData("0", 0),
-                            DL_Attributes(
-                                std::string(""),      // leave empty
-                                DL_Codes::red,        // default color
-                                100,                  // default width
-                                "CONTINUOUS", 1.0));       // default line style
+    dxf->writeLayer(*dw,
+                    DL_LayerData("0", 0),
+                    DL_Attributes(
+                        std::string(""),      // leave empty
+                        DL_Codes::red,        // default color
+                        100,                  // default width
+                        "CONTINUOUS", 1.0));       // default line style
 
-            dw->tableEnd();
+    dw->tableEnd();
 
-            dw->tableStyle(1);
-            dxf->writeStyle(*dw, DL_StyleData("standard", 0, 2.5, 1.0, 0.0, 0, 2.5, "txt", ""));
-            dw->tableEnd();
+    dw->tableStyle(1);
+    dxf->writeStyle(*dw, DL_StyleData("standard", 0, 2.5, 1.0, 0.0, 0, 2.5, "txt", ""));
+    dw->tableEnd();
 
-            dxf->writeView(*dw);
-            dxf->writeUcs(*dw);
+    dxf->writeView(*dw);
+    dxf->writeUcs(*dw);
 
-            dw->tableAppid(1);
-            dxf->writeAppid(*dw, "ACAD");
-            dw->tableEnd();
+    dw->tableAppid(1);
+    dxf->writeAppid(*dw, "ACAD");
+    dw->tableEnd();
 
-            dxf->writeDimStyle(*dw, 1, 1, 1, 1, 1);
+    dxf->writeDimStyle(*dw, 1, 1, 1, 1, 1);
 
-            dxf->writeBlockRecord(*dw);
-            dw->tableEnd();
+    dxf->writeBlockRecord(*dw);
+    dw->tableEnd();
 
-            dw->sectionEnd();
+    dw->sectionEnd();
 
-            dw->sectionBlocks();
-            dxf->writeBlock(*dw, DL_BlockData("*Model_Space", 0, 0.0, 0.0, 0.0));
-            dxf->writeEndBlock(*dw, "*Model_Space");
+    dw->sectionBlocks();
+    dxf->writeBlock(*dw, DL_BlockData("*Model_Space", 0, 0.0, 0.0, 0.0));
+    dxf->writeEndBlock(*dw, "*Model_Space");
 
-            dw->sectionEnd();
-            dw->sectionEntities();
+    dw->sectionEnd();
+    dw->sectionEntities();
 
-            // write all entities in model space:
-            QVector<QPolygon> edges = RadialSweepTracing(resultImg);
-            if(useDouglas) {
-                edges = DouglasSimplify(edges);
-            }
-            else {
-                edges = SimplifyEdge(edges);
-            }
-            QVector<QPolygonF> result = SmoothEdge(edges);
-            result = ScaleEdge(result);
-            foreach (QPolygonF aPoly, result) {
-                if(aPoly.first() != aPoly.last())
-                    aPoly.append(aPoly.first());
+    // write all entities in model space:
+    QVector<QPolygon> edges = RadialSweepTracing(resultImg);
+    if(useDouglas) {
+        edges = DouglasSimplify(edges);
+    }
+    else {
+        edges = SimplifyEdge(edges);
+    }
+    QVector<QPolygonF> result = SmoothEdge(edges);
+    result = ScaleEdge(result);
+    foreach (QPolygonF aPoly, result) {
+        if(aPoly.first() != aPoly.last())
+            aPoly.append(aPoly.first());
 
-                dxf->writePolyline(*dw,
-                               DL_PolylineData(aPoly.size(),0,0,DL_CLOSED_PLINE),
-                               DL_Attributes("0", 256, -1, "CONTINUOUS", 1.0));
-                foreach(QPointF pnt, aPoly) {
-                    dxf->writeVertex(*dw,
-                                     DL_VertexData(
-                                         pnt.x(),
-                                         -pnt.y(),
-                                         0, 0));
-                }
-                dxf->writePolylineEnd(*dw);
-            }
-
-            dw->sectionEnd();
-
-            dxf->writeObjects(*dw);
-            dxf->writeObjectsEnd(*dw);
-
-            dw->dxfEOF();
-            dw->close();
-            delete dw;
-            delete dxf;
+        dxf->writePolyline(*dw,
+                           DL_PolylineData(aPoly.size(),0,0,DL_CLOSED_PLINE),
+                           DL_Attributes("0", 256, -1, "CONTINUOUS", 1.0));
+        foreach(QPointF pnt, aPoly) {
+            dxf->writeVertex(*dw,
+                             DL_VertexData(
+                                 pnt.x(),
+                                 -pnt.y(),
+                                 0, 0));
         }
-        else {
-            resultImg.save(imgName);
-        }
+        dxf->writePolylineEnd(*dw);
+    }
+
+    dw->sectionEnd();
+
+    dxf->writeObjects(*dw);
+    dxf->writeObjectsEnd(*dw);
+
+    dw->dxfEOF();
+    dw->close();
+    delete dw;
+    delete dxf;
 }
 
 // vectorization
 void MainWindow::on_action_generateResult_triggered()
 {
-    if(resultImg.isNull())
+    if(resultImg.isNull()) {
+        QMessageBox::critical(this,tr("error"),tr("Image not open"));
         return;
+    }
 
     QElapsedTimer testTimer;
     testTimer.start();

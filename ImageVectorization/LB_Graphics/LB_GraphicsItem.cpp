@@ -1,7 +1,8 @@
 ﻿#include "LB_GraphicsItem.h"
 
 #include <QPainter>
-#include <QDebug>
+#include <QMenu>
+#include <QGraphicsSceneContextMenuEvent>
 
 #include "LB_Image/LB_BMPVectorization.h"
 #include "LB_Image/LB_ElementDetection.h"
@@ -24,6 +25,10 @@ LB_BasicGraphicsItem::LB_BasicGraphicsItem()
 void LB_BasicGraphicsItem::multiSelect(bool inverse)
 {
     if(myMultiBegin == nullptr || myMultiEnd == nullptr) {
+        return;
+    }
+
+    if(!myMultiBegin->isSelected()) {
         return;
     }
 
@@ -170,6 +175,41 @@ QRectF LB_PolygonItem::boundingRect() const
                   ymin,
                   xmax-xmin,
                   ymax-ymin);
+}
+
+void LB_PolygonItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
+{
+    QMenu menu;
+    QAction *inverseSelection = menu.addAction(QObject::tr("Inverse selection"));
+    connect(inverseSelection, &QAction::triggered, this,[=]() {
+        if(!myPoints.isSelected())
+            return;
+
+        foreach(LB_PointItem* item, myPoints) {
+            item->setSelected(!item->isSelected());
+        }
+    });
+    auto convert = [](const LB_PointItemVector& items) {
+        QList<QGraphicsItem *> result;
+        foreach(LB_PointItem* itm, items) {
+            result.append(itm);
+        }
+        return result;
+    };
+
+    QAction *convertArc = menu.addAction(QObject::tr("Convert to arc"));
+    connect(convertArc, &QAction::triggered, this,[=]() {
+        LB_Graphics::ConvertToArc(convert(myPoints));
+    });
+    QAction *convertLin = menu.addAction(QObject::tr("Convert to segment"));
+    connect(convertLin, &QAction::triggered, this,[=]() {
+        LB_Graphics::ConvertToSegment(convert(myPoints));
+    });
+    QAction *convertElp = menu.addAction(QObject::tr("Convert to ellipse"));
+    connect(convertElp, &QAction::triggered, this,[=]() {
+        LB_Graphics::ConvertToEllipse(convert(myPoints));
+    });
+    menu.exec(event->screenPos());
 }
 
 QPen LB_PolygonItem::getPenByPoints(LB_PointItem *last, LB_PointItem *next)

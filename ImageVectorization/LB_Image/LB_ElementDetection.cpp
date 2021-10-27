@@ -28,7 +28,7 @@ QVector<QPointF> LeastSquaresCircle(const QVector<QPointF>& points, LB_Circle &c
         }
     }
 
-    if(maxGap * RAD2DEG > 30)
+    if(maxGap * RAD2DEG > 15)
         close = false;
     else
         close = true;
@@ -147,7 +147,7 @@ QVector<QPointF> LeastSquaresEllipse(const QVector<QPointF> &points, LB_Ellipse&
         }
     }
 
-    if(maxGap * RAD2DEG > 30)
+    if(maxGap * RAD2DEG > 15)
         close = false;
     else
         close = true;

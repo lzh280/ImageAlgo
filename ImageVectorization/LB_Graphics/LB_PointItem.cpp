@@ -61,13 +61,17 @@ void LB_PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
         }
     }
     // ctrl: select whole parent item
-    else if(event->modifiers() == Qt::ControlModifier) {
+    else if(event->modifiers() == Qt::ControlModifier && event->button() == Qt::LeftButton) {
         LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(this->parentItem());
         item->SelectAllPoints();
     }
-    // others: just select the item
+    // others: just select the item and mark as the begin of multi-selection
     else {
-        this->setSelected(!this->isSelected());
+        if(event->button() == Qt::LeftButton) {
+            LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(this->parentItem());
+            item->SetMultiSelectBegin(this);
+            this->setSelected(!this->isSelected());
+        }
     }
 }
 

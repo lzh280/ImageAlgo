@@ -54,7 +54,7 @@ protected:
     QPen myEllipse;
 };
 
-class LB_PolygonItem : public LB_BasicGraphicsItem
+class LB_PolygonItem : public LB_BasicGraphicsItem, public QObject
 {
 public:
     LB_PolygonItem() : LB_BasicGraphicsItem() {}
@@ -63,6 +63,7 @@ public:
 
 protected:
     virtual QRectF boundingRect() const override;
+    virtual void contextMenuEvent(QGraphicsSceneContextMenuEvent *event) override;
 
     QPen getPenByPoints(LB_PointItem* last, LB_PointItem* next);
 

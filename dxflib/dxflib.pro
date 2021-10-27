@@ -1,7 +1,7 @@
 TARGET = dxflib
 TEMPLATE = lib
 CONFIG -= qt
-DEFINES += DXFLIB_LIBRARY
+DEFINES += DXFLIB_DLL DXFLIB_LIBRARY
 
 HEADERS = \
     dl_attributes.h \
@@ -12,6 +12,7 @@ HEADERS = \
     dl_entities.h \
     dl_exception.h \
     dl_extrusion.h \
+    dl_global.h \
     dl_writer.h \
     dl_writer_ascii.h
 
