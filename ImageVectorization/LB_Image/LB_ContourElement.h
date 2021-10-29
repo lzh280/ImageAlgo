@@ -5,6 +5,8 @@
 #include <QPolygonF>
 #include <QSharedPointer>
 
+#include "LB_BaseUtil.h"
+
 namespace LB_Image
 {
 
@@ -28,6 +30,8 @@ public:
 
     void SetStart(const QPointF& p) { myStart = p; }
     void SetEnd(const QPointF& p) { myEnd = p; }
+    QPointF GetStart() const { return myStart; }
+    QPointF GetEnd() const { return myEnd; }
 
     virtual bool IsSame(const QSharedPointer<LB_Element>& other) const {
         QSharedPointer<LB_Segement> segment = other.dynamicCast<LB_Segement>();
@@ -68,6 +72,11 @@ public:
         myEndAng = a2;
         myClockwise = clock;
     }
+    QPointF GetCenter() const { return myCenter; }
+    double GetRadius() const { return myRadius; }
+    double GetStartAng() const { return myStartAng; }
+    double GetEndAng() const { return myEndAng; }
+    bool IsClockwise() const { return myClockwise; }
 
     virtual bool IsSame(const QSharedPointer<LB_Element>& other) const {
         QSharedPointer<LB_Circle> circle = other.dynamicCast<LB_Circle>();
@@ -118,6 +127,41 @@ public:
         myEndAng = ang2;
         myClockwise = clock;
     }
+    QPointF GetCenter() const { return myCenter; }
+    double GetLAxis() const { return myLAxis; }
+    double GetSAxis() const { return mySAxis; }
+    double GetTheta() const { return myTheta; }
+    double GetStartAng() const { return myStartAng; }
+    double GetEndAng() const { return myEndAng; }
+    bool IsClockwise() const { return myClockwise; }
+
+    double AngleToParam(double angle) const {
+        double p;
+        if (fabs(angle - 2*M_PI)<1e-6) {
+            p = 2*M_PI;
+        }
+        else if (fabs(angle)<1e-6) {
+            p = 0.0;
+        }
+        else {
+            double a = myLAxis, b = mySAxis;
+
+            double px = a*b/sqrt(b*b+a*a*pow(tan(angle),2));
+            bool leftHalf1 = (angle < -0.5*M_PI && angle > -M_PI)
+                    || (angle > 0.5*M_PI && angle < M_PI);
+            bool leftHalf2 = (angle < -2.5*M_PI && angle > -3*M_PI)
+                    || (angle > -1.5*M_PI && angle < -M_PI);
+            bool leftHalf3 = (angle < 1.5*M_PI && angle > M_PI)
+                    || (angle > 2.5*M_PI && angle < 3*M_PI);
+            if(leftHalf1 || leftHalf2 || leftHalf3) {
+                px = -px;
+            }
+
+            p = acos(px / a);
+        }
+
+        return p;
+    }
 
     virtual bool IsSame(const QSharedPointer<LB_Element>& other) const {
         QSharedPointer<LB_Ellipse> ellipse = other.dynamicCast<LB_Ellipse>();
@@ -165,6 +209,7 @@ public:
     virtual ~LB_PolyLine() {}
 
     void SetPolygon(const QPolygonF& poly) { myPolygon = poly; }
+    QPolygonF GetPolygon() const { return myPolygon; }
 
     virtual bool IsSame(const QSharedPointer<LB_Element>& other) const {
         QSharedPointer<LB_PolyLine> poly = other.dynamicCast<LB_PolyLine>();

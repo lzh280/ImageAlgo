@@ -607,16 +607,6 @@ void MainWindow::on_action_saveAsImg_triggered()
         return;
     }
     resultImg.save(filename);
-
-
-//    QVector<LB_PolygonItem*> itemList = graphicResult->GetPolygonItems();
-//    for(int m=0;m<itemList.size();++m) {
-//        LB_PolygonItem* poly = itemList[m];
-//        ContourElements elements = poly->FetchElements();
-//        for(int k=0;k<elements.size();++k) {
-//            qDebug()<<elements[k].get()->Info();
-//        }
-//    }
 }
 
 void MainWindow::on_action_saveAsDXF_triggered()
@@ -630,8 +620,6 @@ void MainWindow::on_action_saveAsDXF_triggered()
     if(imgName.isEmpty())
         return;
 
-    // 1.trace the edge
-    // 2.save the polygons into dxf
     DL_Dxf* dxf = new DL_Dxf();
     DL_Codes::version exportVersion = DL_Codes::AC1015;
     DL_WriterA* dw = dxf->out(imgName.toUtf8(), exportVersion);
@@ -645,7 +633,7 @@ void MainWindow::on_action_saveAsDXF_triggered()
     dxf->writeLinetype(*dw, DL_LinetypeData("CONTINUOUS", "Continuous", 0, 0, 0.0));
     dw->tableEnd();
 
-    int numberOfLayers = 3;
+    int numberOfLayers = 1;
     dw->tableLayers(numberOfLayers);
 
     dxf->writeLayer(*dw,
@@ -684,30 +672,76 @@ void MainWindow::on_action_saveAsDXF_triggered()
     dw->sectionEntities();
 
     // write all entities in model space:
-    QVector<QPolygon> edges = RadialSweepTracing(resultImg);
-    if(useDouglas) {
-        edges = DouglasSimplify(edges);
+    ContourElements elements;
+    QVector<LB_PolygonItem*> itemList = graphicResult->GetPolygonItems();
+    for(int m=0;m<itemList.size();++m) {
+        LB_PolygonItem* poly = itemList[m];
+        elements.append(poly->FetchElements());
     }
-    else {
-        edges = SimplifyEdge(edges);
-    }
-    QVector<QPolygonF> result = SmoothEdge(edges);
-    result = ScaleEdge(result);
-    foreach (QPolygonF aPoly, result) {
-        if(aPoly.first() != aPoly.last())
-            aPoly.append(aPoly.first());
-
-        dxf->writePolyline(*dw,
-                           DL_PolylineData(aPoly.size(),0,0,DL_CLOSED_PLINE),
-                           DL_Attributes("0", 256, -1, "CONTINUOUS", 1.0));
-        foreach(QPointF pnt, aPoly) {
-            dxf->writeVertex(*dw,
-                             DL_VertexData(
-                                 pnt.x(),
-                                 -pnt.y(),
-                                 0, 0));
+    DL_Attributes attributes = DL_Attributes("0", 256, -1, "CONTINUOUS", 1.0);
+    for(int k=0;k<elements.size();++k) {
+        switch(elements[k].get()->Type()) {
+        case 0: {
+            QSharedPointer<LB_Segement> segment = elements[k].dynamicCast<LB_Segement>();
+            dxf->writeLine(*dw, DL_LineData(segment->GetStart().x(),-segment->GetStart().y(),0,
+                                            segment->GetEnd().x(),-segment->GetEnd().y(),0),
+                           attributes);
+            break;
         }
-        dxf->writePolylineEnd(*dw);
+        case 1: {
+            QSharedPointer<LB_Circle> circle = elements[k].dynamicCast<LB_Circle>();
+            if(circle->IsClockwise()) {
+                dxf->writeArc(*dw, DL_ArcData(circle->GetCenter().x(),-circle->GetCenter().y(),0,
+                                              circle->GetRadius(), -circle->GetStartAng()*RAD2DEG, -circle->GetEndAng()*RAD2DEG),
+                              attributes);
+            }
+            else {
+                dxf->writeArc(*dw, DL_ArcData(circle->GetCenter().x(),-circle->GetCenter().y(),0,
+                                              circle->GetRadius(), -circle->GetEndAng()*RAD2DEG, -circle->GetStartAng()*RAD2DEG),
+                              attributes);
+            }
+            break;
+        }
+        case 2: {
+            QSharedPointer<LB_Ellipse> ellipse = elements[k].dynamicCast<LB_Ellipse>();
+            const double ratio = ellipse->GetSAxis() / ellipse->GetLAxis();
+            const double mx=ellipse->GetLAxis()*cos(ellipse->GetTheta());
+            const double my=ellipse->GetLAxis()*sin(ellipse->GetTheta());
+            const double startAng = ellipse->GetStartAng();
+            const double endAng = ellipse->GetEndAng();
+            const double startParam = ellipse->AngleToParam(startAng);
+            const double endParam = ellipse->AngleToParam(endAng);
+            if(ellipse->IsClockwise()) {
+                dxf->writeEllipse(*dw, DL_EllipseData(ellipse->GetCenter().x(),-ellipse->GetCenter().y(),0,
+                                                      mx, -my, 0,
+                                                      ratio, -startParam, -endParam),
+                                  attributes);qDebug()<<1;
+            }
+            else {
+                dxf->writeEllipse(*dw, DL_EllipseData(ellipse->GetCenter().x(),-ellipse->GetCenter().y(),0,
+                                                      mx, -my, 0,
+                                                      ratio, -endParam, -startParam),
+                                  attributes);qDebug()<<2;
+            }
+            break;
+        }
+        case 3: {
+            QSharedPointer<LB_PolyLine> poly = elements[k].dynamicCast<LB_PolyLine>();
+            QPolygonF polygon = poly->GetPolygon();
+            dxf->writePolyline(*dw,
+                               DL_PolylineData(polygon.size(),0,0,DL_CLOSED_PLINE),
+                               attributes);
+            foreach(QPointF pnt, polygon) {
+                dxf->writeVertex(*dw,
+                                 DL_VertexData(
+                                     pnt.x(),
+                                     -pnt.y(),
+                                     0, 0));
+            }
+            dxf->writePolylineEnd(*dw);
+            break;
+        }
+        }
     }
 
     dw->sectionEnd();

@@ -115,6 +115,7 @@ ContourElements LB_PolygonItem::FetchElements() const
         else {
             // 1.add the polygon
             if(!poly.isEmpty()) {
+                poly.append(item->GetPoint());
                 QSharedPointer<LB_PolyLine> polyline = QSharedPointer<LB_PolyLine>(new LB_PolyLine(poly));
                 result.append(polyline);
                 poly.clear();
