@@ -158,6 +158,13 @@ public:
             }
 
             p = acos(px / a);
+
+            // make sure the two angles are in the same quadrant
+            bool retx = cos(angle) * cos(p) < 0;
+            bool rety = sin(angle) * sin(p) < 0;
+            if(( retx && !rety ) || (!retx && rety))
+                p = -p;
+
         }
 
         return p;

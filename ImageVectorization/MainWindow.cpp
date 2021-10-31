@@ -709,19 +709,36 @@ void MainWindow::on_action_saveAsDXF_triggered()
             const double my=ellipse->GetLAxis()*sin(ellipse->GetTheta());
             const double startAng = ellipse->GetStartAng();
             const double endAng = ellipse->GetEndAng();
-            const double startParam = ellipse->AngleToParam(startAng);
-            const double endParam = ellipse->AngleToParam(endAng);
+            double startParam = ellipse->AngleToParam(startAng);
+            double endParam = ellipse->AngleToParam(endAng);
+            double gapAng = 0;
             if(ellipse->IsClockwise()) {
+                gapAng = (startAng-endAng)*RAD2DEG;
+                if(gapAng > 180 ) {
+                    gapAng = 360-gapAng;
+                    if(gapAng < 15) {
+                        startParam = 2*M_PI;
+                        endParam = 0;
+                    }
+                }
                 dxf->writeEllipse(*dw, DL_EllipseData(ellipse->GetCenter().x(),-ellipse->GetCenter().y(),0,
                                                       mx, -my, 0,
                                                       ratio, -startParam, -endParam),
-                                  attributes);qDebug()<<1;
+                                  attributes);
             }
             else {
+                gapAng = (endAng-startAng)*RAD2DEG;
+                if(gapAng > 180 ) {
+                    gapAng = 360-gapAng;
+                    if(gapAng < 15) {
+                        startParam = 0;
+                        endParam = 2*M_PI;
+                    }
+                }
                 dxf->writeEllipse(*dw, DL_EllipseData(ellipse->GetCenter().x(),-ellipse->GetCenter().y(),0,
                                                       mx, -my, 0,
                                                       ratio, -endParam, -startParam),
-                                  attributes);qDebug()<<2;
+                                  attributes);
             }
             break;
         }
