@@ -40,8 +40,8 @@
         <location filename="MainWindow.cpp" line="102"/>
         <location filename="MainWindow.cpp" line="297"/>
         <location filename="MainWindow.cpp" line="600"/>
-        <location filename="MainWindow.cpp" line="625"/>
-        <location filename="MainWindow.cpp" line="728"/>
+        <location filename="MainWindow.cpp" line="615"/>
+        <location filename="MainWindow.cpp" line="791"/>
         <source>Image not open</source>
         <translation>未打开图片</translation>
     </message>
@@ -184,8 +184,9 @@
     <message>
         <location filename="MainWindow.cpp" line="297"/>
         <location filename="MainWindow.cpp" line="600"/>
-        <location filename="MainWindow.cpp" line="625"/>
-        <location filename="MainWindow.cpp" line="728"/>
+        <location filename="MainWindow.cpp" line="615"/>
+        <location filename="MainWindow.cpp" line="629"/>
+        <location filename="MainWindow.cpp" line="791"/>
         <source>error</source>
         <translation>错误</translation>
     </message>
@@ -466,17 +467,22 @@
         <translation>选择图片</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="629"/>
+        <location filename="MainWindow.cpp" line="624"/>
         <source>save result</source>
         <translation>保存结果</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="629"/>
+        <location filename="MainWindow.cpp" line="624"/>
         <source>DXF(*.dxf)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="802"/>
+        <location filename="MainWindow.cpp" line="629"/>
+        <source>There are unsupported characters!</source>
+        <translation>路径名存在中文！</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="865"/>
         <source>scale</source>
         <translation>缩放</translation>
     </message>
@@ -484,22 +490,22 @@
 <context>
     <name>QObject</name>
     <message>
-        <location filename="LB_Graphics/LB_GraphicsItem.cpp" line="183"/>
+        <location filename="LB_Graphics/LB_GraphicsItem.cpp" line="196"/>
         <source>Inverse selection</source>
         <translation>反转选择</translation>
     </message>
     <message>
-        <location filename="LB_Graphics/LB_GraphicsItem.cpp" line="200"/>
+        <location filename="LB_Graphics/LB_GraphicsItem.cpp" line="213"/>
         <source>Convert to arc</source>
         <translation>转换为圆</translation>
     </message>
     <message>
-        <location filename="LB_Graphics/LB_GraphicsItem.cpp" line="204"/>
+        <location filename="LB_Graphics/LB_GraphicsItem.cpp" line="217"/>
         <source>Convert to segment</source>
         <translation>转换为线段</translation>
     </message>
     <message>
-        <location filename="LB_Graphics/LB_GraphicsItem.cpp" line="208"/>
+        <location filename="LB_Graphics/LB_GraphicsItem.cpp" line="221"/>
         <source>Convert to ellipse</source>
         <translation>转换为椭圆</translation>
     </message>

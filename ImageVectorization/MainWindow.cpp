@@ -616,13 +616,24 @@ void MainWindow::on_action_saveAsDXF_triggered()
         return;
     }
 
-    QString imgName = QFileDialog::getSaveFileName(this,tr("save result"),"",tr("DXF(*.dxf)"));
-    if(imgName.isEmpty())
-        return;
+    QString dxfName;
+
+    // judge if Chinese character exists
+    bool ret=true;
+    while(ret) {
+        dxfName = QFileDialog::getSaveFileName(this,tr("save result"),"",tr("DXF(*.dxf)"));
+        if(dxfName.isEmpty())
+            return;
+
+        if(dxfName.contains(QRegExp("[\\x4e00-\\x9fa5]+")))
+            QMessageBox::critical(this,tr("error"),tr("There are unsupported characters!"));
+        else
+            ret = false;
+    }
 
     DL_Dxf* dxf = new DL_Dxf();
     DL_Codes::version exportVersion = DL_Codes::AC1015;
-    DL_WriterA* dw = dxf->out(imgName.toUtf8(), exportVersion);
+    DL_WriterA* dw = dxf->out(dxfName.toUtf8(), exportVersion);
 
     dxf->writeHeader(*dw);
     dw->sectionEnd();
@@ -746,7 +757,7 @@ void MainWindow::on_action_saveAsDXF_triggered()
             QSharedPointer<LB_PolyLine> poly = elements[k].dynamicCast<LB_PolyLine>();
             QPolygonF polygon = poly->GetPolygon();
             dxf->writePolyline(*dw,
-                               DL_PolylineData(polygon.size(),0,0,DL_CLOSED_PLINE),
+                               DL_PolylineData(polygon.size(),0,0,DL_OPEN_PLINE),
                                attributes);
             foreach(QPointF pnt, polygon) {
                 dxf->writeVertex(*dw,

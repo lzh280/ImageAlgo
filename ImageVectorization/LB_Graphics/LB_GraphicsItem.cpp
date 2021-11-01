@@ -106,8 +106,10 @@ ContourElements LB_PolygonItem::FetchElements() const
 {
     ContourElements result;
     QPolygonF poly;
+    LB_PointItem* item;
+    int next = -1;
     for(int i=0;i<myPoints.size();++i) {
-        LB_PointItem* item = myPoints[i];
+        item = myPoints[i];
         ContourElements layers = item->GetLayers();
         if(layers.isEmpty()) {
             poly.append(item->GetPoint());
@@ -132,11 +134,21 @@ ContourElements LB_PolygonItem::FetchElements() const
                     result.append(ele);
                 }
             }
+
+            // 3.judge if need to create new polygon
+            next = (i+1)%myPoints.size();
+            if(myPoints[next]->GetLayers().isEmpty()) {
+                poly.append(item->GetPoint());
+            }
         }
     }
 
     // in case of polyline is last/only part of contour
     if(!poly.isEmpty()) {
+        // make contour close
+        if(poly.last() != myPoints.first()->GetPoint())
+            poly.append(myPoints.first()->GetPoint());
+
         QSharedPointer<LB_PolyLine> polyline = QSharedPointer<LB_PolyLine>(new LB_PolyLine(poly));
         result.append(polyline);
         poly.clear();
@@ -216,29 +228,31 @@ void LB_PolygonItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 QPen LB_PolygonItem::getPenByPoints(LB_PointItem *last, LB_PointItem *next)
 {
     QPen pen;
-    QVector<int> typesA, typesB;
+    ContourElements layersA, layersB;
     foreach(const QSharedPointer<LB_Element>& ele, last->GetLayers()) {
-        typesA.append(ele.get()->Type());
+        layersA.append(ele);
     }
     foreach(const QSharedPointer<LB_Element>& ele, next->GetLayers()) {
-        typesB.append(ele.get()->Type());
+        layersB.append(ele);
     }
 
-    if(typesA.contains(0) && typesB.contains(0))
-    {
-        pen = mySegement;
+    // find the same item
+    int type = -1;
+    for(int i=0;i<layersA.size();++i) {
+        for(int j=0;j<layersB.size();++j) {
+            if(layersA[i]->IsSame(layersB[j])) {
+                type = layersA[i]->Type();
+                break;
+            }
+        }
     }
-    else if(typesA.contains(1) && typesB.contains(1))
-    {
-        pen = myCircle;
+    switch(type) {
+    case -1: pen = myPolyLine;break;
+    case 0: pen = mySegement;break;
+    case 1: pen = myCircle;break;
+    case 2: pen = myEllipse;break;
     }
-    else if(typesA.contains(2) && typesB.contains(2))
-    {
-        pen = myEllipse;
-    }
-    else {
-        pen = myPolyLine;
-    }
+
     return pen;
 }
 
