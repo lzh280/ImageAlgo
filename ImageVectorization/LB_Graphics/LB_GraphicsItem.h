@@ -54,11 +54,11 @@ protected:
     QPen myEllipse;
 };
 
-class LB_PolygonItem : public LB_BasicGraphicsItem, public QObject
+class LB_PolygonItem : public QObject, public LB_BasicGraphicsItem
 {
+    Q_OBJECT
 public:
-    LB_PolygonItem() : LB_BasicGraphicsItem() {}
-    LB_PolygonItem(const QPolygonF& poly);
+    explicit LB_PolygonItem(const QPolygonF& poly);
     ContourElements FetchElements() const;
 
 protected:
@@ -70,6 +70,10 @@ protected:
     virtual void paint(QPainter *painter,
                        const QStyleOptionGraphicsItem *option,
                        QWidget *widget) override;
+
+signals:
+    void pointPosUserChanged(const QPointF& pnt);
+    void pointUserSelected(const QPointF& pnt);
 };
 
 namespace LB_Graphics

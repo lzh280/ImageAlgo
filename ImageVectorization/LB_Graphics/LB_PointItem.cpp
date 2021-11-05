@@ -71,6 +71,8 @@ void LB_PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
             LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(this->parentItem());
             item->SetMultiSelectBegin(this);
             this->setSelected(!this->isSelected());
+            if(this->isSelected())
+                emit itemUserSelected(myPoint);
         }
     }
 }
@@ -90,6 +92,7 @@ void LB_PointItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         myPoint = this->mapToParent( event->pos() );
         this->setPos(myPoint);
         this->scene()->update();
+        this->posUserChanged(myPoint);
     }
 }
 

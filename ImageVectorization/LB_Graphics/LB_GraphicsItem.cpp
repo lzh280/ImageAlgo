@@ -99,6 +99,12 @@ LB_PolygonItem::LB_PolygonItem(const QPolygonF &poly) : LB_BasicGraphicsItem()
         LB_PointItem *point = new LB_PointItem(this, pnt);
         point->setParentItem(this);
         myPoints.append(point);
+        connect(point,&LB_PointItem::posUserChanged,this,[=](const QPointF& pnt) {
+            emit pointPosUserChanged(pnt);
+        });
+        connect(point,&LB_PointItem::itemUserSelected,this,[=](const QPointF& pnt) {
+            emit pointUserSelected(pnt);
+        });
     }
 }
 

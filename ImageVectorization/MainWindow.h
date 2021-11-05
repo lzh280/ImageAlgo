@@ -50,6 +50,7 @@ private:
     QCheckBox* checkBox_useDouglas;
     QCheckBox* checkBox_frameSelection;
     QToolBar* toolBar_function;
+    QStatusBar* statusBar_info;
 
     LB_ImageViewer* graphicSource;
     LB_ImageViewer* graphicResult;

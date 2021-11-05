@@ -2,6 +2,7 @@
 
 #include <QAction>
 #include <QToolBar>
+#include <QStatusBar>
 #include <QSpinBox>
 #include <QDoubleSpinBox>
 #include <QLabel>
@@ -73,6 +74,9 @@ void MainWindow::initUI()
 
     toolBar_function = new QToolBar(tr("Function"), this);
     this->addToolBar(Qt::TopToolBarArea, toolBar_function);
+    statusBar_info = new QStatusBar(this);
+    this->setStatusBar(statusBar_info);
+    statusBar_info->addPermanentWidget(new QLabel("Copyright @ Lieber, HFUT",statusBar_info));
 
     SARibbonCategory* categoryFile = ribbon->addCategoryPage(tr("File"));
     createCategoryFile(categoryFile);
@@ -99,6 +103,12 @@ void MainWindow::initCenter()
     QVBoxLayout* right = new QVBoxLayout(rightWid);
     graphicResult = new LB_ImageViewer(rightWid);
     graphicResult->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    connect(graphicResult,&LB_ImageViewer::pointSelected,this,[=](const QPointF& pnt) {
+        statusBar_info->showMessage(tr("Selected( %1 , %2 )").arg(pnt.x()).arg(pnt.y()));
+    });
+    connect(graphicResult,&LB_ImageViewer::pointMoved,this,[=](const QPointF& pnt) {
+        statusBar_info->showMessage(tr("Move to( %1 , %2 )").arg(pnt.x()).arg(pnt.y()));
+    });
     label_imgInfoResult = new QLabel(tr("Image not open"), rightWid);
     right->addWidget(graphicResult);
     right->addWidget(label_imgInfoResult);

@@ -30,4 +30,8 @@ private:
     QVector<LB_PolygonItem*> myPolyItems;
     QGraphicsScene *myGraphicScene;
 
+signals:
+    void pointSelected(const QPointF& pnt);
+    void pointMoved(const QPointF& pnt);
+
 };

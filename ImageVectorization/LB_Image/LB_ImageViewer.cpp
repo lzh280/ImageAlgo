@@ -78,6 +78,12 @@ void LB_ImageViewer::SetImagePolygons(const QVector<QPolygonF> &contours)
 
     foreach(const QPolygonF& poly, contours) {
         LB_PolygonItem* item = new LB_PolygonItem(poly);
+        connect(item,&LB_PolygonItem::pointUserSelected,this,[=](const QPointF& pnt) {
+            emit pointSelected(pnt);
+        });
+        connect(item,&LB_PolygonItem::pointPosUserChanged,this,[=](const QPointF& pnt) {
+            emit pointMoved(pnt);
+        });
         myPolyItems.append(item);
         myGraphicScene->addItem(item);
     }

@@ -8,8 +8,9 @@
 #include "LB_Image/LB_ContourElement.h"
 using namespace LB_Image;
 
-class LB_PointItem : public QAbstractGraphicsShapeItem
+class LB_PointItem : public QObject, public QAbstractGraphicsShapeItem
 {
+    Q_OBJECT
 public:
     LB_PointItem(QAbstractGraphicsShapeItem* parent, const QPointF& p);
 
@@ -54,6 +55,10 @@ protected:
     virtual void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
     virtual void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     virtual void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+
+signals:
+    void itemUserSelected(const QPointF& pnt);
+    void posUserChanged(const QPointF& pnt);
 
 private:
     QPointF myPoint;
