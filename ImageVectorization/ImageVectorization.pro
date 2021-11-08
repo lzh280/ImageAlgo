@@ -12,6 +12,7 @@ RC_FILE += $$PWD/icons/ImageVectorization.rc
 
 SOURCES += \
         ImageProcessCommand.cpp \
+    ImageVectorCommand.cpp \
         LB_Graphics/LB_GraphicsItem.cpp \
         LB_Graphics/LB_PointItem.cpp \
         LB_Image/LB_BMPVectorization.cpp \
@@ -23,6 +24,7 @@ SOURCES += \
 
 HEADERS += \
         ImageProcessCommand.h \
+        ImageVectorCommand.h \
         LB_Graphics/LB_GraphicsItem.h \
         LB_Graphics/LB_PointItem.h \
         LB_Image/LB_BMPVectorization.h \

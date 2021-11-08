@@ -8,6 +8,8 @@ LB_PointItem::LB_PointItem(QAbstractGraphicsShapeItem* parent, const QPointF &p)
     : QAbstractGraphicsShapeItem(parent)
     , myPoint(p)
     , myEditable(true)
+    , myOldPoint(p)
+    , myMoving(false)
     , myLayers({})
 {
     this->setPos(myPoint);
@@ -46,33 +48,40 @@ void LB_PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     // shift: multi-connective selection
     if(event->modifiers() == Qt::ShiftModifier) {
-        LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(this->parentItem());
-        if(item->HasMultiSelectBegin()) {
-            if(event->button() == Qt::LeftButton) {
-                item->SetMultiSelectEnd(this);
+        LB_BasicGraphicsItem* item = dynamic_cast<LB_BasicGraphicsItem *>(this->parentItem());
+        if(item) {
+            if(item->HasMultiSelectBegin()) {
+                if(event->button() == Qt::LeftButton) {
+                    item->SetMultiSelectEnd(this);
+                }
+                else if(event->button() == Qt::RightButton) {
+                    item->SetMultiSelectEnd(this,true);
+                }
             }
-            else if(event->button() == Qt::RightButton) {
-                item->SetMultiSelectEnd(this,true);
+            else {
+                item->SetMultiSelectBegin(this);
+                this->setSelected(!this->isSelected());
             }
-        }
-        else {
-            item->SetMultiSelectBegin(this);
-            this->setSelected(!this->isSelected());
         }
     }
     // ctrl: select whole parent item
     else if(event->modifiers() == Qt::ControlModifier && event->button() == Qt::LeftButton) {
-        LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(this->parentItem());
-        item->SelectAllPoints();
+        LB_BasicGraphicsItem* item = dynamic_cast<LB_BasicGraphicsItem *>(this->parentItem());
+        if(item)
+            item->SelectAllPoints();
     }
     // others: just select the item and mark as the begin of multi-selection
     else {
         if(event->button() == Qt::LeftButton) {
-            LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(this->parentItem());
-            item->SetMultiSelectBegin(this);
-            this->setSelected(!this->isSelected());
-            if(this->isSelected())
-                emit itemUserSelected(myPoint);
+            LB_BasicGraphicsItem* item = dynamic_cast<LB_BasicGraphicsItem *>(this->parentItem());
+            if(item) {
+                item->SetMultiSelectBegin(this);
+                this->setSelected(!this->isSelected());
+                if(this->isSelected()) {
+                    myOldPoint = myPoint;
+                    emit itemUserSelected(myPoint);
+                }
+            }
         }
     }
 }
@@ -81,6 +90,11 @@ void LB_PointItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 {
     // block the release event, otherwise the point will be unselected
     Q_UNUSED(event)
+    if(myMoving) {
+        emit posUserChanged(myOldPoint);
+        myOldPoint = myPoint;
+        myMoving = false;
+    }
 }
 
 void LB_PointItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
@@ -92,7 +106,7 @@ void LB_PointItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         myPoint = this->mapToParent( event->pos() );
         this->setPos(myPoint);
         this->scene()->update();
-        this->posUserChanged(myPoint);
+        myMoving = true;
     }
 }
 

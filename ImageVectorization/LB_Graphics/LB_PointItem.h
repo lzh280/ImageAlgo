@@ -63,6 +63,8 @@ signals:
 private:
     QPointF myPoint;
     bool myEditable;
+    QPointF myOldPoint;
+    bool myMoving;
     ContourElements myLayers;
 };
 

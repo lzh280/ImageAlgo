@@ -39,6 +39,7 @@
 #include "LB_Graphics/LB_PointItem.h"
 #include "LB_Graphics/LB_GraphicsItem.h"
 #include "ImageProcessCommand.h"
+#include "ImageVectorCommand.h"
 
 #include <QDebug>
 
@@ -106,8 +107,14 @@ void MainWindow::initCenter()
     connect(graphicResult,&LB_ImageViewer::pointSelected,this,[=](const QPointF& pnt) {
         statusBar_info->showMessage(tr("Selected( %1 , %2 )").arg(pnt.x()).arg(pnt.y()));
     });
-    connect(graphicResult,&LB_ImageViewer::pointMoved,this,[=](const QPointF& pnt) {
-        statusBar_info->showMessage(tr("Move to( %1 , %2 )").arg(pnt.x()).arg(pnt.y()));
+    connect(graphicResult,&LB_ImageViewer::pointMoved,this,[=](const QPointF& pnt, LB_PointItem* item) {
+        QPointF newPnt = item->GetPoint();
+        QString content =
+                tr("Move ( %1, %2 ) to ( %3, %4 )")
+                .arg(pnt.x()).arg(pnt.y())
+                .arg(newPnt.x()).arg(newPnt.y());
+        statusBar_info->showMessage(content);
+        undoStack->push(new PointMoveCommand(item, pnt,content));
     });
     label_imgInfoResult = new QLabel(tr("Image not open"), rightWid);
     right->addWidget(graphicResult);
@@ -335,7 +342,7 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     connect(act,&QAction::triggered,this,[=](){
         undoStack->undo();
         int index = undoStack->index();
-        const ImageProcessCommand *cmd = static_cast<const ImageProcessCommand*>(undoStack->command(index));
+        const ImageProcessCommand *cmd = dynamic_cast<const ImageProcessCommand*>(undoStack->command(index));
         if(cmd) {
             resultImg = cmd->GetInput();
             double scaleF = (double)resultImg.width() / (double)sourceImg.width();
@@ -352,7 +359,7 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     connect(act,&QAction::triggered,this,[=](){
         undoStack->redo();
         int index = qBound(0,undoStack->index()-1,undoStack->count()-1);
-        const ImageProcessCommand *cmd = static_cast<const ImageProcessCommand*>(undoStack->command(index));
+        const ImageProcessCommand *cmd = dynamic_cast<const ImageProcessCommand*>(undoStack->command(index));
         if(cmd) {
             resultImg = cmd->GetOutput();
             double scaleF = (double)resultImg.width() / (double)sourceImg.width();

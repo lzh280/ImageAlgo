@@ -3,6 +3,7 @@
 #include <QGraphicsView>
 
 class LB_PolygonItem;
+class LB_PointItem;
 
 class LB_ImageViewer : public QGraphicsView
 {
@@ -32,6 +33,6 @@ private:
 
 signals:
     void pointSelected(const QPointF& pnt);
-    void pointMoved(const QPointF& pnt);
+    void pointMoved(const QPointF& pnt, LB_PointItem* item);
 
 };

@@ -100,7 +100,7 @@ LB_PolygonItem::LB_PolygonItem(const QPolygonF &poly) : LB_BasicGraphicsItem()
         point->setParentItem(this);
         myPoints.append(point);
         connect(point,&LB_PointItem::posUserChanged,this,[=](const QPointF& pnt) {
-            emit pointPosUserChanged(pnt);
+            emit pointPosUserChanged(pnt, point);
         });
         connect(point,&LB_PointItem::itemUserSelected,this,[=](const QPointF& pnt) {
             emit pointUserSelected(pnt);
@@ -402,6 +402,8 @@ void ConvertToSegment(const QList<QGraphicsItem *> &itemList)
             }
         }
     }
+    if(ptrList.size() == 2)
+        ptrList.first()->scene()->update();
 }
 
 }

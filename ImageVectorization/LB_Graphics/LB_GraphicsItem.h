@@ -72,7 +72,7 @@ protected:
                        QWidget *widget) override;
 
 signals:
-    void pointPosUserChanged(const QPointF& pnt);
+    void pointPosUserChanged(const QPointF& pnt,LB_PointItem* item);
     void pointUserSelected(const QPointF& pnt);
 };
 
