@@ -208,25 +208,18 @@ void LB_PolygonItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
             item->setSelected(!item->isSelected());
         }
     });
-    auto convert = [](const LB_PointItemVector& items) {
-        QList<QGraphicsItem *> result;
-        foreach(LB_PointItem* itm, items) {
-            result.append(itm);
-        }
-        return result;
-    };
 
     QAction *convertArc = menu.addAction(QObject::tr("Convert to arc"));
     connect(convertArc, &QAction::triggered, this,[=]() {
-        LB_Graphics::ConvertToArc(convert(myPoints));
+        LB_Graphics::ConvertToArc(myPoints);
     });
     QAction *convertLin = menu.addAction(QObject::tr("Convert to segment"));
     connect(convertLin, &QAction::triggered, this,[=]() {
-        LB_Graphics::ConvertToSegment(convert(myPoints));
+        LB_Graphics::ConvertToSegment(myPoints);
     });
     QAction *convertElp = menu.addAction(QObject::tr("Convert to ellipse"));
     connect(convertElp, &QAction::triggered, this,[=]() {
-        LB_Graphics::ConvertToEllipse(convert(myPoints));
+        LB_Graphics::ConvertToEllipse(myPoints);
     });
     menu.exec(event->screenPos());
 }
@@ -283,15 +276,13 @@ using namespace LB_Image;
 
 void ConvertToArc(const QList<QGraphicsItem *> &itemList)
 {
-    // 1.get points
-    QVector<QPointF> pList;
+    // get points
     LB_PointItemVector ptrList;
     for(int i=0;i<itemList.size();++i) {
         QGraphicsItem* item = itemList[i];
         if(item->isSelected()) {
             LB_PointItem* pItem = dynamic_cast<LB_PointItem*>(item);
             if(pItem) {
-                pList.append(pItem->GetPoint());
                 ptrList.append(pItem);
             }
         }
@@ -300,17 +291,33 @@ void ConvertToArc(const QList<QGraphicsItem *> &itemList)
     if(ptrList.size() < 3)
         return;
 
-    // 2.fit
+    // check if them have same parent
+    if(!ptrList.isogeny())
+        return;
+
+    ConvertToArc(ptrList);
+}
+
+void ConvertToArc(const LB_PointItemVector &ptrList)
+{
+    QVector<QPointF> pList = ptrList.points();
+    QVector<QPointF> oldList = pList;
+
+    // 1.fit
     LB_Circle circle;
     bool closed;
     int index1, index2;
     pList = LeastSquaresCircle(pList, circle, closed, index1, index2);
 
-    // 3.update all point item to new position
+    LB_PolygonItem* polyItm = dynamic_cast<LB_PolygonItem*>(ptrList.first()->parentItem());
+    if(polyItm)
+        polyItm->pointsConverted(ptrList,oldList);
+
+    // 2.update all point item to new position
     for(int k=0;k<pList.size();++k) {
         ptrList[k]->SetPoint(pList[k]);
         ptrList[k]->SetEditable(false);
-        ptrList[k]->SetLayer(QSharedPointer<LB_Circle>(new LB_Circle(circle)));
+        ptrList[k]->AddLayer(QSharedPointer<LB_Circle>(new LB_Circle(circle)));
     }
 
     if(!closed) {
@@ -321,14 +328,12 @@ void ConvertToArc(const QList<QGraphicsItem *> &itemList)
 
 void ConvertToEllipse(const QList<QGraphicsItem *> &itemList)
 {
-    QVector<QPointF> pList;
     LB_PointItemVector ptrList;
     for(int i=0;i<itemList.size();++i) {
         QGraphicsItem* item = itemList[i];
         if(item->isSelected()) {
             LB_PointItem* pItem = dynamic_cast<LB_PointItem*>(item);
             if(pItem) {
-                pList.append(pItem->GetPoint());
                 ptrList.append(pItem);
             }
         }
@@ -336,6 +341,17 @@ void ConvertToEllipse(const QList<QGraphicsItem *> &itemList)
 
     if(ptrList.size() < 5)
         return;
+
+    if(!ptrList.isogeny())
+        return;
+
+    ConvertToEllipse(ptrList);
+}
+
+void ConvertToEllipse(const LB_PointItemVector& ptrList)
+{
+    QVector<QPointF> pList = ptrList.points();
+    QVector<QPointF> oldList = pList;
 
     LB_Ellipse ellipse;
     bool closed;
@@ -345,25 +361,27 @@ void ConvertToEllipse(const QList<QGraphicsItem *> &itemList)
     for(int k=0;k<pList.size();++k) {
         ptrList[k]->SetPoint(pList[k]);
         ptrList[k]->SetEditable(false);
-        ptrList[k]->SetLayer(QSharedPointer<LB_Ellipse>(new LB_Ellipse(ellipse)));
+        ptrList[k]->AddLayer(QSharedPointer<LB_Ellipse>(new LB_Ellipse(ellipse)));
     }
 
     if(!closed) {
         ptrList[index1]->SetEditable(true);
         ptrList[index2]->SetEditable(true);
     }
+
+    LB_PolygonItem* polyItm = dynamic_cast<LB_PolygonItem*>(ptrList.first()->parentItem());
+    if(polyItm)
+        polyItm->pointsConverted(ptrList,oldList);
 }
 
 void ConvertToSegment(const QList<QGraphicsItem *> &itemList)
 {
     LB_PointItemVector ptrList;
-    QVector<QPointF> pList;
     for(int i=0;i<itemList.size();++i) {
         QGraphicsItem* item = itemList[i];
         if(item->isSelected()) {
             LB_PointItem* pItem = dynamic_cast<LB_PointItem*>(item);
             if(pItem) {
-                pList.append(pItem->GetPoint());
                 ptrList.append(pItem);
             }
         }
@@ -371,6 +389,16 @@ void ConvertToSegment(const QList<QGraphicsItem *> &itemList)
 
     if(ptrList.size() < 2)
         return;
+
+    if(!ptrList.isogeny())
+        return;
+
+    ConvertToSegment(ptrList);
+}
+
+void ConvertToSegment(const LB_PointItemVector &ptrList)
+{
+    QVector<QPointF> pList = ptrList.points();
 
     // find the farest two
     int index1, index2 = -1;
@@ -397,7 +425,7 @@ void ConvertToSegment(const QList<QGraphicsItem *> &itemList)
                     polygon->RemoveVertex(ptrList[k]);
                 }
                 else {
-                    ptrList[k]->SetLayer(line);
+                    ptrList[k]->AddLayer(line);
                 }
             }
         }

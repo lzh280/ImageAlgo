@@ -37,11 +37,23 @@ public:
         return myEditable;
     }
 
-    void SetLayer(const QSharedPointer<LB_Element>& layer) {
-        if(!myLayers.contains(layer))
+    void AddLayer(const QSharedPointer<LB_Element>& layer) {
+        bool contains = false;
+        foreach(QSharedPointer<LB_Element> ele, myLayers) {
+            if(ele->IsSame(layer)) {
+                contains = true;
+                break;
+            }
+        }
+
+        if(!contains)
             myLayers.append(layer);
     }
     ContourElements GetLayers() const {
+        return myLayers;
+    }
+
+    ContourElements& RLayers() {
         return myLayers;
     }
 
@@ -76,6 +88,8 @@ public:
     void setSelect(bool selected);
     bool isSelected() const;
     bool equal(const LB_PointItemVector& other) const;
+    bool isogeny() const;
+    QVector<bool> editable() const;
     QVector<QPointF> points() const;
 };
 

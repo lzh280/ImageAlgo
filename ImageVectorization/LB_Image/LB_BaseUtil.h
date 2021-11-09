@@ -5,6 +5,7 @@
 #include <QRect>
 #include <QLine>
 #include <QVector>
+#include <QDebug>
 
 inline const double DEG2RAD = 0.017453293f;
 inline const double RAD2DEG = 57.2957796f;

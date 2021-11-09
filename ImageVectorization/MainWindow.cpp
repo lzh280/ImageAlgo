@@ -41,8 +41,6 @@
 #include "ImageProcessCommand.h"
 #include "ImageVectorCommand.h"
 
-#include <QDebug>
-
 using namespace LB_Image;
 using namespace LB_Graphics;
 
@@ -115,6 +113,11 @@ void MainWindow::initCenter()
                 .arg(newPnt.x()).arg(newPnt.y());
         statusBar_info->showMessage(content);
         undoStack->push(new PointMoveCommand(item, pnt,content));
+    });
+    connect(graphicResult,&LB_ImageViewer::converted,this,
+            [=](const LB_PointItemVector& items,
+            const QVector<QPointF>& pnts) {
+        undoStack->push(new PointsConvertCommand(items,pnts,tr("Convertion")));
     });
     label_imgInfoResult = new QLabel(tr("Image not open"), rightWid);
     right->addWidget(graphicResult);
@@ -277,7 +280,7 @@ void MainWindow::createCategoryFile(SARibbonCategory *page)
     toolBar_function->addSeparator();
     connect(act, &QAction::triggered, this, &MainWindow::on_action_openImg_triggered);
 
-    pannel = page->addPannel("");
+    pannel->addSeparator();
 
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/file/saveImage.png"));
@@ -293,7 +296,7 @@ void MainWindow::createCategoryFile(SARibbonCategory *page)
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered, this, &MainWindow::on_action_saveAsDXF_triggered);
 
-    pannel = page->addPannel("");
+    pannel->addSeparator();
 
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/file/autoDone.png"));
@@ -506,7 +509,7 @@ void MainWindow::createCategoryVectorization(SARibbonCategory *page)
     toolBar_function->addAction(act);
     connect(act,&QAction::triggered,this,&MainWindow::on_action_generateResult_triggered);
 
-    pannel = page->addPannel("");
+    pannel->addSeparator();
 
     act = new QAction(this);
     act->setIcon(QIcon(":/icons/vectorization/toArc.png"));
@@ -806,6 +809,20 @@ void MainWindow::on_action_generateResult_triggered()
     if(resultImg.isNull()) {
         QMessageBox::critical(this,tr("error"),tr("Image not open"));
         return;
+    }
+
+    // 0.remove the command about vectorization
+    for(int k=0;k<undoStack->count();++k) {
+        const PointMoveCommand *cmdM = dynamic_cast<const PointMoveCommand*>(undoStack->command(k));
+        const PointsConvertCommand *cmdC = dynamic_cast<const PointsConvertCommand*>(undoStack->command(k));
+        if(cmdM || cmdC) {
+            // remove the cmd
+            // https://forum.qt.io/topic/72978/how-to-remove-last-step-from-qundostack
+            undoStack->setIndex(k);
+            undoStack->push(new QUndoCommand);
+            undoStack->undo();
+            break;
+        }
     }
 
     QElapsedTimer testTimer;

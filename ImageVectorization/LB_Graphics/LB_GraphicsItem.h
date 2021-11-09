@@ -36,6 +36,10 @@ public:
     void RemoveVertex(const QPointF& pnt);
     void RemoveVertex(LB_PointItem *item);
 
+    bool Equal(const LB_BasicGraphicsItem& other) {
+        return myPoints.equal(other.myPoints);
+    }
+
 protected:
     LB_BasicGraphicsItem();
 
@@ -74,13 +78,18 @@ protected:
 signals:
     void pointPosUserChanged(const QPointF& pnt,LB_PointItem* item);
     void pointUserSelected(const QPointF& pnt);
+    void pointsConverted(const LB_PointItemVector& items,
+                         const QVector<QPointF>& oldPos);
 };
 
 namespace LB_Graphics
 {
     void ConvertToArc(const QList<QGraphicsItem*>& itemList);
+    void ConvertToArc(const LB_PointItemVector& ptrList);
     void ConvertToEllipse(const QList<QGraphicsItem*>& itemList);
+    void ConvertToEllipse(const LB_PointItemVector& ptrList);
     void ConvertToSegment(const QList<QGraphicsItem*>& itemList);
+    void ConvertToSegment(const LB_PointItemVector& ptrList);
 }
 
 #endif // BQGRAPHICSITEM_H

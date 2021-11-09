@@ -158,6 +158,38 @@ bool LB_PointItemVector::equal(const LB_PointItemVector &other) const
     return true;
 }
 
+bool LB_PointItemVector::isogeny() const
+{
+    if(this->size() == 0 || this->size() == 1)
+        return true;
+
+    LB_BasicGraphicsItem* pItem = dynamic_cast<LB_BasicGraphicsItem *>(this->first()->parentItem());
+    if(!pItem)
+        return false;
+
+    LB_BasicGraphicsItem* tmp;
+    for(int i=1;i<this->size();++i) {
+        tmp = dynamic_cast<LB_BasicGraphicsItem *>(this->operator[](i)->parentItem());
+        if(!tmp)
+            return false;
+
+        if(!tmp->Equal(*pItem)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+QVector<bool> LB_PointItemVector::editable() const
+{
+    QVector<bool> status;
+    for (auto &temp : *this)
+    {
+        status.append(temp->IsEditable());
+    }
+    return status;
+}
+
 QVector<QPointF> LB_PointItemVector::points() const
 {
     QVector<QPointF> points;

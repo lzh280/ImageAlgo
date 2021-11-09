@@ -4,7 +4,9 @@
 #include <QUndoCommand>
 #include <QPointF>
 
-class LB_PointItem;
+#include "LB_Graphics/LB_PointItem.h"
+#include "LB_Image/LB_ContourElement.h"
+using namespace LB_Image;
 
 class PointMoveCommand : public QUndoCommand
 {
@@ -23,10 +25,17 @@ private:
 class PointsConvertCommand : public QUndoCommand
 {
 public:
-    PointsConvertCommand();
+    PointsConvertCommand(const LB_PointItemVector& items, const QVector<QPointF>& pnts, const QString &operation);
 
     virtual void undo() override;
     virtual void redo() override;
+
+private:
+    LB_PointItemVector myItems;
+    QVector<QPointF> myOldPnts;
+    QVector<QPointF> myNewPnts;
+    QVector<bool> myNewEditStatus;
+    QSharedPointer<LB_Element> myNewLayer;
 };
 
 #endif // IMAGEVECTORCOMMAND_H
