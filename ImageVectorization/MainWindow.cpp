@@ -117,7 +117,7 @@ void MainWindow::initCenter()
     connect(graphicResult,&LB_ImageViewer::converted,this,
             [=](const LB_PointItemVector& items,
             const QVector<QPointF>& pnts) {
-        undoStack->push(new PointsConvertCommand(items,pnts,tr("Convertion")));
+        undoStack->push(new PointsConvertCommand(items,pnts,tr("Convert to %1").arg(items.last()->GetLayers().last()->TypeName())));
     });
     label_imgInfoResult = new QLabel(tr("Image not open"), rightWid);
     right->addWidget(graphicResult);

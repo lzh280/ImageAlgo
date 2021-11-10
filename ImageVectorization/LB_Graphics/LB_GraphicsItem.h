@@ -33,6 +33,13 @@ public:
         myPoints.setVisible(ret);
     }
 
+    int VertexIndex(LB_PointItem* item) const {
+        return myPoints.indexOf(item);
+    }
+    int Size() const {
+        return myPoints.size();
+    }
+
     void RemoveVertex(const QPointF& pnt);
     void RemoveVertex(LB_PointItem *item);
 

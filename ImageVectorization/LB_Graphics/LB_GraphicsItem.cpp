@@ -209,17 +209,26 @@ void LB_PolygonItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
         }
     });
 
+    LB_PointItemVector selectedPnts;
+    foreach (LB_PointItem* temp, myPoints) {
+        if(temp->IsEditable() && temp->isSelected())
+            selectedPnts.append(temp);
+    }
+
     QAction *convertArc = menu.addAction(QObject::tr("Convert to arc"));
     connect(convertArc, &QAction::triggered, this,[=]() {
-        LB_Graphics::ConvertToArc(myPoints);
+        if(selectedPnts.size() >= 3)
+            LB_Graphics::ConvertToArc(selectedPnts);
     });
     QAction *convertLin = menu.addAction(QObject::tr("Convert to segment"));
     connect(convertLin, &QAction::triggered, this,[=]() {
-        LB_Graphics::ConvertToSegment(myPoints);
+        if(selectedPnts.size() >= 5)
+            LB_Graphics::ConvertToSegment(selectedPnts);
     });
     QAction *convertElp = menu.addAction(QObject::tr("Convert to ellipse"));
     connect(convertElp, &QAction::triggered, this,[=]() {
-        LB_Graphics::ConvertToEllipse(myPoints);
+        if(selectedPnts.size() >= 2)
+            LB_Graphics::ConvertToEllipse(selectedPnts);
     });
     menu.exec(event->screenPos());
 }
@@ -398,40 +407,62 @@ void ConvertToSegment(const QList<QGraphicsItem *> &itemList)
 
 void ConvertToSegment(const LB_PointItemVector &ptrList)
 {
-    QVector<QPointF> pList = ptrList.points();
+    QVector<QPointF> oldList = ptrList.points();
 
-    // find the farest two
-    int index1, index2 = -1;
-    double dis,maxDis=0;
-    for(int m=0;m<pList.size();++m) {
-        for(int n=m+1;n<pList.size();++n) {
-            dis = distance(pList[m],pList[n]);
-            if(dis>maxDis) {
-                maxDis = dis;
-                index1 = m;
-                index2 = n;
-            }
+    LB_PolygonItem *polygon;
+    LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(ptrList.first()->parentItem());
+    if(item) {
+        polygon = dynamic_cast<LB_PolygonItem *>(item);
+        if(!polygon)
+            return;
+    }
+    else return;
+
+    // 1.find the head and tail by their index of parent
+    const int count = ptrList.size();
+    int index = -1;
+    QVector<QPair<int,LB_PointItem*>> itemPair;
+    for(int m=0;m<count;++m) {
+        index = polygon->VertexIndex(ptrList[m]);
+        if(index == -1)
+            return;
+
+        itemPair.append({index,ptrList[m]});
+    }
+
+    int next;
+    int headIndex = 0, tailIndex = count-1;
+    for(int i=0;i<count;++i) {
+        next = (i+1)%count;
+        // their index is neighbour
+        if(qAbs(itemPair[next].first - itemPair[i].first) > 1) {
+            headIndex = next;
+            tailIndex = i;
+            break;
         }
     }
-    QSharedPointer<LB_Segement> line = QSharedPointer<LB_Segement>(new LB_Segement(pList[index1],pList[index2]));
 
-    for(int k=0;k<ptrList.size();++k) {
-        LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(ptrList[k]->parentItem());
-        if(item) {
-            LB_PolygonItem *polygon = dynamic_cast<LB_PolygonItem *>(item);
-            if(polygon) {
-                if(k!=index1 && k!= index2) {
-                    ptrList[k]->SetEditable(false);
-                    polygon->RemoveVertex(ptrList[k]);
-                }
-                else {
-                    ptrList[k]->AddLayer(line);
-                }
-            }
-        }
+    QPointF head = itemPair[headIndex].second->GetPoint();
+    QPointF tail = itemPair[tailIndex].second->GetPoint();
+
+    QSharedPointer<LB_Segement> line = QSharedPointer<LB_Segement>(new LB_Segement(head,tail));
+
+    // 2.calculate the new point list
+    double scale;
+    for(int k=0;k<count;++k) {
+        index = (k+headIndex)%count;
+        scale = (double)k/(double)(count-1);
+        itemPair[index].second->SetPoint((1-scale)*head+scale*tail);
+        itemPair[index].second->SetEditable(false);
+        itemPair[index].second->AddLayer(line);
     }
-    if(ptrList.size() == 2)
-        ptrList.first()->scene()->update();
+
+    // 3.free the head and tail item
+    itemPair[headIndex].second->SetEditable(true);
+    itemPair[tailIndex].second->SetEditable(true);
+
+    // 4.emit the signal
+    polygon->pointsConverted(ptrList,oldList);
 }
 
 }

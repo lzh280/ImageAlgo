@@ -19,6 +19,7 @@ public:
     virtual bool IsSame(const QSharedPointer<LB_Element>& other) const = 0;
     virtual QString Info() const { return QString("Incomplete element base class."); }
     virtual int Type() const { return -1; }
+    virtual QString TypeName() const { return QObject::tr("Empty"); }
 };
 
 class LB_Segement : public LB_Element
@@ -51,6 +52,7 @@ public:
                 .arg(myEnd.y());
     }
     virtual int Type() const { return 0; }
+    virtual QString TypeName() const { return QObject::tr("Segement"); }
 
 protected:
     QPointF myStart;
@@ -101,6 +103,7 @@ public:
                 .arg(myClockwise? "Clockwise":"Anti-clockwise");
     }
     virtual int Type() const { return 1; }
+    virtual QString TypeName() const { return QObject::tr("Circle"); }
 
 protected:
     QPointF myCenter;
@@ -197,6 +200,7 @@ public:
                 .arg(myClockwise? "Clockwise":"Anti-clockwise");
     }
     virtual int Type() const { return 2; }
+    virtual QString TypeName() const { return QObject::tr("Ellipse"); }
 
 protected:
     QPointF myCenter;
@@ -241,6 +245,7 @@ public:
         return info;
     }
     virtual int Type() const { return 3; }
+    virtual QString TypeName() const { return QObject::tr("PolyLine"); }
 
 protected:
     QPolygonF myPolygon;
