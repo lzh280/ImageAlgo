@@ -11,6 +11,7 @@ class QDoubleSpinBox;
 class QLabel;
 class QComboBox;
 class QCheckBox;
+class QTextEdit;
 
 class SARibbonCategory;
 class SARibbonContextCategory;
@@ -51,6 +52,7 @@ private:
     QCheckBox* checkBox_frameSelection;
     QToolBar* toolBar_function;
     QStatusBar* statusBar_info;
+    QTextEdit* textEdit_output;
 
     LB_ImageViewer* graphicSource;
     LB_ImageViewer* graphicResult;

@@ -11,20 +11,19 @@ CONFIG += c++17
 RC_FILE += $$PWD/icons/ImageVectorization.rc
 
 SOURCES += \
-        ImageProcessCommand.cpp \
-    ImageVectorCommand.cpp \
         LB_Graphics/LB_GraphicsItem.cpp \
         LB_Graphics/LB_PointItem.cpp \
         LB_Image/LB_BMPVectorization.cpp \
         LB_Image/LB_ElementDetection.cpp \
         LB_Image/LB_ImagePreProcess.cpp \
         LB_Image/LB_ImageViewer.cpp \
+        LB_QtTool/ImageProcessCommand.cpp \
+        LB_QtTool/ImageVectorCommand.cpp \
+        LB_QtTool/LB_DebugHandle.cpp \
         main.cpp \
         MainWindow.cpp \
 
 HEADERS += \
-        ImageProcessCommand.h \
-        ImageVectorCommand.h \
         LB_Graphics/LB_GraphicsItem.h \
         LB_Graphics/LB_PointItem.h \
         LB_Image/LB_BMPVectorization.h \
@@ -33,7 +32,9 @@ HEADERS += \
         LB_Image/LB_ElementDetection.h \
         LB_Image/LB_ImagePreProcess.h \
         LB_Image/LB_ImageViewer.h \
-        LB_ImageViewer.h \
+        LB_QtTool/ImageProcessCommand.h \
+        LB_QtTool/ImageVectorCommand.h \
+        LB_QtTool/LB_DebugHandle.h \
         MainWindow.h
 
 RESOURCES += \
@@ -45,11 +46,11 @@ INCLUDEPATH += $$PWD/../SARibbonBar
 INCLUDEPATH += $$PWD/../dxflib
 
 CONFIG(debug, debug|release) {
-    LIBS += $$PWD/../bind/SARibbonBar.lib \
-            $$PWD/../bind/dxflib.lib
+    LIBS += $$PWD/../bind/SARibbonBar.dll \
+            $$PWD/../bind/dxflib.dll
     DESTDIR = $$PWD/../bind
 } else {
-    LIBS += $$PWD/../bin/SARibbonBar.lib \
-            $$PWD/../bin/dxflib.lib
+    LIBS += $$PWD/../bin/SARibbonBar.dll \
+            $$PWD/../bin/dxflib.dll
     DESTDIR = $$PWD/../bin
 }

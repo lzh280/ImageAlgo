@@ -8,6 +8,7 @@
 #include <QLabel>
 #include <QComboBox>
 #include <QCheckBox>
+#include <QTextEdit>
 #include <QDockWidget>
 #include <QGridLayout>
 #include <QSplitter>
@@ -38,8 +39,9 @@
 #include "LB_Image/LB_BMPVectorization.h"
 #include "LB_Graphics/LB_PointItem.h"
 #include "LB_Graphics/LB_GraphicsItem.h"
-#include "ImageProcessCommand.h"
-#include "ImageVectorCommand.h"
+#include "LB_QtTool/ImageProcessCommand.h"
+#include "LB_QtTool/ImageVectorCommand.h"
+#include "LB_QtTool/LB_DebugHandle.h"
 
 using namespace LB_Image;
 using namespace LB_Graphics;
@@ -131,7 +133,7 @@ void MainWindow::initCenter()
 
 void MainWindow::initDock()
 {
-    // 1.treeView of undo
+    // 0.treeView of undo
     undoStack = new QUndoStack();
     QUndoView *aView = new QUndoView(undoStack);
     aView->setEmptyLabel(tr("<empty>"));
@@ -140,6 +142,25 @@ void MainWindow::initDock()
     dockWidget_undo->setAllowedAreas(Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea);
     this->addDockWidget(Qt::LeftDockWidgetArea, dockWidget_undo);
     dockWidget_undo->setWidget(aView);
+
+    // 1.log output
+    textEdit_output = new QTextEdit(this);
+    LB_DebugHandle::installMessageHandler();
+    connect(LB_DebugHandle::Instance(),&LB_DebugHandle::debugInfo,this,[=](const QString &str, const QColor &color, bool popup) {
+        textEdit_output->setTextColor(color);
+        textEdit_output->append(str);
+
+        if(popup) {
+            QMessageBox* aboutBox = new QMessageBox(this);
+            aboutBox->setText(str);
+            aboutBox->setButtonText(QMessageBox::Ok, tr("OK"));
+            aboutBox->exec();
+        }
+    });
+    QDockWidget* outPutDock = new QDockWidget(tr("Output"), this);
+    outPutDock->setWidget(textEdit_output);
+    this->addDockWidget(Qt::LeftDockWidgetArea, outPutDock);
+    this->tabifyDockWidget(outPutDock,dockWidget_undo);
 
     // 2.dock widget of arguments
     QWidget* argsWid = new QWidget(this);
@@ -314,7 +335,7 @@ void MainWindow::createCategoryFile(SARibbonCategory *page)
             on_action_generateResult_triggered();
         }
         else
-            QMessageBox::critical(this,tr("error"),tr("Image not open"));
+            qWarning()<<tr("Image not open");
     });
 }
 
@@ -329,6 +350,11 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     pannel->addLargeAction(act);
     toolBar_function->addAction(act);
     connect(act,&QAction::triggered,this,[=](){
+        if(resultImg.isNull()) {
+            qWarning()<<tr("Image not open");
+            return;
+        }
+
         undoStack->clear();
         SCALE_FACTOR = 1.0;
         comboBox_scaleFactor->setCurrentIndex(5);
@@ -378,6 +404,11 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act->setToolTip(tr("Change a colorful image into gray one"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered,this,[=](){
+        if(resultImg.isNull()) {
+            qWarning()<<tr("Image not open");
+            return;
+        }
+
         QImage before = resultImg;
         resultImg = Gray(resultImg);
         showResult();
@@ -391,6 +422,11 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     pannel->addLargeAction(act);
     toolBar_function->addAction(act);
     connect(act,&QAction::triggered,this,[=](){
+        if(resultImg.isNull()) {
+            qWarning()<<tr("Image not open");
+            return;
+        }
+
         QImage before = resultImg;
         resultImg = Binary(resultImg,THRESHOLD);
         showResult();
@@ -403,6 +439,11 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act->setToolTip(tr("Make the boreder of foreground more clear"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered,this,[=](){
+        if(resultImg.isNull()) {
+            qWarning()<<tr("Image not open");
+            return;
+        }
+
         QImage before = resultImg;
         resultImg = Sharpen(resultImg);
         showResult();
@@ -416,6 +457,11 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     pannel->addLargeAction(act);
     toolBar_function->addAction(act);
     connect(act,&QAction::triggered,this,[=](){
+        if(resultImg.isNull()) {
+            qWarning()<<tr("Image not open");
+            return;
+        }
+
         QImage before = resultImg;
         resultImg = MedianFilter(resultImg,3);
         showResult();
@@ -428,6 +474,11 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act->setToolTip(tr("Smooth the border in a vague way"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered,this,[=](){
+        if(resultImg.isNull()) {
+            qWarning()<<tr("Image not open");
+            return;
+        }
+
         QImage before = resultImg;
         resultImg = GaussFilter(resultImg);
         showResult();
@@ -440,6 +491,11 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act->setToolTip(tr("Make the binary area in image more representative"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered,this,[=](){
+        if(resultImg.isNull()) {
+            qWarning()<<tr("Image not open");
+            return;
+        }
+
         QImage before = resultImg;
         resultImg = Thinning(resultImg);
         showResult();
@@ -452,6 +508,11 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act->setToolTip(tr("Calculate the most suitable value for binary operation"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered,this,[=](){
+        if(resultImg.isNull()) {
+            qWarning()<<tr("Image not open");
+            return;
+        }
+
         THRESHOLD = ThresholdDetect(resultImg);
         spinBox_threshold->setValue(THRESHOLD);
     });
@@ -466,6 +527,11 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     toolBar_function->addAction(act);
     toolBar_function->addSeparator();
     connect(act,&QAction::triggered,this,[=](){
+        if(resultImg.isNull()) {
+            qWarning()<<tr("Image not open");
+            return;
+        }
+
         QImage before = resultImg;
         resultImg = FindContours(resultImg);
         showResult();
@@ -478,6 +544,11 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act->setToolTip(tr("An auxiliary way to find contour when image has noise"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered,this,[=](){
+        if(resultImg.isNull()) {
+            qWarning()<<tr("Image not open");
+            return;
+        }
+
         QImage before = resultImg;
         resultImg = SobelContours(resultImg);
         showResult();
@@ -490,6 +561,11 @@ void MainWindow::createCategoryOperation(SARibbonCategory *page)
     act->setToolTip(tr("An auxiliary way to find contour when image has weak border"));
     pannel->addLargeAction(act);
     connect(act,&QAction::triggered,this,[=](){
+        if(resultImg.isNull()) {
+            qWarning()<<tr("Image not open");
+            return;
+        }
+
         QImage before = resultImg;
         resultImg = CannyContours(resultImg);
         showResult();
@@ -617,7 +693,7 @@ void MainWindow::on_action_openImg_triggered()
 void MainWindow::on_action_saveAsImg_triggered()
 {
     if(resultImg.isNull()) {
-        QMessageBox::critical(this,tr("error"),tr("Image not open"));
+        qWarning()<<tr("Image not open");
         return;
     }
 
@@ -632,7 +708,7 @@ void MainWindow::on_action_saveAsImg_triggered()
 void MainWindow::on_action_saveAsDXF_triggered()
 {
     if(resultImg.isNull()) {
-        QMessageBox::critical(this,tr("error"),tr("Image not open"));
+        qWarning()<<tr("Image not open");
         return;
     }
 
@@ -646,7 +722,7 @@ void MainWindow::on_action_saveAsDXF_triggered()
             return;
 
         if(dxfName.contains(QRegExp("[\\x4e00-\\x9fa5]+")))
-            QMessageBox::critical(this,tr("error"),tr("There are unsupported characters!"));
+            qWarning()<<tr("There are unsupported characters!");
         else
             ret = false;
     }
@@ -807,7 +883,7 @@ void MainWindow::on_action_saveAsDXF_triggered()
 void MainWindow::on_action_generateResult_triggered()
 {
     if(resultImg.isNull()) {
-        QMessageBox::critical(this,tr("error"),tr("Image not open"));
+        qWarning()<<tr("Image not open");
         return;
     }
 
@@ -830,22 +906,21 @@ void MainWindow::on_action_generateResult_triggered()
 
     // 1.scan and tracing
     QVector<QPolygon> edges = RadialSweepTracing(resultImg);
-    qDebug()<<"tracing cost:"<<testTimer.elapsed()<<"ms";testTimer.restart();
+    qInfo()<<tr("tracing cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
 
     // 2.simplify
     if(useDouglas) {
         edges = DouglasSimplify(edges);
-        qDebug()<<"Douglas simplify cost:"<<testTimer.elapsed()<<"ms";testTimer.restart();
+        qInfo()<<tr("Douglas simplify cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
     }
     else {
         edges = SimplifyEdge(edges);
-        qDebug()<<"colinear simplify cost:"<<testTimer.elapsed()<<"ms";testTimer.restart();
+        qInfo()<<tr("colinear simplify cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
     }
 
     // 3.smooth
     QVector<QPolygonF> result = SmoothEdge(edges);
-    qDebug()<<"smooth cost:"<<testTimer.elapsed()<<"ms";
-    result = ScaleEdge(result);
+    qInfo()<<tr("smooth cost:")<<testTimer.elapsed()<<"ms";
 
     graphicResult->SetImagePolygons(result);
 
