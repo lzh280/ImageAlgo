@@ -25,10 +25,12 @@ LB_BasicGraphicsItem::LB_BasicGraphicsItem()
 void LB_BasicGraphicsItem::multiSelect(bool inverse)
 {
     if(myMultiBegin == nullptr || myMultiEnd == nullptr) {
+        qWarning()<<QObject::tr("The start and end position of multi-selection are same!");
         return;
     }
 
     if(!myMultiBegin->isSelected()) {
+        qWarning()<<QObject::tr("The start position of multi-selection is not selected!");
         return;
     }
 
@@ -160,6 +162,8 @@ ContourElements LB_PolygonItem::FetchElements() const
         poly.clear();
     }
 
+    qInfo()<<tr("Get elements from contour done.");
+
     return result;
 }
 
@@ -219,16 +223,22 @@ void LB_PolygonItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
     connect(convertArc, &QAction::triggered, this,[=]() {
         if(selectedPnts.size() >= 3)
             LB_Graphics::ConvertToArc(selectedPnts);
+        else
+            qWarning()<<tr("The number of selected points is less than 3!");
     });
     QAction *convertLin = menu.addAction(QObject::tr("Convert to segment"));
     connect(convertLin, &QAction::triggered, this,[=]() {
         if(selectedPnts.size() >= 5)
             LB_Graphics::ConvertToSegment(selectedPnts);
+        else
+            qWarning()<<tr("The number of selected points is less than 5!");
     });
     QAction *convertElp = menu.addAction(QObject::tr("Convert to ellipse"));
     connect(convertElp, &QAction::triggered, this,[=]() {
         if(selectedPnts.size() >= 2)
             LB_Graphics::ConvertToEllipse(selectedPnts);
+        else
+            qWarning()<<tr("The number of selected points is less than 2!");
     });
     menu.exec(event->screenPos());
 }
@@ -297,12 +307,16 @@ void ConvertToArc(const QList<QGraphicsItem *> &itemList)
         }
     }
 
-    if(ptrList.size() < 3)
+    if(ptrList.size() < 3) {
+        qWarning()<<QObject::tr("The number of selected points is less than 3!");
         return;
+    }
 
     // check if them have same parent
-    if(!ptrList.isogeny())
+    if(!ptrList.isogeny()) {
+        qWarning()<<QObject::tr("The selected points belong to different paths!");
         return;
+    }
 
     ConvertToArc(ptrList);
 }
@@ -318,10 +332,6 @@ void ConvertToArc(const LB_PointItemVector &ptrList)
     int index1, index2;
     pList = LeastSquaresCircle(pList, circle, closed, index1, index2);
 
-    LB_PolygonItem* polyItm = dynamic_cast<LB_PolygonItem*>(ptrList.first()->parentItem());
-    if(polyItm)
-        polyItm->pointsConverted(ptrList,oldList);
-
     // 2.update all point item to new position
     for(int k=0;k<pList.size();++k) {
         ptrList[k]->SetPoint(pList[k]);
@@ -333,6 +343,10 @@ void ConvertToArc(const LB_PointItemVector &ptrList)
         ptrList[index1]->SetEditable(true);
         ptrList[index2]->SetEditable(true);
     }
+
+    LB_PolygonItem* polyItm = dynamic_cast<LB_PolygonItem*>(ptrList.first()->parentItem());
+    if(polyItm)
+        polyItm->pointsConverted(ptrList,oldList);
 }
 
 void ConvertToEllipse(const QList<QGraphicsItem *> &itemList)
@@ -348,11 +362,15 @@ void ConvertToEllipse(const QList<QGraphicsItem *> &itemList)
         }
     }
 
-    if(ptrList.size() < 5)
+    if(ptrList.size() < 5) {
+        qWarning()<<QObject::tr("The number of selected points is less than 5!");
         return;
+    }
 
-    if(!ptrList.isogeny())
+    if(!ptrList.isogeny()) {
+        qWarning()<<QObject::tr("The selected points belong to different paths!");
         return;
+    }
 
     ConvertToEllipse(ptrList);
 }
@@ -396,11 +414,15 @@ void ConvertToSegment(const QList<QGraphicsItem *> &itemList)
         }
     }
 
-    if(ptrList.size() < 2)
+    if(ptrList.size() < 2) {
+        qWarning()<<QObject::tr("The number of selected points is less than 2!");
         return;
+    }
 
-    if(!ptrList.isogeny())
+    if(!ptrList.isogeny()) {
+        qWarning()<<QObject::tr("The selected points belong to different paths!");
         return;
+    }
 
     ConvertToSegment(ptrList);
 }

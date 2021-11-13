@@ -57,8 +57,8 @@
     </message>
     <message>
         <location filename="MainWindow.cpp" line="120"/>
-        <source>Convertion</source>
-        <translation>转换</translation>
+        <source>Convert to %1</source>
+        <translation>转换为%1</translation>
     </message>
     <message>
         <location filename="MainWindow.cpp" line="137"/>
@@ -510,19 +510,44 @@
         <translation>反转选择</translation>
     </message>
     <message>
-        <location filename="LB_Graphics/LB_GraphicsItem.cpp" line="212"/>
+        <location filename="LB_Graphics/LB_GraphicsItem.cpp" line="218"/>
         <source>Convert to arc</source>
         <translation>转换为圆</translation>
     </message>
     <message>
-        <location filename="LB_Graphics/LB_GraphicsItem.cpp" line="216"/>
+        <location filename="LB_Graphics/LB_GraphicsItem.cpp" line="223"/>
         <source>Convert to segment</source>
         <translation>转换为线段</translation>
     </message>
     <message>
-        <location filename="LB_Graphics/LB_GraphicsItem.cpp" line="220"/>
+        <location filename="LB_Graphics/LB_GraphicsItem.cpp" line="228"/>
         <source>Convert to ellipse</source>
         <translation>转换为椭圆</translation>
+    </message>
+    <message>
+        <location filename="LB_Image/LB_ContourElement.h" line="22"/>
+        <source>Empty</source>
+        <translation>空白</translation>
+    </message>
+    <message>
+        <location filename="LB_Image/LB_ContourElement.h" line="55"/>
+        <source>Segement</source>
+        <translation>线段</translation>
+    </message>
+    <message>
+        <location filename="LB_Image/LB_ContourElement.h" line="106"/>
+        <source>Circle</source>
+        <translation>圆弧</translation>
+    </message>
+    <message>
+        <location filename="LB_Image/LB_ContourElement.h" line="203"/>
+        <source>Ellipse</source>
+        <translation>椭圆弧</translation>
+    </message>
+    <message>
+        <location filename="LB_Image/LB_ContourElement.h" line="248"/>
+        <source>PolyLine</source>
+        <translation>折线段</translation>
     </message>
 </context>
 </TS>

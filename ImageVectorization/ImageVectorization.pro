@@ -45,11 +45,11 @@ INCLUDEPATH += $$PWD/../SARibbonBar
 INCLUDEPATH += $$PWD/../dxflib
 
 CONFIG(debug, debug|release) {
-    LIBS += $$PWD/../bind/SARibbonBar.dll \
-            $$PWD/../bind/dxflib.dll
+    LIBS += $$PWD/../bind/SARibbonBar.lib \
+            $$PWD/../bind/dxflib.lib
     DESTDIR = $$PWD/../bind
 } else {
-    LIBS += $$PWD/../bin/SARibbonBar.dll \
-            $$PWD/../bin/dxflib.dll
+    LIBS += $$PWD/../bin/SARibbonBar.lib \
+            $$PWD/../bin/dxflib.lib
     DESTDIR = $$PWD/../bin
 }
