@@ -1,0 +1,1196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>992</width>
+    <height>637</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Image Vectorization</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout_6">
+    <item row="0" column="0">
+     <widget class="LB_ImageViewer" name="graphicResult"/>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusbar_info"/>
+  <widget class="QDockWidget" name="dockWidget_processWidget">
+   <property name="windowTitle">
+    <string>Processing</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="2" column="0">
+      <widget class="QPushButton" name="pushButton_lastProgress">
+       <property name="text">
+        <string>&lt;&lt;&lt;&lt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QPushButton" name="pushButton_nextProgress">
+       <property name="text">
+        <string>&gt;&gt;&gt;&gt;</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0" colspan="2">
+      <widget class="QStackedWidget" name="stackedWidget_progress">
+       <property name="currentIndex">
+        <number>0</number>
+       </property>
+       <widget class="QWidget" name="page_openFile">
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
+          <widget class="QPushButton" name="pushButton_openImg">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>35</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Select an image to processing</string>
+           </property>
+           <property name="text">
+            <string>Open</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/file/open.png</normaloff>:/icons/file/open.png</iconset>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_imgOverview">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::Box</enum>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <layout class="QHBoxLayout" name="horizontalLayout">
+           <item>
+            <widget class="QLabel" name="label">
+             <property name="text">
+              <string>Resolution:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLabel" name="label_imgResolution">
+             <property name="text">
+              <string>0x0</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="3" column="0">
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QLabel" name="label_2">
+             <property name="text">
+              <string>Scale：</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="comboBox_scaleFactor">
+             <item>
+              <property name="text">
+               <string>50%</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>67%</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>75%</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>80%</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>90%</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>100%</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>110%</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>125%</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>150%</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>175%</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+               <string>200%</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="4" column="0">
+          <widget class="QPushButton" name="pushButton_sureImgSelect">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>35</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>OK</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <layout class="QHBoxLayout" name="horizontalLayout_9">
+           <item>
+            <widget class="QToolButton" name="toolButton_autoDone">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>80</width>
+               <height>80</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>80</width>
+               <height>80</height>
+              </size>
+             </property>
+             <property name="toolTip">
+              <string>Extract the processing path automated by this function</string>
+             </property>
+             <property name="text">
+              <string>Auto Done</string>
+             </property>
+             <property name="icon">
+              <iconset resource="ImageVectorization.qrc">
+               <normaloff>:/icons/file/autoDone.png</normaloff>:/icons/file/autoDone.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>50</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="toolButtonStyle">
+              <enum>Qt::ToolButtonTextUnderIcon</enum>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="page_operation">
+        <layout class="QGridLayout" name="gridLayout_3">
+         <item row="0" column="2">
+          <spacer name="verticalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="1" column="1">
+          <widget class="QToolButton" name="toolButton_imgGray">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Change a colorful image into gray one</string>
+           </property>
+           <property name="text">
+            <string>Gray</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/operation/gray.png</normaloff>:/icons/operation/gray.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="2">
+          <widget class="QToolButton" name="toolButton_imgBinary">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Change a image into black and white one</string>
+           </property>
+           <property name="text">
+            <string>Binary</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/operation/binary.png</normaloff>:/icons/operation/binary.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="3">
+          <widget class="QToolButton" name="toolButton_imgSharpen">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Make the boreder of foreground more clear</string>
+           </property>
+           <property name="text">
+            <string>Sharpen</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/operation/sharpen.png</normaloff>:/icons/operation/sharpen.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <spacer name="horizontalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="2" column="1">
+          <widget class="QToolButton" name="toolButton_imgMedianFilter">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Remove the noise in image effective</string>
+           </property>
+           <property name="text">
+            <string>Median filter</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/operation/medianFilter.png</normaloff>:/icons/operation/medianFilter.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QToolButton" name="toolButton_imgGaussionFilter">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Smooth the border in a vague way</string>
+           </property>
+           <property name="text">
+            <string>Gaussion filter</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/operation/gaussFilter.png</normaloff>:/icons/operation/gaussFilter.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="3">
+          <widget class="QToolButton" name="toolButton_imgThining">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Make the binary area in image more representative</string>
+           </property>
+           <property name="text">
+            <string>Thining</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/operation/thinning.png</normaloff>:/icons/operation/thinning.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="4">
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item row="3" column="1">
+          <widget class="QToolButton" name="toolButton_imgFindContour">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Most useful function to get the contour of foreground</string>
+           </property>
+           <property name="text">
+            <string>Find Contour</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/operation/findEdge.png</normaloff>:/icons/operation/findEdge.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="2">
+          <widget class="QToolButton" name="toolButton_imgSobel">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>An auxiliary way to find contour when image has weak border</string>
+           </property>
+           <property name="text">
+            <string>Sobel Contour</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/operation/sobelEdge.png</normaloff>:/icons/operation/sobelEdge.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="3">
+          <widget class="QToolButton" name="toolButton_imgCanny">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>An auxiliary way to find contour when image has noise</string>
+           </property>
+           <property name="text">
+            <string>Canny Contour</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/operation/cannyEdge.png</normaloff>:/icons/operation/cannyEdge.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0" colspan="5">
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QLabel" name="label_3">
+             <property name="text">
+              <string>Binarization threshold:</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QSpinBox" name="spinBox_threshold">
+             <property name="toolTip">
+              <string>The value of seperating foreground and background</string>
+             </property>
+             <property name="maximum">
+              <number>255</number>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="5" column="2">
+          <spacer name="verticalSpacer">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="page_vectorization">
+        <layout class="QGridLayout" name="gridLayout_4">
+         <item row="0" column="0">
+          <widget class="QToolButton" name="toolButton_generatePath">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Get the processing path after contour has been found</string>
+           </property>
+           <property name="text">
+            <string>Generate results</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/vectorization/generate.png</normaloff>:/icons/vectorization/generate.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QToolButton" name="toolButton_convertToArc">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Convert the selected points into arc whether the shape fits or not</string>
+           </property>
+           <property name="text">
+            <string>Convert to arc</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/vectorization/toArc.png</normaloff>:/icons/vectorization/toArc.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QToolButton" name="toolButton_convertToLine">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Convert the selected points into segement whether the shape fits or not</string>
+           </property>
+           <property name="text">
+            <string>Convert to segment</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/vectorization/toLine.png</normaloff>:/icons/vectorization/toLine.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QToolButton" name="toolButton_convertToEllipse">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Convert the selected points into ellipse whether the shape fits or not</string>
+           </property>
+           <property name="text">
+            <string>Convert to ellipse</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/vectorization/toEllipse.png</normaloff>:/icons/vectorization/toEllipse.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0" colspan="4">
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_7">
+             <item>
+              <widget class="QLabel" name="label_4">
+               <property name="text">
+                <string>Minimum edge length:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="spinBox_minPathLen">
+               <property name="toolTip">
+                <string>The minimum count of pixel that one path contains</string>
+               </property>
+               <property name="maximum">
+                <number>999</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_6">
+             <item>
+              <widget class="QLabel" name="label_5">
+               <property name="text">
+                <string>Interpolation count:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QSpinBox" name="spinBox_bezierStep">
+               <property name="toolTip">
+                <string>The number of points used to replace a section of curve</string>
+               </property>
+               <property name="minimum">
+                <number>2</number>
+               </property>
+               <property name="maximum">
+                <number>15</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <item>
+              <widget class="QLabel" name="label_6">
+               <property name="text">
+                <string>Sharpness coefficient:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="doubleSpinBox_alpha">
+               <property name="toolTip">
+                <string>The value to control the smoothness of result, lower value means sharper</string>
+               </property>
+               <property name="singleStep">
+                <double>0.050000000000000</double>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_4">
+             <item>
+              <widget class="QLabel" name="label_7">
+               <property name="text">
+                <string>Colinear tolerance:</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QDoubleSpinBox" name="doubleSpinBox_colinearTol">
+               <property name="toolTip">
+                <string>The max pixel value of distace from each point to their approximate line</string>
+               </property>
+               <property name="singleStep">
+                <double>0.100000000000000</double>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkBox_showContours">
+             <property name="text">
+              <string>Show result</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkBox_showVertex">
+             <property name="text">
+              <string>Show vertex</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkBox_useDouglas">
+             <property name="toolTip">
+              <string>Auxiliary way to get path, faster if the image has a large size</string>
+             </property>
+             <property name="text">
+              <string>Use Douglas</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="checkBox_frameSelection">
+             <property name="text">
+              <string>Frame select</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+       <widget class="QWidget" name="page_save">
+        <layout class="QGridLayout" name="gridLayout_5">
+         <item row="0" column="1">
+          <widget class="QToolButton" name="toolButton_savAsDXF">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Save the path you get into a DXF file</string>
+           </property>
+           <property name="text">
+            <string>Save as DXF</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/file/saveDXF.png</normaloff>:/icons/file/saveDXF.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QToolButton" name="toolButton_saveAsImg">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>80</height>
+            </size>
+           </property>
+           <property name="toolTip">
+            <string>Save the image in right half window</string>
+           </property>
+           <property name="text">
+            <string>Save as image</string>
+           </property>
+           <property name="icon">
+            <iconset resource="ImageVectorization.qrc">
+             <normaloff>:/icons/file/saveImage.png</normaloff>:/icons/file/saveImage.png</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>50</width>
+             <height>50</height>
+            </size>
+           </property>
+           <property name="toolButtonStyle">
+            <enum>Qt::ToolButtonTextUnderIcon</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <spacer name="verticalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </widget>
+      </widget>
+     </item>
+     <item row="1" column="0" colspan="2">
+      <spacer name="verticalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QToolBar" name="toolBar_function">
+   <property name="windowTitle">
+    <string>Functions</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionReset_operation"/>
+   <addaction name="actionLast_step"/>
+   <addaction name="actionNext_step"/>
+   <addaction name="separator"/>
+   <addaction name="actionHelp"/>
+   <addaction name="actionExample"/>
+   <addaction name="actionAbout"/>
+  </widget>
+  <action name="actionReset_operation">
+   <property name="icon">
+    <iconset resource="ImageVectorization.qrc">
+     <normaloff>:/icons/operation/resetOperation.png</normaloff>:/icons/operation/resetOperation.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reset operation</string>
+   </property>
+   <property name="toolTip">
+    <string>Remove all the opearion on input</string>
+   </property>
+  </action>
+  <action name="actionLast_step">
+   <property name="icon">
+    <iconset resource="ImageVectorization.qrc">
+     <normaloff>:/icons/operation/lastStep.png</normaloff>:/icons/operation/lastStep.png</iconset>
+   </property>
+   <property name="text">
+    <string>Last step</string>
+   </property>
+   <property name="toolTip">
+    <string>Undo the action you just</string>
+   </property>
+  </action>
+  <action name="actionNext_step">
+   <property name="icon">
+    <iconset resource="ImageVectorization.qrc">
+     <normaloff>:/icons/operation/nextStep.png</normaloff>:/icons/operation/nextStep.png</iconset>
+   </property>
+   <property name="text">
+    <string>Next step</string>
+   </property>
+   <property name="toolTip">
+    <string>Redo the action you just</string>
+   </property>
+  </action>
+  <action name="actionHelp">
+   <property name="icon">
+    <iconset resource="ImageVectorization.qrc">
+     <normaloff>:/icons/help/help.png</normaloff>:/icons/help/help.png</iconset>
+   </property>
+   <property name="text">
+    <string>Help</string>
+   </property>
+   <property name="toolTip">
+    <string>Open the user's manual</string>
+   </property>
+  </action>
+  <action name="actionExample">
+   <property name="icon">
+    <iconset resource="ImageVectorization.qrc">
+     <normaloff>:/icons/help/example.png</normaloff>:/icons/help/example.png</iconset>
+   </property>
+   <property name="text">
+    <string>Example</string>
+   </property>
+   <property name="toolTip">
+    <string>Open the example video of processing a logo image</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="icon">
+    <iconset resource="ImageVectorization.qrc">
+     <normaloff>:/icons/help/about.png</normaloff>:/icons/help/about.png</iconset>
+   </property>
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>LB_ImageViewer</class>
+   <extends>QGraphicsView</extends>
+   <header>LB_Image/LB_ImageViewer.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="ImageVectorization.qrc"/>
+ </resources>
+ <connections/>
+</ui>

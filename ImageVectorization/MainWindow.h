@@ -3,22 +3,13 @@
 
 #include <QMainWindow>
 
-#include "SARibbonMainWindow.h"
+namespace Ui {
+class MainWindow;
+}
 
 class QUndoStack;
-class QSpinBox;
-class QDoubleSpinBox;
-class QLabel;
-class QComboBox;
-class QCheckBox;
-class QTextEdit;
 
-class SARibbonCategory;
-class SARibbonContextCategory;
-
-class LB_ImageViewer;
-
-class MainWindow : public SARibbonMainWindow
+class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
@@ -26,61 +17,65 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-private:
-    void initUI();
-    void initCenter();
-    void initDock();
-
-    void createCategoryFile(SARibbonCategory* page);
-    void createCategoryOperation(SARibbonCategory* page);
-    void createCategoryVectorization(SARibbonCategory* page);
-    void createCategoryHelp(SARibbonCategory* page);
-
-private:
-    QSpinBox* spinBox_threshold;
-    QSpinBox* spinBox_bezierStep;
-    QSpinBox* spinBox_minPathLen;
-    QDoubleSpinBox* doubleSpinBox_alpha;
-    QDoubleSpinBox* doubleSpinBox_colinearTol;
-    QDockWidget* dockWidget_undo;
-    QLabel* label_imgInfoSource;
-    QLabel* label_imgInfoResult;
-    QComboBox* comboBox_scaleFactor;
-    QCheckBox* checkBox_showContours;
-    QCheckBox* checkBox_showVertex;
-    QCheckBox* checkBox_useDouglas;
-    QCheckBox* checkBox_frameSelection;
-    QToolBar* toolBar_function;
-    QStatusBar* statusBar_info;
-    QTextEdit* textEdit_output;
-
-    LB_ImageViewer* graphicSource;
-    LB_ImageViewer* graphicResult;
+protected:
+    void keyPressEvent(QKeyEvent *event);
 
 private slots:
-    // file
-    void on_action_openImg_triggered();
-    void on_action_saveAsImg_triggered();
-    void on_action_saveAsDXF_triggered();
+    void on_pushButton_openImg_clicked();
+    void on_comboBox_scaleFactor_currentIndexChanged(int index);
+    void on_pushButton_sureImgSelect_clicked();
+    void on_toolButton_autoDone_clicked();
 
-    // vectorization
-    void on_action_generateResult_triggered();
-    void on_action_convertToArc_triggered();
-    void on_action_convertToLine_triggered();
-    void on_action_convertToEllipse_triggered();
+    void on_toolButton_imgGray_clicked();
+    void on_toolButton_imgBinary_clicked();
+    void on_toolButton_imgSharpen_clicked();
+    void on_toolButton_imgMedianFilter_clicked();
+    void on_toolButton_imgGaussionFilter_clicked();
+    void on_toolButton_imgThining_clicked();
+    void on_toolButton_imgFindContour_clicked();
+    void on_toolButton_imgSobel_clicked();
+    void on_toolButton_imgCanny_clicked();
+    void on_spinBox_threshold_valueChanged(int arg1);
 
-    // arguments
-    void on_comboBox_scaleFactor_activated(int index);
+    void on_toolButton_generatePath_clicked();
+    void on_toolButton_convertToArc_clicked();
+    void on_toolButton_convertToLine_clicked();
+    void on_toolButton_convertToEllipse_clicked();
+    void on_spinBox_minPathLen_valueChanged(int arg1);
+    void on_spinBox_bezierStep_valueChanged(int arg1);
+    void on_doubleSpinBox_alpha_valueChanged(double arg1);
+    void on_doubleSpinBox_colinearTol_valueChanged(double arg1);
+    void on_checkBox_showContours_stateChanged(int arg1);
+    void on_checkBox_showVertex_stateChanged(int arg1);
+    void on_checkBox_useDouglas_stateChanged(int arg1);
+    void on_checkBox_frameSelection_stateChanged(int arg1);
+
+    void on_toolButton_saveAsImg_clicked();
+    void on_toolButton_savAsDXF_clicked();
+
+    void on_pushButton_lastProgress_clicked();
+    void on_pushButton_nextProgress_clicked();
+
+    void on_actionReset_operation_triggered();
+    void on_actionLast_step_triggered();
+    void on_actionNext_step_triggered();
+    void on_actionHelp_triggered();
+    void on_actionExample_triggered();
+    void on_actionAbout_triggered();
 
 private:
-    QImage sourceImg;
-    QImage resultImg;
+    Ui::MainWindow *ui;
 
     QUndoStack *undoStack;
+    QImage sourceImg;
+    QSize sourceSize;
+    QImage resultImg;
     bool useDouglas;
 
+private:
+    void initUI();
+    void initDock();
     void loadArguments();
-    void fuzzyJudgeFactor(double factor);
     void showResult();
 
 };

@@ -1,40 +1,25 @@
 #include "MainWindow.h"
-
-#include <QAction>
-#include <QToolBar>
-#include <QStatusBar>
-#include <QSpinBox>
-#include <QDoubleSpinBox>
-#include <QLabel>
-#include <QComboBox>
-#include <QCheckBox>
-#include <QTextEdit>
-#include <QDockWidget>
-#include <QGridLayout>
-#include <QSplitter>
-#include <QApplication>
+#include "ui_MainWindow.h"
 
 #include <QProgressDialog>
 #include <QPainter>
 #include <QLine>
 #include <QRect>
 #include <QFileDialog>
+#include <QTextEdit>
 #include <QImage>
+#include <QMenu>
 #include <QFileInfo>
 #include <QUndoStack>
 #include <QUndoView>
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QElapsedTimer>
-
-#include "SARibbonBar.h"
-#include "SARibbonPannel.h"
-#include "SARibbonCategory.h"
+#include <QKeyEvent>
 
 #include "dl_dxf.h"
 #include "dl_creationadapter.h"
 
-#include "LB_Image/LB_ImageViewer.h"
 #include "LB_Image/LB_ImagePreProcess.h"
 #include "LB_Image/LB_BMPVectorization.h"
 #include "LB_Graphics/LB_PointItem.h"
@@ -49,11 +34,12 @@ using namespace LB_Graphics;
 int THRESHOLD = 128;
 
 MainWindow::MainWindow(QWidget *parent) :
-    SARibbonMainWindow(parent),
+    QMainWindow(parent),
+    ui(new Ui::MainWindow),
     useDouglas(false)
 {
+    ui->setupUi(this);
     initUI();
-    initCenter();
     initDock();
 
     loadArguments();
@@ -61,636 +47,342 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    delete ui;
     undoStack->deleteLater();
 }
 
-void MainWindow::initUI()
+void MainWindow::keyPressEvent(QKeyEvent *event)
 {
-    setWindowTitle(tr("Image Vectorization"));
-    SARibbonBar* ribbon = ribbonBar();
-    QFont f = ribbon->font();
-    f.setFamily("Microsoft YaHei UI");
-    ribbon->setFont(f);
-    ribbon->applitionButton()->setVisible(false);
-
-    toolBar_function = new QToolBar(tr("Function"), this);
-    this->addToolBar(Qt::TopToolBarArea, toolBar_function);
-    statusBar_info = new QStatusBar(this);
-    this->setStatusBar(statusBar_info);
-    statusBar_info->addPermanentWidget(new QLabel("Copyright @ Lieber, HFUT",statusBar_info));
-
-    SARibbonCategory* categoryFile = ribbon->addCategoryPage(tr("File"));
-    createCategoryFile(categoryFile);
-    SARibbonCategory* categoryOperation = ribbon->addCategoryPage(tr("Operation"));
-    createCategoryOperation(categoryOperation);
-    SARibbonCategory* categoryVectorization = ribbon->addCategoryPage(tr("Vectorization"));
-    createCategoryVectorization(categoryVectorization);
-    SARibbonCategory* categoryHelp = ribbon->addCategoryPage(tr("Help"));
-    createCategoryHelp(categoryHelp);
+    if(event->key() == Qt::Key_Z && event->modifiers() == Qt::CTRL) {
+        on_actionLast_step_triggered();
+    }
+    else if(event->key() == Qt::Key_Y && event->modifiers() == Qt::CTRL) {
+        on_actionNext_step_triggered();
+    }
 }
 
-void MainWindow::initCenter()
-{
-    QSplitter *mainWid = new QSplitter(Qt::Horizontal,this);
-    QWidget* leftWid = new QWidget(mainWid);
-    QVBoxLayout* left = new QVBoxLayout(leftWid);
-    graphicSource = new LB_ImageViewer(leftWid);
-    graphicSource->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    label_imgInfoSource = new QLabel(tr("Image not open"), leftWid);
-    left->addWidget(graphicSource);
-    left->addWidget(label_imgInfoSource);
-
-    QWidget* rightWid = new QWidget(mainWid);
-    QVBoxLayout* right = new QVBoxLayout(rightWid);
-    graphicResult = new LB_ImageViewer(rightWid);
-    graphicResult->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    connect(graphicResult,&LB_ImageViewer::pointSelected,this,[=](const QPointF& pnt) {
-        statusBar_info->showMessage(tr("Selected( %1 , %2 )").arg(pnt.x()).arg(pnt.y()));
-    });
-    connect(graphicResult,&LB_ImageViewer::pointMoved,this,[=](const QPointF& pnt, LB_PointItem* item) {
-        QPointF newPnt = item->GetPoint();
-        QString content =
-                tr("Move ( %1, %2 ) to ( %3, %4 )")
-                .arg(pnt.x()).arg(pnt.y())
-                .arg(newPnt.x()).arg(newPnt.y());
-        statusBar_info->showMessage(content);
-        undoStack->push(new PointMoveCommand(item, pnt,content));
-    });
-    connect(graphicResult,&LB_ImageViewer::converted,this,
-            [=](const LB_PointItemVector& items,
-            const QVector<QPointF>& pnts) {
-        undoStack->push(new PointsConvertCommand(items,pnts,tr("Convert to %1").arg(items.last()->GetLayers().last()->TypeName())));
-    });
-    label_imgInfoResult = new QLabel(tr("Image not open"), rightWid);
-    right->addWidget(graphicResult);
-    right->addWidget(label_imgInfoResult);
-
-    mainWid->setCollapsible(0,false);
-    mainWid->setCollapsible(1,false);
-
-    this->setCentralWidget(mainWid);
-}
-
-void MainWindow::initDock()
-{
-    // 0.treeView of undo
-    undoStack = new QUndoStack();
-    QUndoView *aView = new QUndoView(undoStack);
-    aView->setEmptyLabel(tr("<empty>"));
-    aView->setEnabled(false);
-    dockWidget_undo = new QDockWidget(tr("Operation record"),this);
-    dockWidget_undo->setAllowedAreas(Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea);
-    this->addDockWidget(Qt::LeftDockWidgetArea, dockWidget_undo);
-    dockWidget_undo->setWidget(aView);
-
-    // 1.log output
-    textEdit_output = new QTextEdit(this);
-    LB_DebugHandle::installMessageHandler();
-    connect(LB_DebugHandle::Instance(),&LB_DebugHandle::debugInfo,this,[=](const QString &str, const QColor &color, bool popup) {
-        textEdit_output->setTextColor(color);
-        textEdit_output->append(str);
-
-        if(popup) {
-            QMessageBox* aboutBox = new QMessageBox(this);
-            aboutBox->setText(str);
-            aboutBox->setButtonText(QMessageBox::Ok, tr("OK"));
-            aboutBox->exec();
-        }
-    });
-    QDockWidget* outPutDock = new QDockWidget(tr("Output"), this);
-    outPutDock->setWidget(textEdit_output);
-    this->addDockWidget(Qt::LeftDockWidgetArea, outPutDock);
-    this->tabifyDockWidget(outPutDock,dockWidget_undo);
-
-    // 2.dock widget of arguments
-    QWidget* argsWid = new QWidget(this);
-    argsWid->setMaximumHeight(300);
-    QGridLayout* pannel = new QGridLayout(argsWid);
-
-    // 2.1 row 0
-    QLabel* label1 = new QLabel(tr("Binarization threshold:"),this);
-    spinBox_threshold = new QSpinBox(this);
-    spinBox_threshold->setToolTip(tr("The value of seperating foreground and background"));
-    spinBox_threshold->setMaximum(255);
-    connect(spinBox_threshold, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int arg) {
-        THRESHOLD = arg;
-    });
-    pannel->addWidget(label1, 0, 0, 1, 1);
-    pannel->addWidget(spinBox_threshold, 0, 1, 1, 1);
-
-    // 2.1 row 1
-    QLabel* label2 = new QLabel(tr("Minimum edge length:"),this);
-    spinBox_minPathLen = new QSpinBox(this);
-    spinBox_minPathLen->setMaximum(999);
-    spinBox_minPathLen->setToolTip(tr("The minimum count of pixel that one path contains"));
-    connect(spinBox_minPathLen, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int arg) {
-        MIN_EDGE_SIZE = arg;
-    });
-    pannel->addWidget(label2, 1, 0, 1, 1);
-    pannel->addWidget(spinBox_minPathLen, 1, 1, 1, 1);
-
-    // 2.1 row 2
-    QLabel* label3 = new QLabel(tr("Interpolation count:"),this);
-    spinBox_bezierStep = new QSpinBox(this);
-    spinBox_bezierStep->setRange(2,15);
-    spinBox_bezierStep->setToolTip(tr("The number of points used to replace a section of curve"));
-    connect(spinBox_bezierStep, QOverload<int>::of(&QSpinBox::valueChanged), this, [=](int arg) {
-        BEZIER_STEP = arg;
-    });
-    pannel->addWidget(label3, 2, 0, 1, 1);
-    pannel->addWidget(spinBox_bezierStep, 2, 1, 1, 1);
-
-    // 2.1 row 3
-    QLabel* label4 = new QLabel(tr("Sharpness coefficient:"),this);
-    doubleSpinBox_alpha = new QDoubleSpinBox(this);
-    doubleSpinBox_alpha->setSingleStep(0.05);
-    doubleSpinBox_alpha->setToolTip(tr("The value to control the smoothness of result, lower value means sharper"));
-    connect(doubleSpinBox_alpha, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [=](double arg) {
-        SMOOTH_ALPHA = arg;
-    });
-    pannel->addWidget(label4, 3, 0, 1, 1);
-    pannel->addWidget(doubleSpinBox_alpha, 3, 1, 1, 1);
-
-    // 2.1 row 4
-    QLabel* label5 = new QLabel(tr("Colinear tolerance:"),this);
-    doubleSpinBox_colinearTol = new QDoubleSpinBox(this);
-    doubleSpinBox_colinearTol->setSingleStep(0.1);
-    doubleSpinBox_colinearTol->setToolTip(tr("The max pixel value of distace from each point to their approximate line"));
-    connect(doubleSpinBox_colinearTol, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, [=](double arg) {
-        COLINEAR_TOLERANCE = arg;
-    });
-    pannel->addWidget(label5, 4, 0, 1, 1);
-    pannel->addWidget(doubleSpinBox_colinearTol, 4, 1, 1, 1);
-
-    // 2.1 row 5
-    QLabel* label6 = new QLabel(tr("Scale factor:"),this);
-    comboBox_scaleFactor = new QComboBox(this);
-    QStringList factors;
-    factors<<"50%"<<"67%"<<"75%"<<"80%"<<"90%"<<"100%"<<"110%"<<"125%"<<"150%"<<"175%"<<"200%";
-    comboBox_scaleFactor->addItems(factors);
-    connect(comboBox_scaleFactor, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &MainWindow::on_comboBox_scaleFactor_activated);
-    pannel->addWidget(label6, 5, 0, 1, 1);
-    pannel->addWidget(comboBox_scaleFactor, 5, 1, 1, 1);
-
-    // 2.1 row 6
-    checkBox_showContours = new QCheckBox(tr("Show result"),this);
-    connect(checkBox_showContours, &QCheckBox::stateChanged, this, [=](int arg) {
-        if(arg == Qt::Checked) {
-            graphicResult->SetContoursVisible(true);
-        }
-        else if(arg == Qt::Unchecked) {
-            graphicResult->SetContoursVisible(false);
-        }
-    });
-    pannel->addWidget(checkBox_showContours, 6, 0, 1, 2);
-
-    // 2.1 row 7
-    checkBox_showVertex = new QCheckBox(tr("Show vertex"),this);
-    connect(checkBox_showVertex, &QCheckBox::stateChanged, this, [=](int arg) {
-        if(arg == Qt::Checked) {
-            graphicResult->SetVertexVisible(true);
-        }
-        else if(arg == Qt::Unchecked) {
-            graphicResult->SetVertexVisible(false);
-        }
-    });
-    pannel->addWidget(checkBox_showVertex, 7, 0, 1, 2);
-
-    // 2.1 row 8
-    checkBox_useDouglas = new QCheckBox(tr("Use Douglas"),this);
-    checkBox_useDouglas->setToolTip(tr("Auxiliary way to get path, faster if the image has a large size"));
-    connect(checkBox_useDouglas, &QCheckBox::stateChanged, this, [=](int arg) {
-        if(arg == Qt::Checked) {
-            useDouglas = true;
-        }
-        else if(arg == Qt::Unchecked) {
-            useDouglas = false;
-        }
-    });
-    pannel->addWidget(checkBox_useDouglas, 8, 0, 1, 2);
-
-    // 2.1 row 9
-    checkBox_frameSelection = new QCheckBox(tr("Frame select"),this);
-    connect(checkBox_frameSelection, &QCheckBox::stateChanged, this, [=](int arg) {
-        if(arg == Qt::Checked) {
-            graphicResult->setDragMode(QGraphicsView::RubberBandDrag);
-        }
-        else if(arg == Qt::Unchecked) {
-            graphicResult->setDragMode(QGraphicsView::ScrollHandDrag);
-        }
-    });
-    pannel->addWidget(checkBox_frameSelection, 9, 0, 1, 2);
-
-    QDockWidget* argDock = new QDockWidget(tr("Arguments"), this);
-    argDock->setWidget(argsWid);
-    argDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
-    this->addDockWidget(Qt::LeftDockWidgetArea, argDock);
-}
-
-void MainWindow::createCategoryFile(SARibbonCategory *page)
-{
-    SARibbonPannel* pannel = page->addPannel("");
-
-    QAction* act = new QAction(this);
-    act->setIcon(QIcon(":/icons/file/open.png"));
-    act->setText(tr("Open"));
-    act->setToolTip(tr("Select an image to processing"));
-    pannel->addLargeAction(act);
-    toolBar_function->addAction(act);
-    toolBar_function->addSeparator();
-    connect(act, &QAction::triggered, this, &MainWindow::on_action_openImg_triggered);
-
-    pannel->addSeparator();
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/file/saveImage.png"));
-    act->setText(tr("Save as image"));
-    act->setToolTip(tr("Save the image in right half window"));
-    pannel->addLargeAction(act);
-    connect(act,&QAction::triggered, this, &MainWindow::on_action_saveAsImg_triggered);
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/file/saveDXF.png"));
-    act->setText(tr("Save as DXF"));
-    act->setToolTip(tr("Save the path you get into a DXF file"));
-    pannel->addLargeAction(act);
-    connect(act,&QAction::triggered, this, &MainWindow::on_action_saveAsDXF_triggered);
-
-    pannel->addSeparator();
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/file/autoDone.png"));
-    act->setText(tr("Auto Done"));
-    act->setToolTip(tr("Extract the processing path automated by this function"));
-    pannel->addLargeAction(act);
-    connect(act,&QAction::triggered, this, [=]() {
-        if(!resultImg.isNull()) {
-            QImage before = resultImg;
-            resultImg = MedianFilter(resultImg,3);
-            resultImg = GaussFilter(resultImg);
-            resultImg = FindContours(resultImg);
-            showResult();
-            undoStack->push(new ImageProcessCommand({before,resultImg},tr("Auto Done"),graphicResult));
-            on_action_generateResult_triggered();
-        }
-        else
-            qWarning()<<tr("Image not open");
-    });
-}
-
-void MainWindow::createCategoryOperation(SARibbonCategory *page)
-{
-    SARibbonPannel* pannel = page->addPannel(tr("Operation"));
-
-    QAction* act = new QAction(this);
-    act->setIcon(QIcon(":/icons/operation/resetOperation.png"));
-    act->setText(tr("Reset operation"));
-    act->setToolTip(tr("Remove all the opearion on input"));
-    pannel->addLargeAction(act);
-    toolBar_function->addAction(act);
-    connect(act,&QAction::triggered,this,[=](){
-        if(resultImg.isNull()) {
-            qWarning()<<tr("Image not open");
-            return;
-        }
-
-        undoStack->clear();
-        SCALE_FACTOR = 1.0;
-        comboBox_scaleFactor->setCurrentIndex(5);
-        resultImg = sourceImg;
-        showResult();
-    });
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/operation/lastStep.png"));
-    act->setText(tr("Last step"));
-    act->setToolTip(tr("Undo the action you just"));
-    pannel->addLargeAction(act);
-    toolBar_function->addAction(act);
-    connect(act,&QAction::triggered,this,[=](){
-        undoStack->undo();
-        int index = undoStack->index();
-        const ImageProcessCommand *cmd = dynamic_cast<const ImageProcessCommand*>(undoStack->command(index));
-        if(cmd) {
-            resultImg = cmd->GetInput();
-            double scaleF = (double)resultImg.width() / (double)sourceImg.width();
-            fuzzyJudgeFactor(scaleF);
-        }
-    });
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/operation/nextStep.png"));
-    act->setText(tr("Next step"));
-    act->setToolTip(tr("Redo the action you just"));
-    pannel->addLargeAction(act);
-    toolBar_function->addAction(act);
-    connect(act,&QAction::triggered,this,[=](){
-        undoStack->redo();
-        int index = qBound(0,undoStack->index()-1,undoStack->count()-1);
-        const ImageProcessCommand *cmd = dynamic_cast<const ImageProcessCommand*>(undoStack->command(index));
-        if(cmd) {
-            resultImg = cmd->GetOutput();
-            double scaleF = (double)resultImg.width() / (double)sourceImg.width();
-            fuzzyJudgeFactor(scaleF);
-        }
-    });
-
-    pannel = page->addPannel(tr("Preprocessing"));
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/operation/gray.png"));
-    act->setText(tr("Gray"));
-    act->setToolTip(tr("Change a colorful image into gray one"));
-    pannel->addLargeAction(act);
-    connect(act,&QAction::triggered,this,[=](){
-        if(resultImg.isNull()) {
-            qWarning()<<tr("Image not open");
-            return;
-        }
-
-        QImage before = resultImg;
-        resultImg = Gray(resultImg);
-        showResult();
-        undoStack->push(new ImageProcessCommand({before,resultImg},tr("gray"),graphicResult));
-    });
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/operation/binary.png"));
-    act->setText(tr("Binary"));
-    act->setToolTip(tr("Change a image into black and white one"));
-    pannel->addLargeAction(act);
-    toolBar_function->addAction(act);
-    connect(act,&QAction::triggered,this,[=](){
-        if(resultImg.isNull()) {
-            qWarning()<<tr("Image not open");
-            return;
-        }
-
-        QImage before = resultImg;
-        resultImg = Binary(resultImg,THRESHOLD);
-        showResult();
-        undoStack->push(new ImageProcessCommand({before,resultImg},tr("binary"),graphicResult));
-    });
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/operation/sharpen.png"));
-    act->setText(tr("Sharpen"));
-    act->setToolTip(tr("Make the boreder of foreground more clear"));
-    pannel->addLargeAction(act);
-    connect(act,&QAction::triggered,this,[=](){
-        if(resultImg.isNull()) {
-            qWarning()<<tr("Image not open");
-            return;
-        }
-
-        QImage before = resultImg;
-        resultImg = Sharpen(resultImg);
-        showResult();
-        undoStack->push(new ImageProcessCommand({before,resultImg},tr("sharpen"),graphicResult));
-    });
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/operation/medianFilter.png"));
-    act->setText(tr("Median filtering"));
-    act->setToolTip(tr("Remove the noise in image effective"));
-    pannel->addLargeAction(act);
-    toolBar_function->addAction(act);
-    connect(act,&QAction::triggered,this,[=](){
-        if(resultImg.isNull()) {
-            qWarning()<<tr("Image not open");
-            return;
-        }
-
-        QImage before = resultImg;
-        resultImg = MedianFilter(resultImg,3);
-        showResult();
-        undoStack->push(new ImageProcessCommand({before,resultImg},tr("median filter"),graphicResult));
-    });
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/operation/gaussFilter.png"));
-    act->setText(tr("Gaussion filtering"));
-    act->setToolTip(tr("Smooth the border in a vague way"));
-    pannel->addLargeAction(act);
-    connect(act,&QAction::triggered,this,[=](){
-        if(resultImg.isNull()) {
-            qWarning()<<tr("Image not open");
-            return;
-        }
-
-        QImage before = resultImg;
-        resultImg = GaussFilter(resultImg);
-        showResult();
-        undoStack->push(new ImageProcessCommand({before,resultImg},tr("Gaussian filter"),graphicResult));
-    });
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/operation/thinning.png"));
-    act->setText(tr("Thinning"));
-    act->setToolTip(tr("Make the binary area in image more representative"));
-    pannel->addLargeAction(act);
-    connect(act,&QAction::triggered,this,[=](){
-        if(resultImg.isNull()) {
-            qWarning()<<tr("Image not open");
-            return;
-        }
-
-        QImage before = resultImg;
-        resultImg = Thinning(resultImg);
-        showResult();
-        undoStack->push(new ImageProcessCommand({before,resultImg},tr("thinning"),graphicResult));
-    });
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/operation/calculateTh.png"));
-    act->setText(tr("Best threshold"));
-    act->setToolTip(tr("Calculate the most suitable value for binary operation"));
-    pannel->addLargeAction(act);
-    connect(act,&QAction::triggered,this,[=](){
-        if(resultImg.isNull()) {
-            qWarning()<<tr("Image not open");
-            return;
-        }
-
-        THRESHOLD = ThresholdDetect(resultImg);
-        spinBox_threshold->setValue(THRESHOLD);
-    });
-
-    pannel = page->addPannel(tr("Edge operation"));
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/operation/findEdge.png"));
-    act->setText(tr("Find contours"));
-    act->setToolTip(tr("Most useful function to get the contour of foreground"));
-    pannel->addLargeAction(act);
-    toolBar_function->addAction(act);
-    toolBar_function->addSeparator();
-    connect(act,&QAction::triggered,this,[=](){
-        if(resultImg.isNull()) {
-            qWarning()<<tr("Image not open");
-            return;
-        }
-
-        QImage before = resultImg;
-        resultImg = FindContours(resultImg);
-        showResult();
-        undoStack->push(new ImageProcessCommand({before,resultImg},tr("find contours"),graphicResult));
-    });
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/operation/cannyEdge.png"));
-    act->setText(tr("Canny contour"));
-    act->setToolTip(tr("An auxiliary way to find contour when image has noise"));
-    pannel->addLargeAction(act);
-    connect(act,&QAction::triggered,this,[=](){
-        if(resultImg.isNull()) {
-            qWarning()<<tr("Image not open");
-            return;
-        }
-
-        QImage before = resultImg;
-        resultImg = SobelContours(resultImg);
-        showResult();
-        undoStack->push(new ImageProcessCommand({before,resultImg},tr("sobel contours"),graphicResult));
-    });
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/operation/sobelEdge.png"));
-    act->setText(tr("Sobel contour"));
-    act->setToolTip(tr("An auxiliary way to find contour when image has weak border"));
-    pannel->addLargeAction(act);
-    connect(act,&QAction::triggered,this,[=](){
-        if(resultImg.isNull()) {
-            qWarning()<<tr("Image not open");
-            return;
-        }
-
-        QImage before = resultImg;
-        resultImg = CannyContours(resultImg);
-        showResult();
-        undoStack->push(new ImageProcessCommand({before,resultImg},tr("canny contours"),graphicResult));
-    });
-}
-
-void MainWindow::createCategoryVectorization(SARibbonCategory *page)
-{
-    SARibbonPannel* pannel = page->addPannel("");
-
-    QAction* act = new QAction(this);
-    act->setIcon(QIcon(":/icons/vectorization/generate.png"));
-    act->setText(tr("Generate results"));
-    act->setToolTip(tr("Get the processing path after contour has been found"));
-    pannel->addLargeAction(act);
-    toolBar_function->addAction(act);
-    connect(act,&QAction::triggered,this,&MainWindow::on_action_generateResult_triggered);
-
-    pannel->addSeparator();
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/vectorization/toArc.png"));
-    act->setText(tr("Convert to arc"));
-    act->setToolTip(tr("Convert the selected points into arc whether the shape fits or not"));
-    pannel->addLargeAction(act);
-    toolBar_function->addAction(act);
-    connect(act,&QAction::triggered,this,&MainWindow::on_action_convertToArc_triggered);
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/vectorization/toLine.png"));
-    act->setText(tr("Convert to segment"));
-    act->setToolTip(tr("Convert the selected points into segement whether the shape fits or not"));
-    pannel->addLargeAction(act);
-    toolBar_function->addAction(act);
-    connect(act,&QAction::triggered,this,&MainWindow::on_action_convertToLine_triggered);
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/vectorization/toEllipse.png"));
-    act->setText(tr("Convert to ellipse"));
-    act->setToolTip(tr("Convert the selected points into ellipse whether the shape fits or not"));
-    pannel->addLargeAction(act);
-    toolBar_function->addAction(act);
-    connect(act,&QAction::triggered,this,&MainWindow::on_action_convertToEllipse_triggered);
-}
-
-void MainWindow::createCategoryHelp(SARibbonCategory *page)
-{
-    SARibbonPannel* pannel = page->addPannel("");
-
-    QAction* act = new QAction(this);
-    act->setIcon(QIcon(":/icons/help/help.png"));
-    act->setText(tr("Help"));
-    act->setToolTip(tr("Open the user's manual"));
-    pannel->addLargeAction(act);
-    connect(act, &QAction::triggered, this, []() {
-        QDesktopServices::openUrl(QUrl(QApplication::applicationDirPath()+"/help/guide.pdf"));
-    });
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/help/example.png"));
-    act->setText(tr("Example"));
-    act->setToolTip(tr("Open the example video of processing a logo image"));
-    QMenu* exampleMenu = new QMenu(this);
-    QAction* exam1 = new QAction(tr("linux logo"),this);
-    connect(exam1, &QAction::triggered, this, []() {
-        QDesktopServices::openUrl(QUrl(QApplication::applicationDirPath()+"/help/linux.mp4"));
-    });
-    QAction* exam2 = new QAction(tr("wechat logo"),this);
-    connect(exam2, &QAction::triggered, this, []() {
-        QDesktopServices::openUrl(QUrl(QApplication::applicationDirPath()+"/help/wechat.mp4"));
-    });
-    exampleMenu->addAction(exam1);
-    exampleMenu->addAction(exam2);
-    act->setMenu(exampleMenu);
-    pannel->addLargeAction(act);
-
-    act = new QAction(this);
-    act->setIcon(QIcon(":/icons/help/about.png"));
-    act->setText(tr("About"));
-    pannel->addLargeAction(act);
-    connect(act, &QAction::triggered, this, [this]() {
-        QMessageBox* aboutBox = new QMessageBox(this);
-        QString str1 = tr("This software is developed by Lieber.");
-        QString str2 = tr("Contact me with: hawkins123h@163.com");
-        aboutBox->setText(str1+'\n'+'\n'+str2);
-        aboutBox->setTextInteractionFlags(Qt::TextSelectableByMouse);
-        aboutBox->setButtonText(QMessageBox::Ok, tr("I Know"));
-        aboutBox->exec();
-    });
-}
-
-// file
-void MainWindow::on_action_openImg_triggered()
+void MainWindow::on_pushButton_openImg_clicked()
 {
     QString filename = QFileDialog::getOpenFileName(this,tr("chose one image"),"","*.jpg *.png *bmp *.jpeg *.jfif");
-    if(filename.isEmpty())
-    {
+    if(filename.isEmpty()) {
         return;
     }
     setWindowTitle(filename);
 
     // get the image, find the best threshold as well
     sourceImg.load(filename);
-    resultImg = sourceImg;
+    sourceSize = sourceImg.size();
     THRESHOLD = ThresholdDetect(sourceImg);
-    spinBox_threshold->setValue(THRESHOLD);
+    ui->spinBox_threshold->setValue(THRESHOLD);
 
-    // show the two pixmap, and it's resolutiuon
-    QPixmap sourcemap = QPixmap::fromImage(sourceImg);
-    graphicSource->SetPixmap(sourcemap);
-    label_imgInfoSource->setText(QString("%1px X %2px").arg(sourcemap.width()).arg(sourcemap.height()));
+    // show the resolution and overview
+    ui->label_imgOverview->setPixmap(QPixmap::fromImage(sourceImg).scaledToWidth(ui->label_imgOverview->width()));
+    ui->label_imgResolution->setText(QString("%1px X %2px").arg(sourceImg.width()).arg(sourceImg.height()));
+}
 
-    graphicResult->ResetPolygons();
-    graphicResult->SetPixmap(sourcemap);
-    label_imgInfoResult->setText(QString("%1px X %2px").arg(sourcemap.width()).arg(sourcemap.height()));
+void MainWindow::on_comboBox_scaleFactor_currentIndexChanged(int index)
+{
+    switch(index) {
+    case 0: SCALE_FACTOR = 0.5;break;
+    case 1: SCALE_FACTOR = 0.67;break;
+    case 2: SCALE_FACTOR = 0.75;break;
+    case 3: SCALE_FACTOR = 0.8;break;
+    case 4: SCALE_FACTOR = 0.9;break;
+    case 5: SCALE_FACTOR = 1.0;break;
+    case 6: SCALE_FACTOR = 1.1;break;
+    case 7: SCALE_FACTOR = 1.25;break;
+    case 8: SCALE_FACTOR = 1.5;break;
+    case 9: SCALE_FACTOR = 1.75;break;
+    case 10: SCALE_FACTOR = 2.0;break;
+    }
+    if(sourceImg.isNull())
+        return;
 
-    // reset the scale factor
-    SCALE_FACTOR = 1.0;
-    comboBox_scaleFactor->setCurrentIndex(5);
+    sourceImg = Scale(sourceImg, sourceSize * SCALE_FACTOR);
+    ui->label_imgResolution->setText(QString("%1px X %2px").arg(sourceImg.width()).arg(sourceImg.height()));
+}
+
+void MainWindow::on_pushButton_sureImgSelect_clicked()
+{
+    if(sourceImg.isNull()) {
+        qWarning()<<tr("Image not open");
+        return;
+    }
+
+    resultImg = sourceImg;
+    ui->graphicResult->ResetPolygons();
+    ui->graphicResult->SetPixmap(QPixmap::fromImage(resultImg));
 
     undoStack->clear();
 }
 
-void MainWindow::on_action_saveAsImg_triggered()
+void MainWindow::on_toolButton_autoDone_clicked()
+{
+    if(!resultImg.isNull()) {
+        QImage before = resultImg;
+        resultImg = MedianFilter(resultImg,3);
+        resultImg = GaussFilter(resultImg);
+        resultImg = FindContours(resultImg);
+        showResult();
+        undoStack->push(new ImageProcessCommand({before,resultImg},tr("Auto Done"),ui->graphicResult));
+        on_toolButton_generatePath_clicked();
+        ui->stackedWidget_progress->setCurrentIndex(2);
+    }
+    else
+        qWarning()<<tr("Image not open");
+}
+
+void MainWindow::on_toolButton_imgGray_clicked()
+{
+    if(resultImg.isNull()) {
+        qWarning()<<tr("Image not open");
+        return;
+    }
+
+    QImage before = resultImg;
+    resultImg = Gray(resultImg);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("gray"),ui->graphicResult));
+}
+
+void MainWindow::on_toolButton_imgBinary_clicked()
+{
+    if(resultImg.isNull()) {
+        qWarning()<<tr("Image not open");
+        return;
+    }
+
+    QImage before = resultImg;
+    resultImg = Binary(resultImg,THRESHOLD);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("binary"),ui->graphicResult));
+}
+
+void MainWindow::on_toolButton_imgSharpen_clicked()
+{
+    if(resultImg.isNull()) {
+        qWarning()<<tr("Image not open");
+        return;
+    }
+
+    QImage before = resultImg;
+    resultImg = Sharpen(resultImg);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("sharpen"),ui->graphicResult));
+}
+
+void MainWindow::on_toolButton_imgMedianFilter_clicked()
+{
+    if(resultImg.isNull()) {
+        qWarning()<<tr("Image not open");
+        return;
+    }
+
+    QImage before = resultImg;
+    resultImg = MedianFilter(resultImg,3);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("median filter"),ui->graphicResult));
+}
+
+void MainWindow::on_toolButton_imgGaussionFilter_clicked()
+{
+    if(resultImg.isNull()) {
+        qWarning()<<tr("Image not open");
+        return;
+    }
+
+    QImage before = resultImg;
+    resultImg = GaussFilter(resultImg);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("Gaussian filter"),ui->graphicResult));
+}
+
+void MainWindow::on_toolButton_imgThining_clicked()
+{
+    if(resultImg.isNull()) {
+        qWarning()<<tr("Image not open");
+        return;
+    }
+
+    QImage before = resultImg;
+    resultImg = Thinning(resultImg);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("thinning"),ui->graphicResult));
+}
+
+void MainWindow::on_toolButton_imgFindContour_clicked()
+{
+    if(resultImg.isNull()) {
+        qWarning()<<tr("Image not open");
+        return;
+    }
+
+    QImage before = resultImg;
+    resultImg = FindContours(resultImg);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("find contours"),ui->graphicResult));
+}
+
+void MainWindow::on_toolButton_imgSobel_clicked()
+{
+    if(resultImg.isNull()) {
+        qWarning()<<tr("Image not open");
+        return;
+    }
+
+    QImage before = resultImg;
+    resultImg = SobelContours(resultImg);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("sobel contours"),ui->graphicResult));
+}
+
+void MainWindow::on_toolButton_imgCanny_clicked()
+{
+    if(resultImg.isNull()) {
+        qWarning()<<tr("Image not open");
+        return;
+    }
+
+    QImage before = resultImg;
+    resultImg = CannyContours(resultImg);
+    showResult();
+    undoStack->push(new ImageProcessCommand({before,resultImg},tr("canny contours"),ui->graphicResult));
+}
+
+
+void MainWindow::on_spinBox_threshold_valueChanged(int arg1)
+{
+    THRESHOLD = arg1;
+}
+
+void MainWindow::on_toolButton_generatePath_clicked()
+{
+    if(resultImg.isNull()) {
+        qWarning()<<tr("Image not open");
+        return;
+    }
+
+    // 0.remove the command about vectorization
+    for(int k=0;k<undoStack->count();++k) {
+        const PointMoveCommand *cmdM = dynamic_cast<const PointMoveCommand*>(undoStack->command(k));
+        const PointsConvertCommand *cmdC = dynamic_cast<const PointsConvertCommand*>(undoStack->command(k));
+        if(cmdM || cmdC) {
+            // remove the cmd
+            // https://forum.qt.io/topic/72978/how-to-remove-last-step-from-qundostack
+            undoStack->setIndex(k);
+            undoStack->push(new QUndoCommand);
+            undoStack->undo();
+            break;
+        }
+    }
+
+    QElapsedTimer testTimer;
+    testTimer.start();
+
+    // 1.scan and tracing
+    QVector<QPolygon> edges = RadialSweepTracing(resultImg);
+    qInfo()<<tr("tracing cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
+
+    // 2.simplify
+    if(useDouglas) {
+        edges = DouglasSimplify(edges);
+        qInfo()<<tr("Douglas simplify cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
+    }
+    else {
+        edges = SimplifyEdge(edges);
+        qInfo()<<tr("colinear simplify cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
+    }
+
+    // 3.smooth
+    QVector<QPolygonF> result = SmoothEdge(edges);
+    qInfo()<<tr("smooth cost:")<<testTimer.elapsed()<<"ms";
+
+    ui->graphicResult->SetImagePolygons(result);
+
+    ui->checkBox_showContours->setChecked(true);
+    ui->checkBox_showVertex->setChecked(true);
+    ui->checkBox_frameSelection->setChecked(false);
+}
+
+void MainWindow::on_toolButton_convertToArc_clicked()
+{
+    QList<QGraphicsItem*> itemList = ui->graphicResult->items();
+    ConvertToArc(itemList);
+}
+
+void MainWindow::on_toolButton_convertToLine_clicked()
+{
+    QList<QGraphicsItem*> itemList = ui->graphicResult->items();
+    ConvertToSegment(itemList);
+}
+
+void MainWindow::on_toolButton_convertToEllipse_clicked()
+{
+    QList<QGraphicsItem*> itemList = ui->graphicResult->items();
+    ConvertToEllipse(itemList);
+}
+
+void MainWindow::on_spinBox_minPathLen_valueChanged(int arg1)
+{
+    MIN_EDGE_SIZE = arg1;
+}
+
+void MainWindow::on_spinBox_bezierStep_valueChanged(int arg1)
+{
+    BEZIER_STEP = arg1;
+}
+
+void MainWindow::on_doubleSpinBox_alpha_valueChanged(double arg1)
+{
+    SMOOTH_ALPHA = arg1;
+}
+
+void MainWindow::on_doubleSpinBox_colinearTol_valueChanged(double arg1)
+{
+    COLINEAR_TOLERANCE = arg1;
+}
+
+void MainWindow::on_checkBox_showContours_stateChanged(int arg1)
+{
+    if(arg1 == Qt::Checked) {
+        ui->graphicResult->SetContoursVisible(true);
+    }
+    else if(arg1 == Qt::Unchecked) {
+        ui->graphicResult->SetContoursVisible(false);
+    }
+}
+
+void MainWindow::on_checkBox_showVertex_stateChanged(int arg1)
+{
+    if(arg1 == Qt::Checked) {
+        ui->graphicResult->SetVertexVisible(true);
+    }
+    else if(arg1 == Qt::Unchecked) {
+        ui->graphicResult->SetVertexVisible(false);
+    }
+}
+
+void MainWindow::on_checkBox_useDouglas_stateChanged(int arg1)
+{
+    if(arg1 == Qt::Checked) {
+        useDouglas = true;
+    }
+    else if(arg1 == Qt::Unchecked) {
+        useDouglas = false;
+    }
+}
+
+void MainWindow::on_checkBox_frameSelection_stateChanged(int arg1)
+{
+    if(arg1 == Qt::Checked) {
+        ui->graphicResult->setDragMode(QGraphicsView::RubberBandDrag);
+    }
+    else if(arg1 == Qt::Unchecked) {
+        ui->graphicResult->setDragMode(QGraphicsView::ScrollHandDrag);
+    }
+}
+
+void MainWindow::on_toolButton_saveAsImg_clicked()
 {
     if(resultImg.isNull()) {
         qWarning()<<tr("Image not open");
@@ -705,7 +397,7 @@ void MainWindow::on_action_saveAsImg_triggered()
     resultImg.save(filename);
 }
 
-void MainWindow::on_action_saveAsDXF_triggered()
+void MainWindow::on_toolButton_savAsDXF_clicked()
 {
     if(resultImg.isNull()) {
         qWarning()<<tr("Image not open");
@@ -780,7 +472,7 @@ void MainWindow::on_action_saveAsDXF_triggered()
 
     // write all entities in model space:
     ContourElements elements;
-    QVector<LB_PolygonItem*> itemList = graphicResult->GetPolygonItems();
+    QVector<LB_PolygonItem*> itemList = ui->graphicResult->GetPolygonItems();
     for(int m=0;m<itemList.size();++m) {
         LB_PolygonItem* poly = itemList[m];
         elements.append(poly->FetchElements());
@@ -879,163 +571,152 @@ void MainWindow::on_action_saveAsDXF_triggered()
     delete dxf;
 }
 
-// vectorization
-void MainWindow::on_action_generateResult_triggered()
+void MainWindow::on_pushButton_lastProgress_clicked()
+{
+    int index = qBound(0,ui->stackedWidget_progress->currentIndex()-1,3);
+    ui->stackedWidget_progress->setCurrentIndex(index);
+}
+
+void MainWindow::on_pushButton_nextProgress_clicked()
+{
+    int index = qBound(0,ui->stackedWidget_progress->currentIndex()+1,3);
+    ui->stackedWidget_progress->setCurrentIndex(index);
+}
+
+void MainWindow::on_actionReset_operation_triggered()
 {
     if(resultImg.isNull()) {
         qWarning()<<tr("Image not open");
         return;
     }
 
-    // 0.remove the command about vectorization
-    for(int k=0;k<undoStack->count();++k) {
-        const PointMoveCommand *cmdM = dynamic_cast<const PointMoveCommand*>(undoStack->command(k));
-        const PointsConvertCommand *cmdC = dynamic_cast<const PointsConvertCommand*>(undoStack->command(k));
-        if(cmdM || cmdC) {
-            // remove the cmd
-            // https://forum.qt.io/topic/72978/how-to-remove-last-step-from-qundostack
-            undoStack->setIndex(k);
-            undoStack->push(new QUndoCommand);
-            undoStack->undo();
-            break;
-        }
-    }
-
-    QElapsedTimer testTimer;
-    testTimer.start();
-
-    // 1.scan and tracing
-    QVector<QPolygon> edges = RadialSweepTracing(resultImg);
-    qInfo()<<tr("tracing cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
-
-    // 2.simplify
-    if(useDouglas) {
-        edges = DouglasSimplify(edges);
-        qInfo()<<tr("Douglas simplify cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
-    }
-    else {
-        edges = SimplifyEdge(edges);
-        qInfo()<<tr("colinear simplify cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
-    }
-
-    // 3.smooth
-    QVector<QPolygonF> result = SmoothEdge(edges);
-    qInfo()<<tr("smooth cost:")<<testTimer.elapsed()<<"ms";
-
-    graphicResult->SetImagePolygons(result);
-
-    checkBox_showContours->setChecked(true);
-    checkBox_showVertex->setChecked(true);
-    checkBox_frameSelection->setChecked(false);
-}
-
-void MainWindow::on_action_convertToArc_triggered()
-{
-    QList<QGraphicsItem*> itemList = graphicResult->items();
-    ConvertToArc(itemList);
-}
-
-void MainWindow::on_action_convertToLine_triggered()
-{
-    QList<QGraphicsItem*> itemList = graphicResult->items();
-    ConvertToSegment(itemList);
-}
-
-void MainWindow::on_action_convertToEllipse_triggered()
-{
-    QList<QGraphicsItem*> itemList = graphicResult->items();
-    ConvertToEllipse(itemList);
-}
-
-// arguments
-void MainWindow::on_comboBox_scaleFactor_activated(int index)
-{
-    switch(index) {
-    case 0: SCALE_FACTOR = 0.5;break;
-    case 1: SCALE_FACTOR = 0.67;break;
-    case 2: SCALE_FACTOR = 0.75;break;
-    case 3: SCALE_FACTOR = 0.8;break;
-    case 4: SCALE_FACTOR = 0.9;break;
-    case 5: SCALE_FACTOR = 1.0;break;
-    case 6: SCALE_FACTOR = 1.1;break;
-    case 7: SCALE_FACTOR = 1.25;break;
-    case 8: SCALE_FACTOR = 1.5;break;
-    case 9: SCALE_FACTOR = 1.75;break;
-    case 10: SCALE_FACTOR = 2.0;break;
-    }
-    if(resultImg.isNull())
-        return;
-
-    QImage befor = resultImg;
-    resultImg = Scale(resultImg, sourceImg.size() * SCALE_FACTOR);
-    label_imgInfoResult->setText(QString("%1px X %2px").arg(resultImg.width()).arg(resultImg.height()));
+    undoStack->clear();
+    resultImg = sourceImg;
     showResult();
-    undoStack->push(new ImageProcessCommand({befor,resultImg},tr("scale"),graphicResult));
+}
+
+void MainWindow::on_actionLast_step_triggered()
+{
+    undoStack->undo();
+    int index = undoStack->index();
+    const ImageProcessCommand *cmd = dynamic_cast<const ImageProcessCommand*>(undoStack->command(index));
+    if(cmd) {
+        resultImg = cmd->GetInput();
+    }
+}
+
+void MainWindow::on_actionNext_step_triggered()
+{
+    undoStack->redo();
+    int index = qBound(0,undoStack->index()-1,undoStack->count()-1);
+    const ImageProcessCommand *cmd = dynamic_cast<const ImageProcessCommand*>(undoStack->command(index));
+    if(cmd) {
+        resultImg = cmd->GetOutput();
+    }
+}
+
+void MainWindow::on_actionHelp_triggered()
+{
+    QDesktopServices::openUrl(QUrl(QApplication::applicationDirPath()+"/help/guide.pdf"));
+}
+
+void MainWindow::on_actionAbout_triggered()
+{
+    QMessageBox* aboutBox = new QMessageBox(this);
+    QString str1 = tr("This software is developed by Lieber.");
+    QString str2 = tr("Contact me with: hawkins123h@163.com");
+    aboutBox->setText(str1+'\n'+'\n'+str2);
+    aboutBox->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    aboutBox->setButtonText(QMessageBox::Ok, tr("I Know"));
+    aboutBox->exec();
+}
+
+void MainWindow::initUI()
+{
+    ui->statusbar_info->addPermanentWidget(new QLabel("Copyright @ Lieber, HFUT",this));
+
+    connect(ui->graphicResult,&LB_ImageViewer::pointSelected,this,[=](const QPointF& pnt) {
+        ui->statusbar_info->showMessage(tr("Selected( %1 , %2 )").arg(pnt.x()).arg(pnt.y()));
+    });
+    connect(ui->graphicResult,&LB_ImageViewer::pointMoved,this,[=](const QPointF& pnt, LB_PointItem* item) {
+        QPointF newPnt = item->GetPoint();
+        QString content =
+                tr("Move ( %1, %2 ) to ( %3, %4 )")
+                .arg(pnt.x()).arg(pnt.y())
+                .arg(newPnt.x()).arg(newPnt.y());
+        ui->statusbar_info->showMessage(content);
+        undoStack->push(new PointMoveCommand(item, pnt,content));
+    });
+    connect(ui->graphicResult,&LB_ImageViewer::converted,this,
+            [=](const LB_PointItemVector& items,
+            const QVector<QPointF>& pnts) {
+        undoStack->push(new PointsConvertCommand(items,pnts,tr("Convert to %1").arg(items.last()->GetLayers().last()->TypeName())));
+    });
+}
+
+void MainWindow::initDock()
+{
+    // 0.treeView of undo
+    undoStack = new QUndoStack();
+    QUndoView *aView = new QUndoView(undoStack);
+    aView->setEmptyLabel(tr("<empty>"));
+    aView->setEnabled(false);
+    QDockWidget* dockWidget_undo = new QDockWidget(tr("Operation record"),this);
+    dockWidget_undo->setAllowedAreas(Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea);
+    this->addDockWidget(Qt::LeftDockWidgetArea, dockWidget_undo);
+    dockWidget_undo->setWidget(aView);
+
+    // 1.log output
+    QTextEdit* textEdit_output = new QTextEdit(this);
+    LB_DebugHandle::installMessageHandler();
+    connect(LB_DebugHandle::Instance(),&LB_DebugHandle::debugInfo,this,[=](const QString &str, const QColor &color, bool popup) {
+        textEdit_output->setTextColor(color);
+        textEdit_output->append(str);
+
+        if(popup) {
+            QMessageBox* aboutBox = new QMessageBox(this);
+            aboutBox->setText(str);
+            aboutBox->setButtonText(QMessageBox::Ok, tr("OK"));
+            aboutBox->exec();
+        }
+    });
+    QDockWidget* outPutDock = new QDockWidget(tr("Output"), this);
+    outPutDock->setWidget(textEdit_output);
+    this->addDockWidget(Qt::LeftDockWidgetArea, outPutDock);
+    this->tabifyDockWidget(outPutDock,dockWidget_undo);
 }
 
 void MainWindow::loadArguments()
 {
-    spinBox_threshold->setValue(THRESHOLD);
-    doubleSpinBox_alpha->setValue(SMOOTH_ALPHA);
-    doubleSpinBox_colinearTol->setValue(COLINEAR_TOLERANCE);
-    spinBox_bezierStep->setValue(BEZIER_STEP);
-    spinBox_minPathLen->setValue(MIN_EDGE_SIZE);
+    ui->spinBox_threshold->setValue(THRESHOLD);
+    ui->doubleSpinBox_alpha->setValue(SMOOTH_ALPHA);
+    ui->doubleSpinBox_colinearTol->setValue(COLINEAR_TOLERANCE);
+    ui->spinBox_bezierStep->setValue(BEZIER_STEP);
+    ui->spinBox_minPathLen->setValue(MIN_EDGE_SIZE);
     SCALE_FACTOR = 1.0;
-    comboBox_scaleFactor->setCurrentIndex(5);
-    checkBox_showVertex->setChecked(true);
-    checkBox_showContours->setChecked(true);
+    ui->comboBox_scaleFactor->setCurrentIndex(5);
+    ui->checkBox_showVertex->setChecked(true);
+    ui->checkBox_showContours->setChecked(true);
 }
 
-void MainWindow::fuzzyJudgeFactor(double factor)
+void MainWindow::on_actionExample_triggered()
 {
-    if(abs(factor-0.5) < 0.01) {
-        SCALE_FACTOR = 0.5;
-        comboBox_scaleFactor->setCurrentIndex(0);
-    }
-    else if(abs(factor-0.67) < 0.01) {
-        SCALE_FACTOR = 0.67;
-        comboBox_scaleFactor->setCurrentIndex(1);
-    }
-    else if(abs(factor-0.75) < 0.01) {
-        SCALE_FACTOR = 0.75;
-        comboBox_scaleFactor->setCurrentIndex(2);
-    }
-    else if(abs(factor-0.8) < 0.01) {
-        SCALE_FACTOR = 0.8;
-        comboBox_scaleFactor->setCurrentIndex(3);
-    }
-    else if(abs(factor-0.9) < 0.01) {
-        SCALE_FACTOR = 0.9;
-        comboBox_scaleFactor->setCurrentIndex(4);
-    }
-    else if(abs(factor-1.0) < 0.01) {
-        SCALE_FACTOR = 1.0;
-        comboBox_scaleFactor->setCurrentIndex(5);
-    }
-    else if(abs(factor-1.1) < 0.01) {
-        SCALE_FACTOR = 1.1;
-        comboBox_scaleFactor->setCurrentIndex(6);
-    }
-    else if(abs(factor-1.25) < 0.01) {
-        SCALE_FACTOR = 1.25;
-        comboBox_scaleFactor->setCurrentIndex(7);
-    }
-    else if(abs(factor-1.5) < 0.01) {
-        SCALE_FACTOR = 1.5;
-        comboBox_scaleFactor->setCurrentIndex(8);
-    }
-    else if(abs(factor-1.75) < 0.01) {
-        SCALE_FACTOR = 1.75;
-        comboBox_scaleFactor->setCurrentIndex(9);
-    }
-    else if(abs(factor-2.0) < 0.01) {
-        SCALE_FACTOR = 2.0;
-        comboBox_scaleFactor->setCurrentIndex(10);
-    }
+    QMenu* exampleMenu = new QMenu(this);
+    QAction* exam1 = new QAction(tr("linux logo"),this);
+    connect(exam1, &QAction::triggered, this, []() {
+        QDesktopServices::openUrl(QUrl(QApplication::applicationDirPath()+"/help/linux.mp4"));
+    });
+    QAction* exam2 = new QAction(tr("wechat logo"),this);
+    connect(exam2, &QAction::triggered, this, []() {
+        QDesktopServices::openUrl(QUrl(QApplication::applicationDirPath()+"/help/wechat.mp4"));
+    });
+    exampleMenu->addAction(exam1);
+    exampleMenu->addAction(exam2);
+    exampleMenu->exec(mapToGlobal(ui->toolBar_function->pos()+QPoint(200,40)));
 }
 
 void MainWindow::showResult()
 {
     QPixmap tarmap = QPixmap::fromImage(resultImg);
-    graphicResult->SetPixmap(tarmap);
+    ui->graphicResult->SetPixmap(tarmap);
 }
