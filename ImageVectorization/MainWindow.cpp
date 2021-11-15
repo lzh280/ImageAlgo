@@ -114,6 +114,7 @@ void MainWindow::on_pushButton_sureImgSelect_clicked()
     ui->graphicResult->SetPixmap(QPixmap::fromImage(resultImg));
 
     undoStack->clear();
+    undoStack->push(new AddImageCommand(ui->graphicResult));
 }
 
 void MainWindow::on_toolButton_autoDone_clicked()
@@ -124,7 +125,7 @@ void MainWindow::on_toolButton_autoDone_clicked()
         resultImg = GaussFilter(resultImg);
         resultImg = FindContours(resultImg);
         showResult();
-        undoStack->push(new ImageProcessCommand({before,resultImg},tr("Auto Done"),ui->graphicResult));
+        undoStack->push(new ImageProcessCommand(before,tr("Auto Done"),ui->graphicResult));
         on_toolButton_generatePath_clicked();
         ui->stackedWidget_progress->setCurrentIndex(2);
     }
@@ -142,7 +143,7 @@ void MainWindow::on_toolButton_imgGray_clicked()
     QImage before = resultImg;
     resultImg = Gray(resultImg);
     showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},tr("gray"),ui->graphicResult));
+    undoStack->push(new ImageProcessCommand(before,tr("gray"),ui->graphicResult));
 }
 
 void MainWindow::on_toolButton_imgBinary_clicked()
@@ -155,7 +156,7 @@ void MainWindow::on_toolButton_imgBinary_clicked()
     QImage before = resultImg;
     resultImg = Binary(resultImg,THRESHOLD);
     showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},tr("binary"),ui->graphicResult));
+    undoStack->push(new ImageProcessCommand(before,tr("binary"),ui->graphicResult));
 }
 
 void MainWindow::on_toolButton_imgSharpen_clicked()
@@ -168,7 +169,7 @@ void MainWindow::on_toolButton_imgSharpen_clicked()
     QImage before = resultImg;
     resultImg = Sharpen(resultImg);
     showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},tr("sharpen"),ui->graphicResult));
+    undoStack->push(new ImageProcessCommand(before,tr("sharpen"),ui->graphicResult));
 }
 
 void MainWindow::on_toolButton_imgMedianFilter_clicked()
@@ -181,7 +182,7 @@ void MainWindow::on_toolButton_imgMedianFilter_clicked()
     QImage before = resultImg;
     resultImg = MedianFilter(resultImg,3);
     showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},tr("median filter"),ui->graphicResult));
+    undoStack->push(new ImageProcessCommand(before,tr("median filter"),ui->graphicResult));
 }
 
 void MainWindow::on_toolButton_imgGaussionFilter_clicked()
@@ -194,7 +195,7 @@ void MainWindow::on_toolButton_imgGaussionFilter_clicked()
     QImage before = resultImg;
     resultImg = GaussFilter(resultImg);
     showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},tr("Gaussian filter"),ui->graphicResult));
+    undoStack->push(new ImageProcessCommand(before,tr("Gaussian filter"),ui->graphicResult));
 }
 
 void MainWindow::on_toolButton_imgThining_clicked()
@@ -207,7 +208,7 @@ void MainWindow::on_toolButton_imgThining_clicked()
     QImage before = resultImg;
     resultImg = Thinning(resultImg);
     showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},tr("thinning"),ui->graphicResult));
+    undoStack->push(new ImageProcessCommand(before,tr("thinning"),ui->graphicResult));
 }
 
 void MainWindow::on_toolButton_imgFindContour_clicked()
@@ -220,7 +221,7 @@ void MainWindow::on_toolButton_imgFindContour_clicked()
     QImage before = resultImg;
     resultImg = FindContours(resultImg);
     showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},tr("find contours"),ui->graphicResult));
+    undoStack->push(new ImageProcessCommand(before,tr("find contours"),ui->graphicResult));
 }
 
 void MainWindow::on_toolButton_imgSobel_clicked()
@@ -233,7 +234,7 @@ void MainWindow::on_toolButton_imgSobel_clicked()
     QImage before = resultImg;
     resultImg = SobelContours(resultImg);
     showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},tr("sobel contours"),ui->graphicResult));
+    undoStack->push(new ImageProcessCommand(before,tr("sobel contours"),ui->graphicResult));
 }
 
 void MainWindow::on_toolButton_imgCanny_clicked()
@@ -246,7 +247,7 @@ void MainWindow::on_toolButton_imgCanny_clicked()
     QImage before = resultImg;
     resultImg = CannyContours(resultImg);
     showResult();
-    undoStack->push(new ImageProcessCommand({before,resultImg},tr("canny contours"),ui->graphicResult));
+    undoStack->push(new ImageProcessCommand(before,tr("canny contours"),ui->graphicResult));
 }
 
 
@@ -266,7 +267,8 @@ void MainWindow::on_toolButton_generatePath_clicked()
     for(int k=0;k<undoStack->count();++k) {
         const PointMoveCommand *cmdM = dynamic_cast<const PointMoveCommand*>(undoStack->command(k));
         const PointsConvertCommand *cmdC = dynamic_cast<const PointsConvertCommand*>(undoStack->command(k));
-        if(cmdM || cmdC) {
+        const AddPolygonCommand *cmdAP = dynamic_cast<const AddPolygonCommand*>(undoStack->command(k));
+        if(cmdM || cmdC || cmdAP) {
             // remove the cmd
             // https://forum.qt.io/topic/72978/how-to-remove-last-step-from-qundostack
             undoStack->setIndex(k);
@@ -298,6 +300,7 @@ void MainWindow::on_toolButton_generatePath_clicked()
     qInfo()<<tr("smooth cost:")<<testTimer.elapsed()<<"ms";
 
     ui->graphicResult->SetImagePolygons(result);
+    undoStack->push(new AddPolygonCommand(ui->graphicResult));
 
     ui->checkBox_showContours->setChecked(true);
     ui->checkBox_showVertex->setChecked(true);
@@ -591,28 +594,19 @@ void MainWindow::on_actionReset_operation_triggered()
     }
 
     undoStack->clear();
-    resultImg = sourceImg;
-    showResult();
+    ui->graphicResult->ResetPolygons();
+    ui->graphicResult->SetPixmap(QPixmap());
+    resultImg = QImage();
 }
 
 void MainWindow::on_actionLast_step_triggered()
 {
     undoStack->undo();
-    int index = undoStack->index();
-    const ImageProcessCommand *cmd = dynamic_cast<const ImageProcessCommand*>(undoStack->command(index));
-    if(cmd) {
-        resultImg = cmd->GetInput();
-    }
 }
 
 void MainWindow::on_actionNext_step_triggered()
 {
     undoStack->redo();
-    int index = qBound(0,undoStack->index()-1,undoStack->count()-1);
-    const ImageProcessCommand *cmd = dynamic_cast<const ImageProcessCommand*>(undoStack->command(index));
-    if(cmd) {
-        resultImg = cmd->GetOutput();
-    }
 }
 
 void MainWindow::on_actionHelp_triggered()
@@ -658,9 +652,13 @@ void MainWindow::initDock()
 {
     // 0.treeView of undo
     undoStack = new QUndoStack();
+    connect(undoStack, &QUndoStack::indexChanged, this, [=](int index) {
+        Q_UNUSED(index)
+        resultImg = ui->graphicResult->Pixmap().toImage();
+    });
+
     QUndoView *aView = new QUndoView(undoStack);
     aView->setEmptyLabel(tr("<empty>"));
-    aView->setEnabled(false);
     QDockWidget* dockWidget_undo = new QDockWidget(tr("Operation record"),this);
     dockWidget_undo->setAllowedAreas(Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea);
     this->addDockWidget(Qt::LeftDockWidgetArea, dockWidget_undo);

@@ -25,6 +25,7 @@ public:
     QVector<LB_PolygonItem*> GetPolygonItems() const {
         return myPolyItems;
     }
+    QPixmap Pixmap() const;
 
 protected:
     virtual void resizeEvent(QResizeEvent * event) override;

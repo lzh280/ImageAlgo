@@ -93,6 +93,14 @@ void LB_ImageViewer::SetImagePolygons(const QVector<QPolygonF> &contours)
     this->setDragMode(ScrollHandDrag);
 }
 
+QPixmap LB_ImageViewer::Pixmap() const
+{
+    if(myPixmapItem)
+        return myPixmapItem->pixmap();
+    else
+        return QPixmap();
+}
+
 void LB_ImageViewer::resizeEvent(QResizeEvent *event)
 {
     if(myPixmapItem) {

@@ -2,20 +2,55 @@
 
 #include "LB_Image/LB_ImageViewer.h"
 
-ImageProcessCommand::ImageProcessCommand(const QPair<QImage, QImage> &data, const QString &operation, LB_ImageViewer *viewer)
+ImageProcessCommand::ImageProcessCommand(const QImage &old, const QString &operation, LB_ImageViewer *viewer)
     :QUndoCommand(operation),
-      inputImg(data.first),
-      outputImg(data.second),
+      inputMap(QPixmap::fromImage(old)),
+      outputMap(viewer->Pixmap()),
       imgViewer(viewer)
 {    
 }
 
 void ImageProcessCommand::undo()
 {
-    imgViewer->SetPixmap(QPixmap::fromImage(inputImg));
+    imgViewer->SetPixmap(inputMap);
 }
 
 void ImageProcessCommand::redo()
 {
-    imgViewer->SetPixmap(QPixmap::fromImage(outputImg));
+    imgViewer->SetPixmap(outputMap);
+}
+
+
+AddImageCommand::AddImageCommand(LB_ImageViewer *viewer)
+    :QUndoCommand(QObject::tr("Add Image")),
+      inputMap(viewer->Pixmap()),
+      imgViewer(viewer)
+{
+}
+
+void AddImageCommand::undo()
+{
+    imgViewer->SetPixmap(QPixmap());
+}
+
+void AddImageCommand::redo()
+{
+    imgViewer->SetPixmap(inputMap);
+}
+
+
+AddPolygonCommand::AddPolygonCommand(LB_ImageViewer *viewer)
+    :QUndoCommand(QObject::tr("Generate result")),
+      imgViewer(viewer)
+{
+}
+
+void AddPolygonCommand::undo()
+{
+    imgViewer->SetContoursVisible(false);
+}
+
+void AddPolygonCommand::redo()
+{
+    imgViewer->SetContoursVisible(true);
 }
