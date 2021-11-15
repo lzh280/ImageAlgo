@@ -14,15 +14,13 @@
 #include <QUndoView>
 #include <QMessageBox>
 #include <QDesktopServices>
-#include <QElapsedTimer>
 #include <QKeyEvent>
 
 #include "dl_dxf.h"
 #include "dl_creationadapter.h"
 
 #include "LB_Image/LB_ImagePreProcess.h"
-#include "LB_Image/LB_BMPVectorization.h"
-#include "LB_Graphics/LB_PointItem.h"
+#include "LB_Image/LB_VectorThread.h"
 #include "LB_Graphics/LB_GraphicsItem.h"
 #include "LB_QtTool/ImageProcessCommand.h"
 #include "LB_QtTool/ImageVectorCommand.h"
@@ -39,7 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     useDouglas(false)
 {
     ui->setupUi(this);
-    initUI();
+    initFunction();
     initDock();
 
     loadArguments();
@@ -102,7 +100,7 @@ void MainWindow::on_comboBox_scaleFactor_currentIndexChanged(int index)
     ui->label_imgResolution->setText(QString("%1px X %2px").arg(sourceImg.width()).arg(sourceImg.height()));
 }
 
-void MainWindow::on_pushButton_sureImgSelect_clicked()
+void MainWindow::on_toolButton_sureImgSelect_clicked()
 {
     if(sourceImg.isNull()) {
         qWarning()<<tr("Image not open");
@@ -278,33 +276,8 @@ void MainWindow::on_toolButton_generatePath_clicked()
         }
     }
 
-    QElapsedTimer testTimer;
-    testTimer.start();
-
-    // 1.scan and tracing
-    QVector<QPolygon> edges = RadialSweepTracing(resultImg);
-    qInfo()<<tr("tracing cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
-
-    // 2.simplify
-    if(useDouglas) {
-        edges = DouglasSimplify(edges);
-        qInfo()<<tr("Douglas simplify cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
-    }
-    else {
-        edges = SimplifyEdge(edges);
-        qInfo()<<tr("colinear simplify cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
-    }
-
-    // 3.smooth
-    QVector<QPolygonF> result = SmoothEdge(edges);
-    qInfo()<<tr("smooth cost:")<<testTimer.elapsed()<<"ms";
-
-    ui->graphicResult->SetImagePolygons(result);
-    undoStack->push(new AddPolygonCommand(ui->graphicResult));
-
-    ui->checkBox_showContours->setChecked(true);
-    ui->checkBox_showVertex->setChecked(true);
-    ui->checkBox_frameSelection->setChecked(false);
+    solveThread->SetVectorImage(resultImg,useDouglas);
+    solveThread->start();
 }
 
 void MainWindow::on_toolButton_convertToArc_clicked()
@@ -625,9 +598,17 @@ void MainWindow::on_actionAbout_triggered()
     aboutBox->exec();
 }
 
-void MainWindow::initUI()
+void MainWindow::initFunction()
 {
-    ui->statusbar_info->addPermanentWidget(new QLabel("Copyright @ Lieber, HFUT",this));
+    solveThread = new LB_VectorThread(this);
+    connect(solveThread,&LB_VectorThread::ComputeFinish,this,[=](const QVector<QPolygonF>& result) {
+            ui->graphicResult->SetImagePolygons(result);
+            undoStack->push(new AddPolygonCommand(ui->graphicResult));
+
+            ui->checkBox_showContours->setChecked(true);
+            ui->checkBox_showVertex->setChecked(true);
+            ui->checkBox_frameSelection->setChecked(false);
+    });
 
     connect(ui->graphicResult,&LB_ImageViewer::pointSelected,this,[=](const QPointF& pnt) {
         ui->statusbar_info->showMessage(tr("Selected( %1 , %2 )").arg(pnt.x()).arg(pnt.y()));
@@ -650,6 +631,8 @@ void MainWindow::initUI()
 
 void MainWindow::initDock()
 {
+    ui->statusbar_info->addPermanentWidget(new QLabel("Copyright @ Lieber, HFUT",this));
+
     // 0.treeView of undo
     undoStack = new QUndoStack();
     connect(undoStack, &QUndoStack::indexChanged, this, [=](int index) {

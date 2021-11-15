@@ -8,6 +8,7 @@ class MainWindow;
 }
 
 class QUndoStack;
+class LB_VectorThread;
 
 class MainWindow : public QMainWindow
 {
@@ -23,7 +24,7 @@ protected:
 private slots:
     void on_pushButton_openImg_clicked();
     void on_comboBox_scaleFactor_currentIndexChanged(int index);
-    void on_pushButton_sureImgSelect_clicked();
+    void on_toolButton_sureImgSelect_clicked();
     void on_toolButton_autoDone_clicked();
 
     void on_toolButton_imgGray_clicked();
@@ -67,13 +68,14 @@ private:
     Ui::MainWindow *ui;
 
     QUndoStack *undoStack;
+    LB_VectorThread* solveThread;
     QImage sourceImg;
     QSize sourceSize;
     QImage resultImg;
     bool useDouglas;
 
 private:
-    void initUI();
+    void initFunction();
     void initDock();
     void loadArguments();
     void showResult();

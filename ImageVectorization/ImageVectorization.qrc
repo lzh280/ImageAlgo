@@ -26,5 +26,6 @@
         <file>icons/help/example.png</file>
         <file>icons/help/help.png</file>
         <file>icons/file/autoDone.png</file>
+        <file>icons/file/sureSelect.png</file>
     </qresource>
 </RCC>
