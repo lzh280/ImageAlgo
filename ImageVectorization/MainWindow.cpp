@@ -318,16 +318,6 @@ void MainWindow::on_doubleSpinBox_colinearTol_valueChanged(double arg1)
     COLINEAR_TOLERANCE = arg1;
 }
 
-void MainWindow::on_checkBox_showContours_stateChanged(int arg1)
-{
-    if(arg1 == Qt::Checked) {
-        ui->graphicResult->SetContoursVisible(true);
-    }
-    else if(arg1 == Qt::Unchecked) {
-        ui->graphicResult->SetContoursVisible(false);
-    }
-}
-
 void MainWindow::on_checkBox_showVertex_stateChanged(int arg1)
 {
     if(arg1 == Qt::Checked) {
@@ -549,14 +539,24 @@ void MainWindow::on_toolButton_savAsDXF_clicked()
 
 void MainWindow::on_pushButton_lastProgress_clicked()
 {
-    int index = qBound(0,ui->stackedWidget_progress->currentIndex()-1,3);
-    ui->stackedWidget_progress->setCurrentIndex(index);
+    int index = ui->stackedWidget_progress->currentIndex()-1;
+    if(index<0)
+        return;
+
+    int wid = ui->stackedWidget_progress->currentWidget()->width();
+    ui->stackedWidget_progress->setLength(wid,AnimationStackedWidget::LeftToRight);
+    ui->stackedWidget_progress->start(index);
 }
 
 void MainWindow::on_pushButton_nextProgress_clicked()
 {
-    int index = qBound(0,ui->stackedWidget_progress->currentIndex()+1,3);
-    ui->stackedWidget_progress->setCurrentIndex(index);
+    int index = ui->stackedWidget_progress->currentIndex()+1;
+    if(index>3)
+        return;
+
+    int wid = ui->stackedWidget_progress->currentWidget()->width();
+    ui->stackedWidget_progress->setLength(wid,AnimationStackedWidget::RightToLeft);
+    ui->stackedWidget_progress->start(index);
 }
 
 void MainWindow::on_actionReset_operation_triggered()
@@ -605,7 +605,6 @@ void MainWindow::initFunction()
             ui->graphicResult->SetImagePolygons(result);
             undoStack->push(new AddPolygonCommand(ui->graphicResult));
 
-            ui->checkBox_showContours->setChecked(true);
             ui->checkBox_showVertex->setChecked(true);
             ui->checkBox_frameSelection->setChecked(false);
     });
@@ -632,6 +631,19 @@ void MainWindow::initFunction()
 void MainWindow::initDock()
 {
     ui->statusbar_info->addPermanentWidget(new QLabel("Copyright @ Lieber, HFUT",this));
+
+    QStringList states;
+    states<<tr("File")<<tr("Preprocess")<<tr("Vectorization")<<tr("Save");
+    ui->widget_progress->setStates(states);
+    ui->widget_progress->setValue(1);
+    QStringList tips;
+    tips<<tr("Select image")<<tr("Operate image")<<tr("Deal with path")<<tr("Save result");
+    ui->widget_progress->setTip(tips[0]);
+
+    connect(ui->stackedWidget_progress,&AnimationStackedWidget::currentChanged,this,[=](int index) {
+        ui->widget_progress->setValue(index+1);
+        ui->widget_progress->setTip(tips[index]);
+    });
 
     // 0.treeView of undo
     undoStack = new QUndoStack();
@@ -677,7 +689,6 @@ void MainWindow::loadArguments()
     SCALE_FACTOR = 1.0;
     ui->comboBox_scaleFactor->setCurrentIndex(5);
     ui->checkBox_showVertex->setChecked(true);
-    ui->checkBox_showContours->setChecked(true);
 }
 
 void MainWindow::on_actionExample_triggered()

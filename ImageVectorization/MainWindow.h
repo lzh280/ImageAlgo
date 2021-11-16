@@ -46,7 +46,6 @@ private slots:
     void on_spinBox_bezierStep_valueChanged(int arg1);
     void on_doubleSpinBox_alpha_valueChanged(double arg1);
     void on_doubleSpinBox_colinearTol_valueChanged(double arg1);
-    void on_checkBox_showContours_stateChanged(int arg1);
     void on_checkBox_showVertex_stateChanged(int arg1);
     void on_checkBox_useDouglas_stateChanged(int arg1);
     void on_checkBox_frameSelection_stateChanged(int arg1);

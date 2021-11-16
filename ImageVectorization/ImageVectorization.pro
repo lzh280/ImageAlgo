@@ -17,9 +17,12 @@ SOURCES += \
         LB_Image/LB_ElementDetection.cpp \
         LB_Image/LB_ImagePreProcess.cpp \
         LB_Image/LB_ImageViewer.cpp \
+    LB_Image/LB_VectorThread.cpp \
+    LB_QtTool/AnimationStackedWidget.cpp \
         LB_QtTool/ImageProcessCommand.cpp \
         LB_QtTool/ImageVectorCommand.cpp \
         LB_QtTool/LB_DebugHandle.cpp \
+    LB_QtTool/QStateProgressBar.cpp \
         main.cpp \
         MainWindow.cpp \
 
@@ -32,9 +35,12 @@ HEADERS += \
         LB_Image/LB_ElementDetection.h \
         LB_Image/LB_ImagePreProcess.h \
         LB_Image/LB_ImageViewer.h \
+        LB_Image/LB_VectorThread.h \
+        LB_QtTool/AnimationStackedWidget.h \
         LB_QtTool/ImageProcessCommand.h \
         LB_QtTool/ImageVectorCommand.h \
         LB_QtTool/LB_DebugHandle.h \
+        LB_QtTool/QStateProgressBar.h \
         MainWindow.h
 
 RESOURCES += \
@@ -46,10 +52,10 @@ INCLUDEPATH += $$PWD/../SARibbonBar
 INCLUDEPATH += $$PWD/../dxflib
 
 CONFIG(debug, debug|release) {
-    LIBS += $$PWD/../bind/dxflib.dll
+    LIBS += $$PWD/../bind/dxflib.lib
     DESTDIR = $$PWD/../bind
 } else {
-    LIBS += $$PWD/../bin/dxflib.dll
+    LIBS += $$PWD/../bin/dxflib.lib
     DESTDIR = $$PWD/../bin
 }
 
