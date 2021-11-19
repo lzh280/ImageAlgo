@@ -61,7 +61,12 @@ void MainWindow::keyPressEvent(QKeyEvent *event)
 
 void MainWindow::on_pushButton_openImg_clicked()
 {
-    QString filename = QFileDialog::getOpenFileName(this,tr("chose one image"),"","*.jpg *.png *bmp *.jpeg *.jfif");
+    QString filename = QFileDialog::getOpenFileName(this,tr("chose one image"),"","*.jpg *.png *bmp *.jpeg *.jfif\n"
+                                                                                  "*.jpg\n"
+                                                                                  "*.png\n"
+                                                                                  "*.bmp\n"
+                                                                                  "*.jpeg\n"
+                                                                                  "*.jfif");
     if(filename.isEmpty()) {
         return;
     }
@@ -355,7 +360,12 @@ void MainWindow::on_toolButton_saveAsImg_clicked()
         return;
     }
 
-    QString filename = QFileDialog::getSaveFileName(this,tr("chose one image"),"","*.jpg *.png *bmp *.jpeg *.jfif");
+    QString filename = QFileDialog::getSaveFileName(this,tr("chose one image"),"","*.jpg *.png *bmp *.jpeg *.jfif\n"
+                                                                                  "*.jpg\n"
+                                                                                  "*.png\n"
+                                                                                  "*.bmp\n"
+                                                                                  "*.jpeg\n"
+                                                                                  "*.jfif");
     if(filename.isEmpty())
     {
         return;

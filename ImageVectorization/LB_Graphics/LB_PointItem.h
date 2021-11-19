@@ -89,6 +89,7 @@ public:
     bool isSelected() const;
     bool equal(const LB_PointItemVector& other) const;
     bool isogeny() const;
+    QVector<bool> visible() const;
     QVector<bool> editable() const;
     QVector<QPointF> points() const;
 };

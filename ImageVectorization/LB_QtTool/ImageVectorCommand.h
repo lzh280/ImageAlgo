@@ -35,6 +35,7 @@ private:
     QVector<QPointF> myOldPnts;
     QVector<QPointF> myNewPnts;
     QVector<bool> myNewEditStatus;
+    QVector<bool> myNewVisualStatus;
     QSharedPointer<LB_Element> myNewLayer;
 };
 

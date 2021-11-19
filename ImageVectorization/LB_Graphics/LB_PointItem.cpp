@@ -29,9 +29,6 @@ void LB_PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
     Q_UNUSED(option);
     Q_UNUSED(widget);
 
-    if(!myEditable)
-        return;
-
     painter->setPen(Qt::NoPen);
     this->setPos(myPoint);
     if(this->isSelected()) {
@@ -100,7 +97,7 @@ void LB_PointItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
 void LB_PointItem::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
     if(!myEditable)
-        return QAbstractGraphicsShapeItem::mouseMoveEvent(event);
+        return;
 
     if ( event->buttons() == Qt::LeftButton ) {
         myPoint = this->mapToParent( event->pos() );
@@ -178,6 +175,16 @@ bool LB_PointItemVector::isogeny() const
         }
     }
     return true;
+}
+
+QVector<bool> LB_PointItemVector::visible() const
+{
+    QVector<bool> status;
+    for (auto &temp : *this)
+    {
+        status.append(temp->isVisible());
+    }
+    return status;
 }
 
 QVector<bool> LB_PointItemVector::editable() const

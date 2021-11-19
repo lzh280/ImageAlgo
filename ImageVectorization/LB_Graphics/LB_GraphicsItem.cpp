@@ -200,6 +200,13 @@ QRectF LB_PolygonItem::boundingRect() const
                   ymax-ymin);
 }
 
+QPainterPath LB_PolygonItem::shape() const
+{
+    QPainterPath path;
+    path.addPolygon(myPoints.points());
+    return path;
+}
+
 void LB_PolygonItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 {
     QMenu menu;
@@ -331,17 +338,22 @@ void ConvertToArc(const LB_PointItemVector &ptrList)
     bool closed;
     int index1, index2;
     pList = LeastSquaresCircle(pList, circle, closed, index1, index2);
+    if(closed) {
+        circle.SetArguments(circle.GetCenter(),circle.GetRadius(),
+                             0,2*M_PI,circle.IsClockwise());
+    }
 
     // 2.update all point item to new position
     for(int k=0;k<pList.size();++k) {
         ptrList[k]->SetPoint(pList[k]);
         ptrList[k]->SetEditable(false);
+        ptrList[k]->setVisible(false);
         ptrList[k]->AddLayer(QSharedPointer<LB_Circle>(new LB_Circle(circle)));
     }
 
     if(!closed) {
-        ptrList[index1]->SetEditable(true);
-        ptrList[index2]->SetEditable(true);
+        ptrList[index1]->setVisible(true);
+        ptrList[index2]->setVisible(true);
     }
 
     LB_PolygonItem* polyItm = dynamic_cast<LB_PolygonItem*>(ptrList.first()->parentItem());
@@ -384,16 +396,21 @@ void ConvertToEllipse(const LB_PointItemVector& ptrList)
     bool closed;
     int index1, index2;
     pList = LeastSquaresEllipse(pList, ellipse, closed, index1, index2);
+    if(closed) {
+        ellipse.SetArguments(ellipse.GetCenter(),ellipse.GetLAxis(),ellipse.GetSAxis(),ellipse.GetTheta(),
+                             0,2*M_PI,ellipse.IsClockwise());
+    }
 
     for(int k=0;k<pList.size();++k) {
         ptrList[k]->SetPoint(pList[k]);
         ptrList[k]->SetEditable(false);
+        ptrList[k]->setVisible(false);
         ptrList[k]->AddLayer(QSharedPointer<LB_Ellipse>(new LB_Ellipse(ellipse)));
     }
 
     if(!closed) {
-        ptrList[index1]->SetEditable(true);
-        ptrList[index2]->SetEditable(true);
+        ptrList[index1]->setVisible(true);
+        ptrList[index2]->setVisible(true);
     }
 
     LB_PolygonItem* polyItm = dynamic_cast<LB_PolygonItem*>(ptrList.first()->parentItem());
@@ -476,12 +493,13 @@ void ConvertToSegment(const LB_PointItemVector &ptrList)
         scale = (double)k/(double)(count-1);
         itemPair[index].second->SetPoint((1-scale)*head+scale*tail);
         itemPair[index].second->SetEditable(false);
+        itemPair[index].second->setVisible(false);
         itemPair[index].second->AddLayer(line);
     }
 
     // 3.free the head and tail item
-    itemPair[headIndex].second->SetEditable(true);
-    itemPair[tailIndex].second->SetEditable(true);
+    itemPair[headIndex].second->setVisible(true);
+    itemPair[tailIndex].second->setVisible(true);
 
     // 4.emit the signal
     polygon->pointsConverted(ptrList,oldList);
