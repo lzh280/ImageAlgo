@@ -456,14 +456,14 @@ void MainWindow::on_toolButton_savAsDXF_clicked()
     DL_Attributes attributes = DL_Attributes("0", 256, -1, "CONTINUOUS", 1.0);
     for(int k=0;k<elements.size();++k) {
         switch(elements[k].get()->Type()) {
-        case 0: {
+        case 1: {
             QSharedPointer<LB_Segement> segment = elements[k].dynamicCast<LB_Segement>();
             dxf->writeLine(*dw, DL_LineData(segment->GetStart().x(),-segment->GetStart().y(),0,
                                             segment->GetEnd().x(),-segment->GetEnd().y(),0),
                            attributes);
             break;
         }
-        case 1: {
+        case 2: {
             QSharedPointer<LB_Circle> circle = elements[k].dynamicCast<LB_Circle>();
             if(circle->IsClockwise()) {
                 dxf->writeArc(*dw, DL_ArcData(circle->GetCenter().x(),-circle->GetCenter().y(),0,
@@ -477,7 +477,7 @@ void MainWindow::on_toolButton_savAsDXF_clicked()
             }
             break;
         }
-        case 2: {
+        case 3: {
             QSharedPointer<LB_Ellipse> ellipse = elements[k].dynamicCast<LB_Ellipse>();
             const double ratio = ellipse->GetSAxis() / ellipse->GetLAxis();
             const double mx=ellipse->GetLAxis()*cos(ellipse->GetTheta());
@@ -517,7 +517,7 @@ void MainWindow::on_toolButton_savAsDXF_clicked()
             }
             break;
         }
-        case 3: {
+        case 4: {
             QSharedPointer<LB_PolyLine> poly = elements[k].dynamicCast<LB_PolyLine>();
             QPolygonF polygon = poly->GetPolygon();
             dxf->writePolyline(*dw,
@@ -633,8 +633,10 @@ void MainWindow::initFunction()
     });
     connect(ui->graphicResult,&LB_ImageViewer::converted,this,
             [=](const LB_PointItemVector& items,
-            const QVector<QPointF>& pnts) {
-        undoStack->push(new PointsConvertCommand(items,pnts,tr("Convert to %1").arg(items.last()->GetLayers().last()->TypeName())));
+            const QVector<QPointF>& pnts,
+            const ContourElements &oldLayer,
+            const QString& type) {
+        undoStack->push(new PointsConvertCommand(items,pnts,oldLayer,tr("Convert to %1").arg(type)));
     });
 }
 

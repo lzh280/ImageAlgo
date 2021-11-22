@@ -18,15 +18,18 @@ void PointMoveCommand::redo()
     myItem->SetPoint(myNewPnt);
 }
 
-PointsConvertCommand::PointsConvertCommand(const LB_PointItemVector& items, const QVector<QPointF> &pnts, const QString &operation)
+PointsConvertCommand::PointsConvertCommand(const LB_PointItemVector& items, const QVector<QPointF> &pnts, const ContourElements &layers, const QString &operation)
     : QUndoCommand(operation),
       myItems(items),
       myOldPnts(pnts),
       myNewPnts(items.points()),
       myNewEditStatus(items.editable()),
       myNewVisualStatus(items.visible()),
-      myNewLayer(items.first()->GetLayers().last())
+      myOldLayer(layers)
 {
+    foreach(LB_PointItem* item, items) {
+        myNewLayer.append(item->GetLayer());
+    }
 }
 
 void PointsConvertCommand::undo()
@@ -37,7 +40,7 @@ void PointsConvertCommand::undo()
         itm->setVisible(true);
         itm->SetEditable(true);
         itm->SetPoint(myOldPnts[i]);
-        itm->RLayers().removeLast();
+        itm->SetLayer(myOldLayer[i]);
     }
 }
 
@@ -49,6 +52,6 @@ void PointsConvertCommand::redo()
         itm->setVisible(myNewVisualStatus[i]);
         itm->SetEditable(myNewEditStatus[i]);
         itm->SetPoint(myNewPnts[i]);
-        itm->AddLayer(myNewLayer);
+        itm->SetLayer(myNewLayer[i]);
     }
 }

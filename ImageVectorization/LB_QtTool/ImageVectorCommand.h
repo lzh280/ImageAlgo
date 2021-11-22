@@ -25,7 +25,7 @@ private:
 class PointsConvertCommand : public QUndoCommand
 {
 public:
-    PointsConvertCommand(const LB_PointItemVector& items, const QVector<QPointF>& pnts, const QString &operation);
+    PointsConvertCommand(const LB_PointItemVector& items, const QVector<QPointF>& pnts, const ContourElements& layers, const QString &operation);
 
     virtual void undo() override;
     virtual void redo() override;
@@ -36,7 +36,8 @@ private:
     QVector<QPointF> myNewPnts;
     QVector<bool> myNewEditStatus;
     QVector<bool> myNewVisualStatus;
-    QSharedPointer<LB_Element> myNewLayer;
+    ContourElements myOldLayer;
+    ContourElements myNewLayer;
 };
 
 #endif // IMAGEVECTORCOMMAND_H

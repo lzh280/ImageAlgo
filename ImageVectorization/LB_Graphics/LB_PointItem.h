@@ -37,24 +37,11 @@ public:
         return myEditable;
     }
 
-    void AddLayer(const QSharedPointer<LB_Element>& layer) {
-        bool contains = false;
-        foreach(QSharedPointer<LB_Element> ele, myLayers) {
-            if(ele->IsSame(layer)) {
-                contains = true;
-                break;
-            }
-        }
-
-        if(!contains)
-            myLayers.append(layer);
+    void SetLayer(const QSharedPointer<LB_Element>& layer) {
+        myLayer = layer;
     }
-    ContourElements GetLayers() const {
-        return myLayers;
-    }
-
-    ContourElements& RLayers() {
-        return myLayers;
+    QSharedPointer<LB_Element> GetLayer() const {
+        return myLayer;
     }
 
 protected:
@@ -77,7 +64,7 @@ private:
     bool myEditable;
     QPointF myOldPoint;
     bool myMoving;
-    ContourElements myLayers;
+    QSharedPointer<LB_Element> myLayer;
 };
 
 class LB_PointItemVector: public QVector<LB_PointItem *>
@@ -92,6 +79,7 @@ public:
     QVector<bool> visible() const;
     QVector<bool> editable() const;
     QVector<QPointF> points() const;
+    ContourElements layers() const;
 };
 
 #endif // LB_POINTITEM_H

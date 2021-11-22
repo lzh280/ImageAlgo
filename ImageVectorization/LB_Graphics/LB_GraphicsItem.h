@@ -87,7 +87,9 @@ signals:
     void pointPosUserChanged(const QPointF& pnt,LB_PointItem* item);
     void pointUserSelected(const QPointF& pnt);
     void pointsConverted(const LB_PointItemVector& items,
-                         const QVector<QPointF>& oldPos);
+                         const QVector<QPointF>& oldPos,
+                         const ContourElements& oldLayers,
+                         const QString& type);
 };
 
 namespace LB_Graphics

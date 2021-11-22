@@ -39,6 +39,9 @@ private:
 signals:
     void pointSelected(const QPointF& pnt);
     void pointMoved(const QPointF& pnt, LB_PointItem* item);
-    void converted(const LB_PointItemVector& items, const QVector<QPointF>& pnts);
+    void converted(const LB_PointItemVector& items,
+                   const QVector<QPointF>& pnts,
+                   const ContourElements& oldLayer,
+                   const QString& type);
 
 };

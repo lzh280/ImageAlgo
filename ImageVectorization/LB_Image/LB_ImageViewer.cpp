@@ -84,8 +84,12 @@ void LB_ImageViewer::SetImagePolygons(const QVector<QPolygonF> &contours)
         connect(item,&LB_PolygonItem::pointPosUserChanged,this,[=](const QPointF& pnt, LB_PointItem* item) {
             emit pointMoved(pnt, item);
         });
-        connect(item,&LB_PolygonItem::pointsConverted,this,[=](const LB_PointItemVector& items, const QVector<QPointF>& pnts) {
-            emit converted(items, pnts);
+        connect(item,&LB_PolygonItem::pointsConverted,this,
+                [=](const LB_PointItemVector& items,
+                const QVector<QPointF>& pnts,
+                const ContourElements& oldLayer,
+                const QString& type) {
+            emit converted(items, pnts, oldLayer, type);
         });
         myPolyItems.append(item);
         myGraphicScene->addItem(item);

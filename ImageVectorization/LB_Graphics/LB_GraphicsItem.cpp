@@ -118,8 +118,8 @@ ContourElements LB_PolygonItem::FetchElements() const
     int next = -1;
     for(int i=0;i<myPoints.size();++i) {
         item = myPoints[i];
-        ContourElements layers = item->GetLayers();
-        if(layers.isEmpty()) {
+        QSharedPointer<LB_Element> layer = item->GetLayer();
+        if(layer.isNull()) {
             poly.append(item->GetPoint());
         }
         else {
@@ -132,21 +132,38 @@ ContourElements LB_PolygonItem::FetchElements() const
             }
 
             // 2.add the other type element
-            foreach(const QSharedPointer<LB_Element>& ele, layers) {
-                if(!result.isEmpty()) {
-                    if(!result.last().get()->IsSame(ele)) {
-                        result.append(ele);
+            if(!result.isEmpty()) {
+                QSharedPointer<LB_Element> lastLayer = result.last();
+                if(!lastLayer->IsSame(layer)) {
+                    if(layer->Type() == 0) {
+                        if(!layer.dynamicCast<LB_ElementBorder>()->Element()->IsSame(lastLayer)) {
+                            result.append(layer.dynamicCast<LB_ElementBorder>()->Element());
+                        }
+                    }
+                    else {
+                        result.append(layer);
                     }
                 }
-                else {
-                    result.append(ele);
+            }
+            else {
+                if(layer->Type() == 0) {
+                    result.append(layer.dynamicCast<LB_ElementBorder>()->Element());
                 }
+                else {
+                    result.append(layer);
+                }
+
             }
 
             // 3.judge if need to create new polygon
             next = (i+1)%myPoints.size();
-            if(myPoints[next]->GetLayers().isEmpty()) {
+            if(myPoints[next]->GetLayer().isNull()) {
                 poly.append(item->GetPoint());
+            }
+            else {
+                if(layer->Type() == 0 && myPoints[next]->GetLayer()->Type() == 0) {
+                    result.append(QSharedPointer<LB_Segement>(new LB_Segement(item->GetPoint(),myPoints[next]->GetPoint())));
+                }
             }
         }
     }
@@ -252,33 +269,38 @@ void LB_PolygonItem::contextMenuEvent(QGraphicsSceneContextMenuEvent *event)
 
 QPen LB_PolygonItem::getPenByPoints(LB_PointItem *last, LB_PointItem *next)
 {
-    QPen pen;
-    ContourElements layersA, layersB;
-    foreach(const QSharedPointer<LB_Element>& ele, last->GetLayers()) {
-        layersA.append(ele);
-    }
-    foreach(const QSharedPointer<LB_Element>& ele, next->GetLayers()) {
-        layersB.append(ele);
-    }
+    QSharedPointer<LB_Element> layerA, layerB;
+    layerA = last->GetLayer();
+    layerB = next->GetLayer();
 
-    // find the same item
-    int type = -1;
-    for(int i=0;i<layersA.size();++i) {
-        for(int j=0;j<layersB.size();++j) {
-            if(layersA[i]->IsSame(layersB[j])) {
-                type = layersA[i]->Type();
-                break;
+    if(layerA && layerB) {
+        int type = -1;
+        if(layerA->Type() == layerB->Type()) {
+            type = layerA->Type();
+            if(type == 0) {
+                type = 1; // set as segement if two element are neighbours
             }
         }
-    }
-    switch(type) {
-    case -1: pen = myPolyLine;break;
-    case 0: pen = mySegement;break;
-    case 1: pen = myCircle;break;
-    case 2: pen = myEllipse;break;
-    }
+        else {
+            if(layerA->Type() == 0) {
+                type = layerB->Type();
+            }
+            else if(layerB->Type() == 0) {
+                type = layerA->Type();
+            }
+        }
 
-    return pen;
+        switch(type) {
+        case -1:
+        case 0:return myPolyLine;
+        case 1:return mySegement;
+        case 2:return myCircle;
+        case 3:return myEllipse;
+        default:return myPolyLine;
+        }
+    }
+    else
+        return myPolyLine;
 }
 
 void LB_PolygonItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -332,33 +354,51 @@ void ConvertToArc(const LB_PointItemVector &ptrList)
 {
     QVector<QPointF> pList = ptrList.points();
     QVector<QPointF> oldList = pList;
+    ContourElements oldLayer = ptrList.layers();
 
     // 1.fit
     LB_Circle circle;
     bool closed;
     int index1, index2;
     pList = LeastSquaresCircle(pList, circle, closed, index1, index2);
+
+    LB_PolygonItem *polygon;
+    LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(ptrList.first()->parentItem());
+    if(item) {
+        polygon = dynamic_cast<LB_PolygonItem *>(item);
+        if(!polygon)
+            return;
+    }
+    else return;
+
+    if(ptrList.size() == polygon->Size())
+        closed = true;
+
     if(closed) {
         circle.SetArguments(circle.GetCenter(),circle.GetRadius(),
                              0,2*M_PI,circle.IsClockwise());
     }
+
+    QSharedPointer<LB_Circle> pCircle = QSharedPointer<LB_Circle>(new LB_Circle(circle));
 
     // 2.update all point item to new position
     for(int k=0;k<pList.size();++k) {
         ptrList[k]->SetPoint(pList[k]);
         ptrList[k]->SetEditable(false);
         ptrList[k]->setVisible(false);
-        ptrList[k]->AddLayer(QSharedPointer<LB_Circle>(new LB_Circle(circle)));
+        ptrList[k]->SetLayer(QSharedPointer<LB_Circle>(new LB_Circle(circle)));
     }
 
     if(!closed) {
         ptrList[index1]->setVisible(true);
         ptrList[index2]->setVisible(true);
+
+        QSharedPointer<LB_ElementBorder> border = QSharedPointer<LB_ElementBorder>(new LB_ElementBorder(pCircle));
+        ptrList[index1]->SetLayer(border);
+        ptrList[index2]->SetLayer(border);
     }
 
-    LB_PolygonItem* polyItm = dynamic_cast<LB_PolygonItem*>(ptrList.first()->parentItem());
-    if(polyItm)
-        polyItm->pointsConverted(ptrList,oldList);
+    emit polygon->pointsConverted(ptrList,oldList,oldLayer,pCircle->TypeName());
 }
 
 void ConvertToEllipse(const QList<QGraphicsItem *> &itemList)
@@ -391,31 +431,49 @@ void ConvertToEllipse(const LB_PointItemVector& ptrList)
 {
     QVector<QPointF> pList = ptrList.points();
     QVector<QPointF> oldList = pList;
+    ContourElements oldLayer = ptrList.layers();
 
     LB_Ellipse ellipse;
     bool closed;
     int index1, index2;
     pList = LeastSquaresEllipse(pList, ellipse, closed, index1, index2);
+
+    LB_PolygonItem *polygon;
+    LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(ptrList.first()->parentItem());
+    if(item) {
+        polygon = dynamic_cast<LB_PolygonItem *>(item);
+        if(!polygon)
+            return;
+    }
+    else return;
+
+    if(ptrList.size() == polygon->Size())
+        closed = true;
+
     if(closed) {
         ellipse.SetArguments(ellipse.GetCenter(),ellipse.GetLAxis(),ellipse.GetSAxis(),ellipse.GetTheta(),
                              0,2*M_PI,ellipse.IsClockwise());
     }
 
+    QSharedPointer<LB_Ellipse> pEllipse = QSharedPointer<LB_Ellipse>(new LB_Ellipse(ellipse));
+
     for(int k=0;k<pList.size();++k) {
         ptrList[k]->SetPoint(pList[k]);
         ptrList[k]->SetEditable(false);
         ptrList[k]->setVisible(false);
-        ptrList[k]->AddLayer(QSharedPointer<LB_Ellipse>(new LB_Ellipse(ellipse)));
+        ptrList[k]->SetLayer(pEllipse);
     }
 
     if(!closed) {
         ptrList[index1]->setVisible(true);
         ptrList[index2]->setVisible(true);
+
+        QSharedPointer<LB_ElementBorder> border = QSharedPointer<LB_ElementBorder>(new LB_ElementBorder(pEllipse));
+        ptrList[index1]->SetLayer(border);
+        ptrList[index2]->SetLayer(border);
     }
 
-    LB_PolygonItem* polyItm = dynamic_cast<LB_PolygonItem*>(ptrList.first()->parentItem());
-    if(polyItm)
-        polyItm->pointsConverted(ptrList,oldList);
+    emit polygon->pointsConverted(ptrList,oldList,oldLayer,pEllipse->TypeName());
 }
 
 void ConvertToSegment(const QList<QGraphicsItem *> &itemList)
@@ -447,6 +505,7 @@ void ConvertToSegment(const QList<QGraphicsItem *> &itemList)
 void ConvertToSegment(const LB_PointItemVector &ptrList)
 {
     QVector<QPointF> oldList = ptrList.points();
+    ContourElements oldLayer = ptrList.layers();
 
     LB_PolygonItem *polygon;
     LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(ptrList.first()->parentItem());
@@ -485,6 +544,7 @@ void ConvertToSegment(const LB_PointItemVector &ptrList)
     QPointF tail = itemPair[tailIndex].second->GetPoint();
 
     QSharedPointer<LB_Segement> line = QSharedPointer<LB_Segement>(new LB_Segement(head,tail));
+    QSharedPointer<LB_ElementBorder> border = QSharedPointer<LB_ElementBorder>(new LB_ElementBorder(line));
 
     // 2.calculate the new point list
     double scale;
@@ -494,15 +554,17 @@ void ConvertToSegment(const LB_PointItemVector &ptrList)
         itemPair[index].second->SetPoint((1-scale)*head+scale*tail);
         itemPair[index].second->SetEditable(false);
         itemPair[index].second->setVisible(false);
-        itemPair[index].second->AddLayer(line);
+        itemPair[index].second->SetLayer(line);
     }
 
     // 3.free the head and tail item
     itemPair[headIndex].second->setVisible(true);
     itemPair[tailIndex].second->setVisible(true);
+    itemPair[headIndex].second->SetLayer(border);
+    itemPair[tailIndex].second->SetLayer(border);
 
     // 4.emit the signal
-    polygon->pointsConverted(ptrList,oldList);
+    emit polygon->pointsConverted(ptrList,oldList,oldLayer,line->TypeName());
 }
 
 }

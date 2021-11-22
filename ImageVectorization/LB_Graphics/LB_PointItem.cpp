@@ -10,7 +10,7 @@ LB_PointItem::LB_PointItem(QAbstractGraphicsShapeItem* parent, const QPointF &p)
     , myEditable(true)
     , myOldPoint(p)
     , myMoving(false)
-    , myLayers({})
+    , myLayer(nullptr)
 {
     this->setPos(myPoint);
     this->setFlags(ItemIsSelectable |
@@ -205,4 +205,14 @@ QVector<QPointF> LB_PointItemVector::points() const
         points.append(temp->GetPoint());
     }
     return points;
+}
+
+ContourElements LB_PointItemVector::layers() const
+{
+    ContourElements layers;
+    for (auto &temp : *this)
+    {
+        layers.append(temp->GetLayer());
+    }
+    return layers;
 }

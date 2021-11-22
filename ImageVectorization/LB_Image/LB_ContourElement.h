@@ -22,6 +22,31 @@ public:
     virtual QString TypeName() const { return QObject::tr("Empty"); }
 };
 
+class LB_ElementBorder : public LB_Element
+{
+public:
+    LB_ElementBorder(const QSharedPointer<LB_Element>& element) :myElement(element) {}
+    virtual ~LB_ElementBorder() {}
+
+    QSharedPointer<LB_Element> Element() const {
+        return myElement;
+    }
+    virtual bool IsSame(const QSharedPointer<LB_Element>& other) const {
+        QSharedPointer<LB_ElementBorder> border = other.dynamicCast<LB_ElementBorder>();
+        if(!border.isNull()) {
+            return myElement->IsSame(border->myElement);
+        }
+        else
+            return false;
+    }
+    virtual QString Info() const { return QString("Border of an element."); }
+    virtual int Type() const { return 0; }
+    virtual QString TypeName() const { return QObject::tr("Border"); }
+
+private:
+    QSharedPointer<LB_Element> myElement;
+};
+
 class LB_Segement : public LB_Element
 {
 public:
@@ -51,7 +76,7 @@ public:
                 .arg(myEnd.x())
                 .arg(myEnd.y());
     }
-    virtual int Type() const { return 0; }
+    virtual int Type() const { return 1; }
     virtual QString TypeName() const { return QObject::tr("Segement"); }
 
 protected:
@@ -102,7 +127,7 @@ public:
                 .arg(myEndAng)
                 .arg(myClockwise? "Clockwise":"Anti-clockwise");
     }
-    virtual int Type() const { return 1; }
+    virtual int Type() const { return 2; }
     virtual QString TypeName() const { return QObject::tr("Circle"); }
 
 protected:
@@ -199,7 +224,7 @@ public:
                 .arg(myEndAng)
                 .arg(myClockwise? "Clockwise":"Anti-clockwise");
     }
-    virtual int Type() const { return 2; }
+    virtual int Type() const { return 3; }
     virtual QString TypeName() const { return QObject::tr("Ellipse"); }
 
 protected:
@@ -244,7 +269,7 @@ public:
         info.append(')');
         return info;
     }
-    virtual int Type() const { return 3; }
+    virtual int Type() const { return 4; }
     virtual QString TypeName() const { return QObject::tr("PolyLine"); }
 
 protected:
