@@ -17,12 +17,12 @@ SOURCES += \
         LB_Image/LB_ElementDetection.cpp \
         LB_Image/LB_ImagePreProcess.cpp \
         LB_Image/LB_ImageViewer.cpp \
-    LB_Image/LB_VectorThread.cpp \
-    LB_QtTool/AnimationStackedWidget.cpp \
+        LB_Image/LB_VectorThread.cpp \
+        LB_QtTool/AnimationStackedWidget.cpp \
         LB_QtTool/ImageProcessCommand.cpp \
         LB_QtTool/ImageVectorCommand.cpp \
         LB_QtTool/LB_DebugHandle.cpp \
-    LB_QtTool/QStateProgressBar.cpp \
+        LB_QtTool/QStateProgressBar.cpp \
         main.cpp \
         MainWindow.cpp \
 
@@ -43,6 +43,9 @@ HEADERS += \
         LB_QtTool/QStateProgressBar.h \
         MainWindow.h
 
+FORMS += \
+    MainWindow.ui
+
 RESOURCES += \
     ImageVectorization.qrc
 
@@ -59,5 +62,12 @@ CONFIG(debug, debug|release) {
     DESTDIR = $$PWD/../bin
 }
 
-FORMS += \
-    MainWindow.ui
+contains(DEFINES,USE_OPENCV) {
+    SOURCES += LB_Image/LB_VectorCVHandle.cpp
+    HEADERS += LB_Image/LB_VectorCVHandle.h
+
+    LIBS += D:/OpenCV/bin/libopencv_world454.dll
+    INCLUDEPATH += D:\OpenCV\include
+} else {
+    message('WITHOUT OPENCV, USE CUSTOM ALGORITHM')
+}

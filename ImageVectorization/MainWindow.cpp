@@ -26,6 +26,10 @@
 #include "LB_QtTool/ImageVectorCommand.h"
 #include "LB_QtTool/LB_DebugHandle.h"
 
+#ifdef USE_OPENCV
+#include "LB_Image/LB_VectorCVHandle.h"
+#endif
+
 using namespace LB_Image;
 using namespace LB_Graphics;
 
@@ -281,8 +285,18 @@ void MainWindow::on_toolButton_generatePath_clicked()
         }
     }
 
+#ifdef USE_OPENCV
+    LB_VectorCVHandle aHandle;
+    QVector<QPolygonF> result = aHandle.Handle(resultImg);
+    ui->graphicResult->SetImagePolygons(result);
+    undoStack->push(new AddPolygonCommand(ui->graphicResult));
+
+    ui->checkBox_showVertex->setChecked(true);
+    ui->checkBox_frameSelection->setChecked(false);
+#else
     solveThread->SetVectorImage(resultImg,useDouglas);
     solveThread->start();
+#endif
 }
 
 void MainWindow::on_toolButton_convertToArc_clicked()
