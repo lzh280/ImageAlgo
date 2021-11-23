@@ -7,108 +7,175 @@ namespace LB_Image
 
 QVector<QPolygon> RadialSweepTracing(const QImage &img)
 {
-    // 1.get all the points on edge
-    QVector<QPoint> borderPnts;
-    QRgb color;
-    for(int i=0;i<img.width();++i)
-    {
-        for(int j=0;j<img.height();++j)
+//    // 1.get all the points on edge
+//    QVector<QPoint> borderPnts;
+//    QRgb color;
+//    for(int i=0;i<img.width();++i)
+//    {
+//        for(int j=0;j<img.height();++j)
+//        {
+//            color = img.pixel(i,j);
+//            if(qAlpha(color) == 0)
+//                continue;
+
+//            if(qRed(color) == 0)
+//                borderPnts.append(QPoint(i,j));
+//        }
+//    }
+
+//    // 2.sort the point to get the start pixel
+//    std::sort(borderPnts.begin(),borderPnts.end(),[](const QPoint& pnt1, const QPoint& pnt2) {
+//        if(pnt1.x() < pnt2.x())
+//            return true;
+//        else if(pnt1.x() == pnt2.x()) {
+//            if(pnt1.y() < pnt2.y())
+//                return true;
+//            else
+//                return false;
+//        }
+//        else
+//            return false;
+//    });
+
+//    QVector<QPolygon> roughEdge;
+//    QVector<QPoint> neighbor;
+//    QPolygon aGroup;
+//    QSet<int> aDiscard; // this set include the index of points which shouldn't be use in next loop,
+//                        // both the point of 'aGroup' and neighbour
+//    QList<int> aDiscardList;
+//    QPoint currP = borderPnts[0];
+//    QPoint nextP;
+//    QPoint lastP;
+//    QPoint aNeighbor;
+//    int index;
+//    int indexInEdge;
+
+//    // 3.trace
+//    while(!borderPnts.isEmpty())
+//    {
+//        currP = borderPnts[0];
+//        lastP = INVALID_PNT;
+//        aGroup.append(currP);
+//        aDiscard<<0;
+
+//        while(1)
+//        {
+//            // get all the 8-connect neighbor by clockwise direction
+//            neighbor = clockwiseNeighbor(currP);
+
+//            // find the position of last point in current group
+//            index = indexOfNeighbor(lastP,currP);
+//            if(index == -1)
+//                index = 0;
+
+//            // scan from the last position, the last position can be used again
+//            nextP = INVALID_PNT;
+//            for(int i=1;i<9;++i) {
+//                aNeighbor = neighbor[(i+index)%8];
+//                indexInEdge = borderPnts.indexOf(aNeighbor);
+//                if(indexInEdge != -1) {
+//                    if(nextP == INVALID_PNT)
+//                        nextP = aNeighbor;
+
+//                    aDiscard<<indexInEdge;
+//                }
+//            }
+
+//            // get the next position from the neighbors
+//            if(nextP != INVALID_PNT && nextP != borderPnts[0]) {
+//                aGroup.append(nextP);
+//                lastP = currP;
+//                currP = nextP;
+//            }
+//            else { // reach one edge's end
+//                if(aGroup.size() > MIN_EDGE_SIZE) // filter the small area
+//                    roughEdge.append(aGroup);
+//                break;
+//            }
+//        }
+
+//        // remove the discard
+//        aDiscardList.clear();
+//        aDiscardList = QList(aDiscard.begin(), aDiscard.end());
+//        std::sort(aDiscardList.begin(), aDiscardList.end()); // sort to make index correct
+//        QList<int>::iterator ite = aDiscardList.begin();
+//        int k=0;
+//        for(;ite!=aDiscardList.end();++ite) {
+//            borderPnts.removeAt(*ite-k);
+//            k++;
+//        }
+
+//        aGroup.clear();
+//        aDiscard.clear();
+//    }
+//    return roughEdge;
+
+    QImage edgeImg = img;
+    QVector<QPoint> edge_t;
+    QVector<QPolygon> edges;
+    // 8 neighbors
+    const QPoint directions[8] = { { 0, 1 }, {1,1}, { 1, 0 }, { 1, -1 }, { 0, -1 },  { -1, -1 }, { -1, 0 },{ -1, 1 } };
+    int i, j, counts = 0, curr_d = 0;
+    for (i = 0; i < edgeImg.width(); i++)
+        for (j = 0; j < edgeImg.height(); j++)
         {
-            color = img.pixel(i,j);
-            if(qAlpha(color) == 0)
-                continue;
+            // 起始点及当前点
+            QPoint b_pt = QPoint(i, j);//当前点
+            QPoint c_pt = QPoint(i, j);
+            // 如果当前点为前景点
+            if (0 == qRed(edgeImg.pixel(c_pt.x(), c_pt.y())))
+            {
+                edge_t.clear();
+                bool tra_flag = false;
+                edge_t.push_back(c_pt);
+                edgeImg.setPixel(c_pt.x(), c_pt.y(), QColor(255,255,255).rgb());    // 用过的点直接给设置为0
 
-            if(qRed(color) == 0)
-                borderPnts.append(QPoint(i,j));
-        }
-    }
+                // 进行跟踪
+                while (!tra_flag)
+                {
+                    // 循环八次
+                    for (counts = 0; counts < 8; counts++)
+                    {
+                        if (curr_d >= 8)
+                        {
+                            curr_d -= 8;
+                        }
+                        if (curr_d < 0)
+                        {
+                            curr_d += 8;
+                        }
+                        c_pt = QPoint(b_pt.x() + directions[curr_d].x(), b_pt.y() + directions[curr_d].y());
+                        if ((c_pt.x() >= 0) && (c_pt.x() < edgeImg.width()) &&
+                                (c_pt.y() >= 0) && (c_pt.y() < edgeImg.height()))
+                        {
+                            if (0 == qRed(edgeImg.pixel(c_pt.x(), c_pt.y())))
+                            {
+                                curr_d -= 2;   // 更新当前方向
+                                edge_t.push_back(c_pt);
+                                edgeImg.setPixel(c_pt.x(), c_pt.y(), QColor(255,255,255).rgb());
 
-    // 2.sort the point to get the start pixel
-    std::sort(borderPnts.begin(),borderPnts.end(),[](const QPoint& pnt1, const QPoint& pnt2) {
-        if(pnt1.x() < pnt2.x())
-            return true;
-        else if(pnt1.x() == pnt2.x()) {
-            if(pnt1.y() < pnt2.y())
-                return true;
-            else
-                return false;
-        }
-        else
-            return false;
-    });
+                                // 更新b_pt:跟踪的root点
+                                b_pt.rx() = c_pt.x();
+                                b_pt.ry() = c_pt.y();
 
-    QVector<QPolygon> roughEdge;
-    QVector<QPoint> neighbor;
-    QPolygon aGroup;
-    QSet<int> aDiscard; // this set include the index of points which shouldn't be use in next loop,
-                        // both the point of 'aGroup' and neighbour
-    QList<int> aDiscardList;
-    QPoint currP = borderPnts[0];
-    QPoint nextP;
-    QPoint lastP;
-    QPoint aNeighbor;
-    int index;
-    int indexInEdge;
-
-    // 3.trace
-    while(!borderPnts.isEmpty())
-    {
-        currP = borderPnts[0];
-        lastP = INVALID_PNT;
-        aGroup.append(currP);
-        aDiscard<<0;
-
-        while(1)
-        {
-            // get all the 8-connect neighbor by clockwise direction
-            neighbor = clockwiseNeighbor(currP);
-
-            // find the position of last point in current group
-            index = indexOfNeighbor(lastP,currP);
-            if(index == -1)
-                index = 0;
-
-            // scan from the last position, the last position can be used again
-            nextP = INVALID_PNT;
-            for(int i=1;i<9;++i) {
-                aNeighbor = neighbor[(i+index)%8];
-                indexInEdge = borderPnts.indexOf(aNeighbor);
-                if(indexInEdge != -1) {
-                    if(nextP == INVALID_PNT)
-                        nextP = aNeighbor;
-
-                    aDiscard<<indexInEdge;
+                                break;   // 跳出for循环
+                            }
+                        }
+                        curr_d++;
+                    }
+                    if (8 == counts )
+                    {
+                        // 清零
+                        curr_d = 0;
+                        tra_flag = true;//结束while
+                        if(edge_t.size() > MIN_EDGE_SIZE)
+                            edges.push_back(edge_t);
+                        break;
+                    }
                 }
             }
-
-            // get the next position from the neighbors
-            if(nextP != INVALID_PNT && nextP != borderPnts[0]) {
-                aGroup.append(nextP);
-                lastP = currP;
-                currP = nextP;
-            }
-            else { // reach one edge's end
-                if(aGroup.size() > MIN_EDGE_SIZE) // filter the small area
-                    roughEdge.append(aGroup);
-                break;
-            }
         }
-
-        // remove the discard
-        aDiscardList.clear();
-        aDiscardList = QList(aDiscard.begin(), aDiscard.end());
-        std::sort(aDiscardList.begin(), aDiscardList.end()); // sort to make index correct
-        QList<int>::iterator ite = aDiscardList.begin();
-        int k=0;
-        for(;ite!=aDiscardList.end();++ite) {
-            borderPnts.removeAt(*ite-k);
-            k++;
-        }
-
-        aGroup.clear();
-        aDiscard.clear();
-    }
-    return roughEdge;
+    return edges;
 }
 
 QVector<QPolygon> SimplifyEdge(const QVector<QPolygon> &edges)
