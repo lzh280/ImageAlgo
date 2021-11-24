@@ -186,10 +186,6 @@ ContourElements LB_PolygonItem::FetchElements() const
 
 QRectF LB_PolygonItem::boundingRect() const
 {
-    if(myPoints.size() < 3){
-        return QRect();
-    }
-
     double xmin = myPoints[0]->x();
     double xmax = myPoints[0]->x();
     double ymin = myPoints[0]->y();

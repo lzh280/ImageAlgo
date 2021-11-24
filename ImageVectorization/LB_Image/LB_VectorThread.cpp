@@ -5,6 +5,10 @@
 
 #include "LB_Image/LB_BMPVectorization.h"
 
+#ifdef USE_OPENCV
+#include "LB_Image/LB_VectorCVHandle.h"
+#endif
+
 using namespace LB_Image;
 
 LB_VectorThread::LB_VectorThread(QObject *parent)
@@ -29,10 +33,20 @@ void LB_VectorThread::run()
     testTimer.start();
 
     // 1.scan and tracing
-    QVector<QPolygon> edges = RadialSweepTracing(myImage);
+    QVector<QPolygon> edges;
+#ifdef USE_OPENCV
+    LB_VectorCVHandle aHandle;
+    edges = aHandle.Handle(myImage);
+#else
+    edges = RadialSweepTracing(myImage);
+#endif
     qInfo()<<tr("tracing cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
 
     // 2.simplify
+#ifdef USE_OPENCV
+    edges = aHandle.Handle(edges);
+    qInfo()<<tr("Douglas simplify cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
+#else
     if(myDPSimplify) {
         edges = DouglasSimplify(edges);
         qInfo()<<tr("Douglas simplify cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
@@ -41,6 +55,7 @@ void LB_VectorThread::run()
         edges = SimplifyEdge(edges);
         qInfo()<<tr("colinear simplify cost:")<<testTimer.elapsed()<<"ms";testTimer.restart();
     }
+#endif
 
     // 3.smooth
     QVector<QPolygonF> result = SmoothEdge(edges);

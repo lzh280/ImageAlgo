@@ -23,9 +23,6 @@ QVector<QPolygonF> ScaleEdge(const QVector<QPolygonF> &edges);
 //! get the 'neighbor''s index of 8-connect neighbours of 'current'
 int indexOfNeighbor(const QPoint& neighbor, const QPoint& current);
 
-//! get the 8-connect neighbours of 'pnt'
-QVector<QPoint> clockwiseNeighbor(const QPoint& pnt);
-
 //! get the area of a polygon
 double areaOfPolygon(const QPolygonF& poly);
 

@@ -15,13 +15,14 @@ class LB_VectorCVHandle
 public:
     LB_VectorCVHandle();
 
-    QVector<QPolygonF> Handle(const QImage& img);
+    QVector<QPolygon> Handle(const QImage& img);
+    QVector<QPolygon> Handle(const QVector<QPolygon>& polys);
 
 private:
     Mat myInput;
 
     Mat imageToMat(const QImage &img);
-    QVector<QPolygonF> convertResult(const vector<vector<Point>>& pnts);
+    QVector<QPolygon> convertResult(const vector<vector<Point>>& pnts);
 };
 
 #endif // LB_VECTORCVHANDLE_H
