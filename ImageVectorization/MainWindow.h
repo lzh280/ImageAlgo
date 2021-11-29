@@ -51,6 +51,7 @@ private slots:
     void on_checkBox_frameSelection_stateChanged(int arg1);
 
     void on_toolButton_saveAsImg_clicked();
+    void on_toolButton_saveAsSVG_clicked();
     void on_toolButton_savAsDXF_clicked();
 
     void on_pushButton_lastProgress_clicked();

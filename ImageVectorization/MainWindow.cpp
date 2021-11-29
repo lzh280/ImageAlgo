@@ -15,6 +15,7 @@
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QKeyEvent>
+#include <QSvgGenerator>
 
 #include "dl_dxf.h"
 #include "dl_creationadapter.h"
@@ -253,7 +254,6 @@ void MainWindow::on_toolButton_imgCanny_clicked()
     undoStack->push(new ImageProcessCommand(before,tr("canny contours"),ui->graphicResult));
 }
 
-
 void MainWindow::on_spinBox_threshold_valueChanged(int arg1)
 {
     THRESHOLD = arg1;
@@ -360,7 +360,7 @@ void MainWindow::on_toolButton_saveAsImg_clicked()
         return;
     }
 
-    QString filename = QFileDialog::getSaveFileName(this,tr("chose one image"),"","*.jpg *.png *bmp *.jpeg *.jfif\n"
+    QString filename = QFileDialog::getSaveFileName(this,tr("save result"),"","*.jpg *.png *bmp *.jpeg *.jfif\n"
                                                                                   "*.jpg\n"
                                                                                   "*.png\n"
                                                                                   "*.bmp\n"
@@ -371,6 +371,33 @@ void MainWindow::on_toolButton_saveAsImg_clicked()
         return;
     }
     resultImg.save(filename);
+}
+
+void MainWindow::on_toolButton_saveAsSVG_clicked()
+{
+    if(resultImg.isNull()) {
+        qWarning()<<tr("Image not open");
+        return;
+    }
+
+    QString filename = QFileDialog::getSaveFileName(this,tr("save result"),"","*.svg");
+    if(filename.isEmpty())
+    {
+        return;
+    }
+
+    QSvgGenerator svgGen;
+    svgGen.setFileName(filename);
+    QPainter svgPainter(&svgGen);
+
+    QVector<LB_PolygonItem*> itemList = ui->graphicResult->GetPolygonItems();
+    for(int m=0;m<itemList.size();++m) {
+        LB_PolygonItem* poly = itemList[m];
+        QPolygonF polygon = poly->GetPolygon();
+        svgPainter.drawPolygon(polygon);
+    }
+
+    svgPainter.end();
 }
 
 void MainWindow::on_toolButton_savAsDXF_clicked()
@@ -724,3 +751,4 @@ void MainWindow::showResult()
     QPixmap tarmap = QPixmap::fromImage(resultImg);
     ui->graphicResult->SetPixmap(tarmap);
 }
+

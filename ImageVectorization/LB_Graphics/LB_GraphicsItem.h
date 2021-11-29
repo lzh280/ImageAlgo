@@ -71,6 +71,7 @@ class LB_PolygonItem : public QObject, public LB_BasicGraphicsItem
 public:
     explicit LB_PolygonItem(const QPolygonF& poly);
     ContourElements FetchElements() const;
+    QPolygonF GetPolygon() const;
 
 protected:
     virtual QRectF boundingRect() const override;

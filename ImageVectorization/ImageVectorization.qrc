@@ -27,5 +27,6 @@
         <file>icons/help/help.png</file>
         <file>icons/file/autoDone.png</file>
         <file>icons/file/sureSelect.png</file>
+        <file>icons/file/saveSVG.png</file>
     </qresource>
 </RCC>

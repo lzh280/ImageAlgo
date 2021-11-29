@@ -184,6 +184,11 @@ ContourElements LB_PolygonItem::FetchElements() const
     return result;
 }
 
+QPolygonF LB_PolygonItem::GetPolygon() const
+{
+    return myPoints.points();
+}
+
 QRectF LB_PolygonItem::boundingRect() const
 {
     double xmin = myPoints[0]->x();
