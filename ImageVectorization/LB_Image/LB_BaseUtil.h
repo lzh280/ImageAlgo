@@ -16,5 +16,6 @@ inline double COLINEAR_TOLERANCE = 1.0;
 inline double BEZIER_STEP = 3.0;
 inline double SMOOTH_ALPHA = 0.55;
 inline double SCALE_FACTOR = 1.0;
+inline double IGNORE_GAP_IN_CLOSED = 15;
 
 #endif // LB_BASEUTIL_H
