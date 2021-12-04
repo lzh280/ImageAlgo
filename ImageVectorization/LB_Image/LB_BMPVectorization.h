@@ -11,6 +11,9 @@ namespace LB_Image
 //! edge tracing
 QVector<QPolygon> RadialSweepTracing(const QImage &img);
 
+//! split the edge by corners
+QVector<QPolygon> SplitByCorners(const QVector<QPolygon> &edges);
+
 //! simplyfy the dense points into group of segment
 QVector<QPolygon> SimplifyEdge(const QVector<QPolygon> &edges);
 
@@ -25,6 +28,9 @@ int indexOfNeighbor(const QPoint& neighbor, const QPoint& current);
 
 //! get the area of a polygon
 double areaOfPolygon(const QPolygonF& poly);
+
+//! calculate corners of a closed edge
+QVector<int> cornerOfEdge(const QPolygon &edge);
 
 //! judge if a list of points are colinear
 bool colinear(const QVector<QPoint>::Iterator& start, const QVector<QPoint>::Iterator& end);

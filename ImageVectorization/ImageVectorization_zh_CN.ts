@@ -269,7 +269,7 @@
         <location filename="MainWindow.ui" line="193"/>
         <location filename="MainWindow.cpp" line="132"/>
         <source>Auto Done</source>
-        <translation>自动处理图像</translation>
+        <translation>自动处理</translation>
     </message>
     <message>
         <location filename="MainWindow.ui" line="190"/>

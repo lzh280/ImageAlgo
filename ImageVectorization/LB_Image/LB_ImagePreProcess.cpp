@@ -580,7 +580,7 @@ QImage FindContours(const QImage &img)
     int pixel[8];
     QRgb color;
 
-    QImage binImg = Binary(img);
+    QImage binImg = Binary(img,BINARY_THRESHOLD);
     QImage contoursImage (binImg);
     contoursImage.toPixelFormat(QImage::Format_ARGB32);
     contoursImage.fill(Qt::white);
@@ -642,7 +642,7 @@ QImage FindContours(const QImage &img)
 
 QImage Thinning(const QImage &img)
 {
-    QImage binImg = Binary(img);
+    QImage binImg = Binary(img,BINARY_THRESHOLD);
     QImage thinImage (binImg);
     thinImage.toPixelFormat(QImage::Format_ARGB32);
 

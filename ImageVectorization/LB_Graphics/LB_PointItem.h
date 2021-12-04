@@ -25,11 +25,7 @@ public:
 
     void SetEditable(bool ret) {
         myEditable = ret;
-        if(ret) {
-            this->setCursor(Qt::PointingHandCursor);
-        }
-        else {
-            this->setCursor(Qt::OpenHandCursor);
+        if(!ret) {
             this->setSelected(false);
         }
     }

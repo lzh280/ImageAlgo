@@ -17,5 +17,7 @@ inline double BEZIER_STEP = 3.0;
 inline double SMOOTH_ALPHA = 0.55;
 inline double SCALE_FACTOR = 1.0;
 inline double IGNORE_GAP_IN_CLOSED = 15;
+inline int BINARY_THRESHOLD = 128;
+inline int MIN_CORNER_GAP = 5;
 
 #endif // LB_BASEUTIL_H

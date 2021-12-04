@@ -84,6 +84,38 @@ QVector<QPolygon> RadialSweepTracing(const QImage &img)
     return roughEdge;
 }
 
+QVector<QPolygon> SplitByCorners(const QVector<QPolygon> &edges)
+{
+    QVector<QPolygon> pieces;
+    QPolygon aGroup;
+    QVector<int> corners;
+
+    for(int i=0;i<edges.size();++i) {
+        aGroup = edges[i];
+        corners = cornerOfEdge(aGroup);
+        if(corners.size() < 2)
+            pieces.append(aGroup);
+        else {
+            int next;
+            for(int j=0;j<corners.size();++j) {
+                QPolygon poly;
+                next = (j+1)%corners.size();
+                QPolygon::iterator iteA = aGroup.begin()+corners[j];
+                QPolygon::iterator iteB = aGroup.begin()+corners[next];
+                while(iteA != iteB) {
+                    poly.append(*iteA);
+                    iteA++;
+                    if(iteA == aGroup.end())
+                        iteA = aGroup.begin();
+                }
+                pieces.append(poly);
+            }
+        }
+    }
+
+    return pieces;
+}
+
 QVector<QPolygon> SimplifyEdge(const QVector<QPolygon> &edges)
 {
     QVector<QPolygon> simpleEdge;
@@ -239,6 +271,47 @@ double areaOfPolygon(const QPolygonF &poly)
     return 0.5*area;
 }
 
+QVector<int> cornerOfEdge(const QPolygon &edge)
+{
+    QVector<int> indexs;
+    int edgeSize = edge.size();
+    QPoint pa,pb,pc;
+    double sharpMax = -1;
+    int maxIndex = -1;
+    bool bstart = false;
+    // find corners of one contour
+    for(int i=0;i<edgeSize;i++) {
+        pa = edge[(i+edgeSize-7)%edgeSize];
+        pb = edge[(i+edgeSize+7)%edgeSize];
+        pc = edge[i];
+
+        // angle of three points
+        double diffa = distance(pa,pb);
+        double diffb = distance(pa,pc)+distance(pb,pc);
+        double sharp = 1-diffa/diffb;
+
+        if(sharp>0.05) {
+            bstart = true;
+            if(sharp > sharpMax) {
+                sharpMax = sharp;
+                maxIndex = i;
+            }
+        } else {
+            if(bstart) {
+                // avoid two corner is too close
+                int last = indexs.isEmpty() ? -MIN_CORNER_GAP : indexs.last();
+                if(maxIndex-last >= MIN_CORNER_GAP) {
+                    indexs.append(maxIndex);
+                    maxIndex  = -1;
+                    sharpMax  = -1;
+                    bstart = false;
+                }
+            }
+        }
+    }
+    return indexs;
+}
+
 bool colinear(const QVector<QPoint>::Iterator& start, const QVector<QPoint>::Iterator& end)
 {
     QLine aLine(*start,*end);
@@ -290,7 +363,7 @@ double distance(const QLineF &line, const QPointF &pnt)
 
 double distance(const QPointF& a, const QPointF& b)
 {
-    return pow(b.x()-a.x(), 2) + pow(b.y()-a.y(), 2);
+    return sqrt(pow(b.x()-a.x(), 2) + pow(b.y()-a.y(), 2));
 }
 
 QPointF lerp(const QPointF &a, const QPointF &b, double t)

@@ -31,12 +31,10 @@
 using namespace LB_Image;
 using namespace LB_Graphics;
 
-int THRESHOLD = 128;
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    useDouglas(false)
+    useDouglas(true)
 {
     ui->setupUi(this);
     initFunction();
@@ -77,8 +75,8 @@ void MainWindow::on_pushButton_openImg_clicked()
     // get the image, find the best threshold as well
     sourceImg.load(filename);
     sourceSize = sourceImg.size();
-    THRESHOLD = ThresholdDetect(sourceImg);
-    ui->spinBox_threshold->setValue(THRESHOLD);
+    BINARY_THRESHOLD = ThresholdDetect(sourceImg);
+    ui->spinBox_threshold->setValue(BINARY_THRESHOLD);
 
     // show the resolution and overview
     ui->label_imgOverview->setPixmap(QPixmap::fromImage(sourceImg).scaledToWidth(ui->label_imgOverview->width()));
@@ -159,7 +157,7 @@ void MainWindow::on_toolButton_imgBinary_clicked()
     }
 
     QImage before = resultImg;
-    resultImg = Binary(resultImg,THRESHOLD);
+    resultImg = Binary(resultImg,BINARY_THRESHOLD);
     showResult();
     undoStack->push(new ImageProcessCommand(before,tr("binary"),ui->graphicResult));
 }
@@ -257,7 +255,7 @@ void MainWindow::on_toolButton_imgCanny_clicked()
 
 void MainWindow::on_spinBox_threshold_valueChanged(int arg1)
 {
-    THRESHOLD = arg1;
+    BINARY_THRESHOLD = arg1;
 }
 
 void MainWindow::on_toolButton_generatePath_clicked()
@@ -764,7 +762,7 @@ void MainWindow::initDock()
 
 void MainWindow::loadArguments()
 {
-    ui->spinBox_threshold->setValue(THRESHOLD);
+    ui->spinBox_threshold->setValue(BINARY_THRESHOLD);
     ui->doubleSpinBox_alpha->setValue(SMOOTH_ALPHA);
     ui->doubleSpinBox_colinearTol->setValue(COLINEAR_TOLERANCE);
     ui->spinBox_bezierStep->setValue(BEZIER_STEP);
