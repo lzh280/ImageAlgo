@@ -33,8 +33,7 @@ using namespace LB_Graphics;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow),
-    useDouglas(true)
+    ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     initFunction();
@@ -124,8 +123,6 @@ void MainWindow::on_toolButton_autoDone_clicked()
 {
     if(!resultImg.isNull()) {
         QImage before = resultImg;
-        resultImg = MedianFilter(resultImg,3);
-        resultImg = GaussFilter(resultImg);
         resultImg = FindContours(resultImg);
         showResult();
         undoStack->push(new ImageProcessCommand(before,tr("Auto Done"),ui->graphicResult));
@@ -280,7 +277,7 @@ void MainWindow::on_toolButton_generatePath_clicked()
         }
     }
 
-    solveThread->SetVectorImage(resultImg,useDouglas);
+    solveThread->SetVectorImage(resultImg,USE_DOUGLAS_PEUCKER);
     solveThread->start();
 }
 
@@ -335,10 +332,10 @@ void MainWindow::on_checkBox_showVertex_stateChanged(int arg1)
 void MainWindow::on_checkBox_useDouglas_stateChanged(int arg1)
 {
     if(arg1 == Qt::Checked) {
-        useDouglas = true;
+        USE_DOUGLAS_PEUCKER = true;
     }
     else if(arg1 == Qt::Unchecked) {
-        useDouglas = false;
+        USE_DOUGLAS_PEUCKER = false;
     }
 }
 
@@ -433,9 +430,11 @@ void MainWindow::on_toolButton_saveAsSVG_clicked()
             const double startParam = 360 - ellipse->AngleToParam(startAng)*RAD2DEG;
             const double endParam = 360 - ellipse->AngleToParam(endAng)*RAD2DEG;
 
-            double tmp1 = qAbs(endParam - startParam) - (endAng - startAng)*RAD2DEG;
-            double tmp2 = 360 - qAbs(endParam - startParam) - (endAng - startAng)*RAD2DEG;
-            double gapAng = tmp1<tmp2 ? qAbs(endParam - startParam) : 360-qAbs(endParam - startParam);
+            double tmp1 = qAbs(endParam - startParam) - qAbs(endAng - startAng)*RAD2DEG;
+            double tmp2 = 360 - qAbs(endParam - startParam) - qAbs(endAng - startAng)*RAD2DEG;
+            double gapAng = qAbs(tmp1)<qAbs(tmp2) ? tmp1 : tmp2;
+
+            gapAng += qAbs(endAng - startAng)*RAD2DEG;
 
             if(!ellipse->IsClockwise())
                 gapAng = -gapAng;
@@ -466,24 +465,13 @@ void MainWindow::on_toolButton_savAsDXF_clicked()
         return;
     }
 
-    QString dxfName;
-
-    // judge if Chinese character exists
-    bool ret=true;
-    while(ret) {
-        dxfName = QFileDialog::getSaveFileName(this,tr("save result"),"",tr("DXF(*.dxf)"));
-        if(dxfName.isEmpty())
-            return;
-
-        if(dxfName.contains(QRegExp("[\\x4e00-\\x9fa5]+")))
-            qWarning()<<tr("There are unsupported characters!");
-        else
-            ret = false;
-    }
+    QString dxfName = QFileDialog::getSaveFileName(this,tr("save result"),"",tr("DXF(*.dxf)"));
+    if(dxfName.isEmpty())
+        return;
 
     DL_Dxf* dxf = new DL_Dxf();
     DL_Codes::version exportVersion = DL_Codes::AC1015;
-    DL_WriterA* dw = dxf->out(dxfName.toUtf8(), exportVersion);
+    DL_WriterA* dw = dxf->out(dxfName.toLocal8Bit(), exportVersion);
 
     dxf->writeHeader(*dw);
     dw->sectionEnd();
@@ -501,7 +489,7 @@ void MainWindow::on_toolButton_savAsDXF_clicked()
                     DL_LayerData("0", 0),
                     DL_Attributes(
                         std::string(""),      // leave empty
-                        DL_Codes::red,        // default color
+                        DL_Codes::gray,        // default color
                         100,                  // default width
                         "CONTINUOUS", 1.0));       // default line style
 
@@ -622,9 +610,7 @@ void MainWindow::on_pushButton_lastProgress_clicked()
     if(index<0)
         return;
 
-    int wid = ui->stackedWidget_progress->currentWidget()->width();
-    ui->stackedWidget_progress->setLength(wid,AnimationStackedWidget::LeftToRight);
-    ui->stackedWidget_progress->start(index);
+    ui->stackedWidget_progress->setCurrentIndex(index);
 }
 
 void MainWindow::on_pushButton_nextProgress_clicked()
@@ -633,9 +619,7 @@ void MainWindow::on_pushButton_nextProgress_clicked()
     if(index>3)
         return;
 
-    int wid = ui->stackedWidget_progress->currentWidget()->width();
-    ui->stackedWidget_progress->setLength(wid,AnimationStackedWidget::RightToLeft);
-    ui->stackedWidget_progress->start(index);
+    ui->stackedWidget_progress->setCurrentIndex(index);
 }
 
 void MainWindow::on_actionReset_operation_triggered()
@@ -649,6 +633,7 @@ void MainWindow::on_actionReset_operation_triggered()
     ui->graphicResult->ResetPolygons();
     ui->graphicResult->SetPixmap(QPixmap());
     resultImg = QImage();
+    ui->stackedWidget_progress->setCurrentIndex(0);
 }
 
 void MainWindow::on_actionLast_step_triggered()
@@ -721,7 +706,7 @@ void MainWindow::initDock()
     tips<<tr("Select image")<<tr("Operate image")<<tr("Deal with path")<<tr("Save result");
     ui->widget_progress->setTip(tips[0]);
 
-    connect(ui->stackedWidget_progress,&AnimationStackedWidget::currentChanged,this,[=](int index) {
+    connect(ui->stackedWidget_progress,&QStackedWidget::currentChanged,this,[=](int index) {
         ui->widget_progress->setValue(index+1);
         ui->widget_progress->setTip(tips[index]);
     });
@@ -770,6 +755,7 @@ void MainWindow::loadArguments()
     SCALE_FACTOR = 1.0;
     ui->comboBox_scaleFactor->setCurrentIndex(5);
     ui->checkBox_showVertex->setChecked(true);
+    ui->checkBox_useDouglas->setChecked(USE_DOUGLAS_PEUCKER);
 }
 
 void MainWindow::on_actionExample_triggered()

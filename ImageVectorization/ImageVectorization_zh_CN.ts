@@ -61,103 +61,103 @@
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1243"/>
+        <location filename="MainWindow.ui" line="1246"/>
         <source>Help</source>
         <translation>帮助</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="112"/>
-        <location filename="MainWindow.cpp" line="137"/>
-        <location filename="MainWindow.cpp" line="143"/>
-        <location filename="MainWindow.cpp" line="156"/>
-        <location filename="MainWindow.cpp" line="169"/>
-        <location filename="MainWindow.cpp" line="182"/>
-        <location filename="MainWindow.cpp" line="195"/>
-        <location filename="MainWindow.cpp" line="208"/>
-        <location filename="MainWindow.cpp" line="221"/>
-        <location filename="MainWindow.cpp" line="234"/>
-        <location filename="MainWindow.cpp" line="247"/>
-        <location filename="MainWindow.cpp" line="265"/>
-        <location filename="MainWindow.cpp" line="359"/>
-        <location filename="MainWindow.cpp" line="379"/>
-        <location filename="MainWindow.cpp" line="406"/>
-        <location filename="MainWindow.cpp" line="602"/>
+        <location filename="MainWindow.cpp" line="111"/>
+        <location filename="MainWindow.cpp" line="136"/>
+        <location filename="MainWindow.cpp" line="142"/>
+        <location filename="MainWindow.cpp" line="155"/>
+        <location filename="MainWindow.cpp" line="168"/>
+        <location filename="MainWindow.cpp" line="181"/>
+        <location filename="MainWindow.cpp" line="194"/>
+        <location filename="MainWindow.cpp" line="207"/>
+        <location filename="MainWindow.cpp" line="220"/>
+        <location filename="MainWindow.cpp" line="233"/>
+        <location filename="MainWindow.cpp" line="246"/>
+        <location filename="MainWindow.cpp" line="264"/>
+        <location filename="MainWindow.cpp" line="358"/>
+        <location filename="MainWindow.cpp" line="378"/>
+        <location filename="MainWindow.cpp" line="467"/>
+        <location filename="MainWindow.cpp" line="642"/>
         <source>Image not open</source>
         <translation>未打开图片</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="650"/>
+        <location filename="MainWindow.cpp" line="691"/>
         <source>Selected( %1 , %2 )</source>
         <translation>选中( %1 , %2 )</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="655"/>
+        <location filename="MainWindow.cpp" line="696"/>
         <source>Move ( %1, %2 ) to ( %3, %4 )</source>
         <translation>移动 ( %1, %2 ) 到 ( %3, %4 )</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="666"/>
+        <location filename="MainWindow.cpp" line="707"/>
         <source>Convert to %1</source>
         <translation>转换为%1</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="675"/>
+        <location filename="MainWindow.cpp" line="716"/>
         <source>File</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="675"/>
+        <location filename="MainWindow.cpp" line="716"/>
         <source>Preprocess</source>
         <translation>预处理</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="675"/>
+        <location filename="MainWindow.cpp" line="716"/>
         <source>Vectorization</source>
         <translation>矢量化</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="675"/>
+        <location filename="MainWindow.cpp" line="716"/>
         <source>Save</source>
         <translation>保存</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="679"/>
+        <location filename="MainWindow.cpp" line="720"/>
         <source>Select image</source>
         <translation>选择图片</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="679"/>
+        <location filename="MainWindow.cpp" line="720"/>
         <source>Operate image</source>
         <translation>处理图片</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="679"/>
+        <location filename="MainWindow.cpp" line="720"/>
         <source>Deal with path</source>
         <translation>处理路径</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="679"/>
+        <location filename="MainWindow.cpp" line="720"/>
         <source>Save result</source>
         <translation>保存结果</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="695"/>
+        <location filename="MainWindow.cpp" line="736"/>
         <source>&lt;empty&gt;</source>
         <translation>空白</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="696"/>
+        <location filename="MainWindow.cpp" line="737"/>
         <source>Operation record</source>
         <translation>操作历史</translation>
     </message>
     <message>
         <location filename="MainWindow.ui" line="139"/>
-        <location filename="MainWindow.cpp" line="711"/>
+        <location filename="MainWindow.cpp" line="752"/>
         <source>OK</source>
         <translation>确定</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="715"/>
+        <location filename="MainWindow.cpp" line="756"/>
         <source>Output</source>
         <translation>输出</translation>
     </message>
@@ -212,10 +212,6 @@
         <translation>各点到其近似成的直线最大距离</translation>
     </message>
     <message>
-        <source>Show result</source>
-        <translation type="vanished">显示提取结果</translation>
-    </message>
-    <message>
         <location filename="MainWindow.ui" line="1006"/>
         <source>Show vertex</source>
         <translation>显示顶点</translation>
@@ -231,7 +227,7 @@
         <translation>获得结果的备用方法，在图片较大的情况下计算更快</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1023"/>
+        <location filename="MainWindow.ui" line="1026"/>
         <source>Frame select</source>
         <translation>框选</translation>
     </message>
@@ -246,28 +242,28 @@
         <translation>选择要处理的图像</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1070"/>
+        <location filename="MainWindow.ui" line="1073"/>
         <source>Save as image</source>
         <translation>存为图片</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1067"/>
+        <location filename="MainWindow.ui" line="1070"/>
         <source>Save the image in right half window</source>
         <translation>保存右半窗口的图片</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1111"/>
+        <location filename="MainWindow.ui" line="1114"/>
         <source>Save as DXF</source>
         <translation>存为DXF</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1108"/>
+        <location filename="MainWindow.ui" line="1111"/>
         <source>Save the path you get into a DXF file</source>
         <translation>将提取的路径保存至DXF文件</translation>
     </message>
     <message>
         <location filename="MainWindow.ui" line="193"/>
-        <location filename="MainWindow.cpp" line="132"/>
+        <location filename="MainWindow.cpp" line="131"/>
         <source>Auto Done</source>
         <translation>自动处理</translation>
     </message>
@@ -277,32 +273,32 @@
         <translation>自动从图片提取加工路径</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1207"/>
+        <location filename="MainWindow.ui" line="1210"/>
         <source>Reset operation</source>
         <translation>重置操作</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1210"/>
+        <location filename="MainWindow.ui" line="1213"/>
         <source>Remove all the opearion on input</source>
         <translation>移除对输入图像的所有操作</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1219"/>
+        <location filename="MainWindow.ui" line="1222"/>
         <source>Last step</source>
         <translation>上一步</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1222"/>
+        <location filename="MainWindow.ui" line="1225"/>
         <source>Undo the action you just</source>
         <translation>撤销刚刚的操作</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1231"/>
+        <location filename="MainWindow.ui" line="1234"/>
         <source>Next step</source>
         <translation>下一步</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1234"/>
+        <location filename="MainWindow.ui" line="1237"/>
         <source>Redo the action you just</source>
         <translation>重新执行被撤销的操作</translation>
     </message>
@@ -317,7 +313,7 @@
         <translation>彩色图转为灰度图</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="150"/>
+        <location filename="MainWindow.cpp" line="149"/>
         <source>gray</source>
         <translation>灰度化</translation>
     </message>
@@ -332,7 +328,7 @@
         <translation>转为黑白图</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="163"/>
+        <location filename="MainWindow.cpp" line="162"/>
         <source>binary</source>
         <translation>二值化</translation>
     </message>
@@ -347,7 +343,7 @@
         <translation>使图像前景边缘更清晰</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="176"/>
+        <location filename="MainWindow.cpp" line="175"/>
         <source>sharpen</source>
         <translation>锐化</translation>
     </message>
@@ -357,7 +353,7 @@
         <translation>有效去除图像的噪声</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="189"/>
+        <location filename="MainWindow.cpp" line="188"/>
         <source>median filter</source>
         <translation>中值滤波</translation>
     </message>
@@ -367,7 +363,7 @@
         <translation>通过模糊的方式顺滑图像</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="202"/>
+        <location filename="MainWindow.cpp" line="201"/>
         <source>Gaussian filter</source>
         <translation>高斯滤波</translation>
     </message>
@@ -377,7 +373,7 @@
         <translation>使二值图像更细</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="215"/>
+        <location filename="MainWindow.cpp" line="214"/>
         <source>thinning</source>
         <translation>细化</translation>
     </message>
@@ -387,7 +383,7 @@
         <translation>最常用且有效的边缘提取方法</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="228"/>
+        <location filename="MainWindow.cpp" line="227"/>
         <source>find contours</source>
         <translation>提取边缘</translation>
     </message>
@@ -397,7 +393,7 @@
         <translation>用于含噪声图像的边缘提取，备用方法</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="241"/>
+        <location filename="MainWindow.cpp" line="240"/>
         <source>sobel contours</source>
         <translation>Sobel边缘</translation>
     </message>
@@ -407,7 +403,7 @@
         <translation>用于边界弱的边缘提取，备用方法</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="254"/>
+        <location filename="MainWindow.cpp" line="253"/>
         <source>canny contours</source>
         <translation>Canny边缘</translation>
     </message>
@@ -478,7 +474,8 @@
     </message>
     <message>
         <location filename="MainWindow.ui" line="267"/>
-        <source>Scale：</source>
+        <source>Scale:</source>
+        <oldsource>Scale：</oldsource>
         <translation>缩放：</translation>
     </message>
     <message>
@@ -567,84 +564,84 @@
         <translation>Canny边缘</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1143"/>
+        <location filename="MainWindow.ui" line="1146"/>
         <source>Save the path into a svg file</source>
         <translation>将路径保存到SVG文件</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1146"/>
+        <location filename="MainWindow.ui" line="1149"/>
         <source>Save as SVG</source>
         <translation>存为SVG</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1185"/>
+        <location filename="MainWindow.ui" line="1188"/>
         <source>Functions</source>
         <translation>主要功能</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1246"/>
+        <location filename="MainWindow.ui" line="1249"/>
         <source>Open the user&apos;s manual</source>
         <translation>打开用户手册</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1255"/>
+        <location filename="MainWindow.ui" line="1258"/>
         <source>Example</source>
         <translation>示例</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1258"/>
+        <location filename="MainWindow.ui" line="1261"/>
         <source>Open the example video of processing a logo image</source>
         <translation>打开处理图标的示例视频</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="736"/>
+        <location filename="MainWindow.cpp" line="777"/>
         <source>linux logo</source>
         <translation>linux图标</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="740"/>
+        <location filename="MainWindow.cpp" line="781"/>
         <source>wechat logo</source>
         <translation>微信图标</translation>
     </message>
     <message>
-        <location filename="MainWindow.ui" line="1267"/>
+        <location filename="MainWindow.ui" line="1270"/>
         <source>About</source>
         <translation>关于</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="630"/>
+        <location filename="MainWindow.cpp" line="671"/>
         <source>This software is developed by Lieber.</source>
         <translation>该软件由Lieber开发。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="631"/>
+        <location filename="MainWindow.cpp" line="672"/>
         <source>Contact me with: hawkins123h@163.com</source>
         <translation>联系方式： hawkins123h@163.com</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="634"/>
+        <location filename="MainWindow.cpp" line="675"/>
         <source>I Know</source>
         <translation>我已知晓</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="65"/>
+        <location filename="MainWindow.cpp" line="64"/>
         <source>chose one image</source>
         <translation>选择图片</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="363"/>
-        <location filename="MainWindow.cpp" line="383"/>
-        <location filename="MainWindow.cpp" line="415"/>
+        <location filename="MainWindow.cpp" line="362"/>
+        <location filename="MainWindow.cpp" line="382"/>
+        <location filename="MainWindow.cpp" line="476"/>
         <source>save result</source>
         <translation>保存结果</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="415"/>
+        <location filename="MainWindow.cpp" line="476"/>
         <source>DXF(*.dxf)</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="420"/>
+        <location filename="MainWindow.cpp" line="481"/>
         <source>There are unsupported characters!</source>
         <translation>路径名存在中文！</translation>
     </message>

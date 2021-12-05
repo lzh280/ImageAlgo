@@ -91,7 +91,7 @@
       </widget>
      </item>
      <item row="1" column="0" colspan="2">
-      <widget class="AnimationStackedWidget" name="stackedWidget_progress">
+      <widget class="QStackedWidget" name="stackedWidget_progress">
        <property name="currentIndex">
         <number>0</number>
        </property>
@@ -264,7 +264,7 @@
            <item>
             <widget class="QLabel" name="label_2">
              <property name="text">
-              <string>Scale：</string>
+              <string>Scale:</string>
              </property>
             </widget>
            </item>
@@ -1015,9 +1015,6 @@
              <property name="text">
               <string>Use Douglas</string>
              </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
             </widget>
            </item>
            <item>
@@ -1276,12 +1273,6 @@
    <class>LB_ImageViewer</class>
    <extends>QGraphicsView</extends>
    <header>LB_Image/LB_ImageViewer.h</header>
-  </customwidget>
-  <customwidget>
-   <class>AnimationStackedWidget</class>
-   <extends>QStackedWidget</extends>
-   <header>LB_QtTool/AnimationStackedWidget.h</header>
-   <container>1</container>
   </customwidget>
   <customwidget>
    <class>QStateProgressBar</class>

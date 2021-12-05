@@ -13,11 +13,12 @@ inline const QPoint INVALID_PNT = QPoint(-1,-1);
 
 inline int MIN_EDGE_SIZE = 10;
 inline double COLINEAR_TOLERANCE = 1.0;
-inline double BEZIER_STEP = 3.0;
-inline double SMOOTH_ALPHA = 0.55;
+inline double BEZIER_STEP = 2.0;
+inline double SMOOTH_ALPHA = 0.45;
 inline double SCALE_FACTOR = 1.0;
 inline double IGNORE_GAP_IN_CLOSED = 15;
 inline int BINARY_THRESHOLD = 128;
 inline int MIN_CORNER_GAP = 5;
+inline bool USE_DOUGLAS_PEUCKER = false;
 
 #endif // LB_BASEUTIL_H

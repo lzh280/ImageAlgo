@@ -93,6 +93,7 @@ QVector<QPolygon> SplitByCorners(const QVector<QPolygon> &edges)
     for(int i=0;i<edges.size();++i) {
         aGroup = edges[i];
         corners = cornerOfEdge(aGroup);
+
         if(corners.size() < 2)
             pieces.append(aGroup);
         else {
@@ -100,6 +101,7 @@ QVector<QPolygon> SplitByCorners(const QVector<QPolygon> &edges)
             for(int j=0;j<corners.size();++j) {
                 QPolygon poly;
                 next = (j+1)%corners.size();
+                // fetch the points between indexs in 'corners'
                 QPolygon::iterator iteA = aGroup.begin()+corners[j];
                 QPolygon::iterator iteB = aGroup.begin()+corners[next];
                 while(iteA != iteB) {

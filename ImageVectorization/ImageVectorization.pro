@@ -18,7 +18,6 @@ SOURCES += \
         LB_Image/LB_ImagePreProcess.cpp \
         LB_Image/LB_ImageViewer.cpp \
         LB_Image/LB_VectorThread.cpp \
-        LB_QtTool/AnimationStackedWidget.cpp \
         LB_QtTool/ImageProcessCommand.cpp \
         LB_QtTool/ImageVectorCommand.cpp \
         LB_QtTool/LB_DebugHandle.cpp \
@@ -36,7 +35,6 @@ HEADERS += \
         LB_Image/LB_ImagePreProcess.h \
         LB_Image/LB_ImageViewer.h \
         LB_Image/LB_VectorThread.h \
-        LB_QtTool/AnimationStackedWidget.h \
         LB_QtTool/ImageProcessCommand.h \
         LB_QtTool/ImageVectorCommand.h \
         LB_QtTool/LB_DebugHandle.h \
@@ -51,7 +49,6 @@ RESOURCES += \
 
 TRANSLATIONS = ImageVectorization_zh_CN.ts
 
-INCLUDEPATH += $$PWD/../SARibbonBar
 INCLUDEPATH += $$PWD/../dxflib
 
 CONFIG(debug, debug|release) {
@@ -68,6 +65,8 @@ contains(DEFINES,USE_OPENCV) {
 
     LIBS += D:/OpenCV/bin/libopencv_world454.dll
     INCLUDEPATH += D:\OpenCV\include
+
+    message('USEING OPENCV')
 } else {
     message('WITHOUT OPENCV, USE CUSTOM ALGORITHM')
 }

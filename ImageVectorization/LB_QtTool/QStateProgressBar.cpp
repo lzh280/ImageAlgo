@@ -16,11 +16,11 @@ QStateProgressBar::QStateProgressBar(QWidget *parent)
 
     m_tip = "";
 
-    m_barColor = QColor(255,104,124);
+    m_barColor = QColor(24,190,190);
     m_barBackgroundColor = QColor(100,100,100);
-    m_stateColor = QColor(255,104,124);
+    m_stateColor = QColor(24,190,190);
     m_tipColor = QColor(255,255,255);
-    m_tipBackgroundColor = QColor(24,189,155);
+    m_tipBackgroundColor = QColor(24,190,190);
 }
 
 void QStateProgressBar::setValue(int value)
@@ -78,7 +78,7 @@ void QStateProgressBar::drawBackground(QPainter *painter)
 
     painter->setBrush(QColor(241,241,241));
     painter->setPen(Qt::NoPen);
-    painter->drawRoundRect(rect(), 0, 0);
+    painter->drawRoundedRect(rect(), 0, 0, Qt::RelativeSize);
     painter->restore();
 }
 
@@ -105,7 +105,7 @@ void QStateProgressBar::drawBarBackground(QPainter *painter)
 
         painter->save();
         painter->setPen(m_barBackgroundColor);
-        qreal textWidth = fontMetrics().width(m_states[i]);
+        qreal textWidth = fontMetrics().horizontalAdvance(m_states[i]);
         qreal textHeight = fontMetrics().height();
         painter->drawText(QRectF(LEFT_MARGIN - textWidth*3/4 + i*(m_lineWidth),
                                  height()/2 + m_bigRadius + textHeight/2, textWidth*3/2, textHeight*3/2),
@@ -149,7 +149,7 @@ void QStateProgressBar::drawBar(QPainter *painter)
         painter->save();
         painter->setPen(m_stateColor);
         painter->setFont(ft);
-        qreal textWidth = fontMetrics().width(m_states[i]);
+        qreal textWidth = fontMetrics().horizontalAdvance(m_states[i]);
         qreal textHeight = fontMetrics().height();
 
         painter->drawText(QRectF(LEFT_MARGIN - textWidth*3/4 + i*(m_lineWidth),
@@ -180,7 +180,7 @@ void QStateProgressBar::drawBar(QPainter *painter)
     painter->setPen(m_tipColor);
     ft.setPointSize(9);
     painter->setFont(ft);
-    qreal textWidth2 = fontMetrics().width(m_tip);
+    qreal textWidth2 = fontMetrics().horizontalAdvance(m_tip);
     qreal textHeight2 = fontMetrics().height();
     QPointF textPt(LEFT_MARGIN - textWidth2/2 - 1 + (m_value - 1)*(m_lineWidth),
                    height()/2 - 60 + 25/2+ textHeight2/2);
@@ -197,7 +197,7 @@ void QStateProgressBar::drawBarNumber(QPainter *painter)
     {
         QString str = QString("%1").arg(i+1);
 
-        qreal textWidth = fontMetrics().width(str);
+        qreal textWidth = fontMetrics().horizontalAdvance(str);
         qreal textHeight = fontMetrics().height();
 
         QFont ft;

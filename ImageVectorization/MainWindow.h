@@ -72,7 +72,6 @@ private:
     QImage sourceImg;
     QSize sourceSize;
     QImage resultImg;
-    bool useDouglas;
 
 private:
     void initFunction();

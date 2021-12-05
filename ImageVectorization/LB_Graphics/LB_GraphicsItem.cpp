@@ -311,9 +311,11 @@ void LB_PolygonItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     painter->setPen(this->pen());
     painter->setBrush(this->brush());
 
-    for(int i=0;i<myPoints.size()-1;++i) {
-        painter->setPen(getPenByPoints(myPoints[i], myPoints[i+1]));
-        painter->drawLine(myPoints[i]->GetPoint(),myPoints[i+1]->GetPoint());
+    int next;
+    for(int i=0;i<myPoints.size();++i) {
+        next = (i+1)%myPoints.size();
+        painter->setPen(getPenByPoints(myPoints[i], myPoints[next]));
+        painter->drawLine(myPoints[i]->GetPoint(),myPoints[next]->GetPoint());
     }
 }
 
