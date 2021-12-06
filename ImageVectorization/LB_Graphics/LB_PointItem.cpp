@@ -21,7 +21,12 @@ LB_PointItem::LB_PointItem(QAbstractGraphicsShapeItem* parent, const QPointF &p)
 
 QRectF LB_PointItem::boundingRect() const
 {
-    return QRectF(-1.5, -1.5, 3, 3);
+    if(GetLayer() != nullptr && GetLayer()->Type() == 0) {
+        return QRectF(-2.5,-2.5,5,5);
+    }
+    else {
+        return QRectF(-1.5, -1.5, 3, 3);
+    }
 }
 
 void LB_PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -31,14 +36,22 @@ void LB_PointItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *opti
 
     painter->setPen(Qt::NoPen);
     this->setPos(myPoint);
-    if(this->isSelected()) {
-        painter->setBrush(Qt::magenta);
-        painter->drawRect(QRectF(-1.5, -1.5, 3, 3));
+
+    QColor color;
+    QRectF bndRect;
+    if(GetLayer() != nullptr && GetLayer()->Type() == 0) {
+        bndRect = QRectF(-2.5,-2.5,5,5);
+        color = isSelected()? Qt::magenta : Qt::darkYellow;// point of border with special color
     }
     else {
-        painter->setBrush(Qt::darkGreen);
-        painter->drawEllipse(QRectF(-1.5, -1.5, 3, 3));
+        bndRect = QRectF(-1.5, -1.5, 3, 3);
+        color = isSelected()? Qt::magenta : Qt::darkGreen;
     }
+    painter->setBrush(color);
+    if(isSelected())
+        painter->drawRect(bndRect);
+    else
+        painter->drawEllipse(bndRect);
 }
 
 void LB_PointItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
