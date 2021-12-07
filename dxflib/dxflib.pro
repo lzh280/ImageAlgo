@@ -1,5 +1,6 @@
 TARGET = dxflib
 TEMPLATE = lib
+CONFIG += staticlib
 CONFIG -= qt
 DEFINES += DXFLIB_DLL DXFLIB_LIBRARY
 

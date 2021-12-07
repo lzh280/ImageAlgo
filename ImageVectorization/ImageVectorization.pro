@@ -51,11 +51,19 @@ TRANSLATIONS = ImageVectorization_zh_CN.ts
 
 INCLUDEPATH += $$PWD/../dxflib
 
-CONFIG(debug, debug|release) {
-    LIBS += $$PWD/../bind/dxflib.dll
+win32:CONFIG(debug, debug|release) {
+    LIBS += $$PWD/../bind/dxflib.lib
     DESTDIR = $$PWD/../bind
 } else {
-    LIBS += $$PWD/../bin/dxflib.dll
+    LIBS += $$PWD/../bin/dxflib.lib
+    DESTDIR = $$PWD/../bin
+}
+
+win32-g++:CONFIG(debug, debug|release) {
+    LIBS += $$PWD/../bind/libdxflib.a
+    DESTDIR = $$PWD/../bind
+} else {
+    LIBS += $$PWD/../bin/libdxflib.a
     DESTDIR = $$PWD/../bin
 }
 
