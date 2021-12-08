@@ -348,6 +348,12 @@ void ConvertToArc(const QList<QGraphicsItem *> &itemList)
         return;
     }
 
+    // check if the selection has gap
+    if(!ptrList.isNextTo()) {
+        qWarning()<<QObject::tr("The selected points are discontinuous!");
+        return;
+    }
+
     ConvertToArc(ptrList);
 }
 
@@ -425,6 +431,11 @@ void ConvertToEllipse(const QList<QGraphicsItem *> &itemList)
         return;
     }
 
+    if(!ptrList.isNextTo()) {
+        qWarning()<<QObject::tr("The selected points are discontinuous!");
+        return;
+    }
+
     ConvertToEllipse(ptrList);
 }
 
@@ -497,6 +508,11 @@ void ConvertToSegment(const QList<QGraphicsItem *> &itemList)
 
     if(!ptrList.isogeny()) {
         qWarning()<<QObject::tr("The selected points belong to different paths!");
+        return;
+    }
+
+    if(!ptrList.isNextTo()) {
+        qWarning()<<QObject::tr("The selected points are discontinuous!");
         return;
     }
 

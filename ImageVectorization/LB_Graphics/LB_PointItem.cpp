@@ -190,6 +190,35 @@ bool LB_PointItemVector::isogeny() const
     return true;
 }
 
+bool LB_PointItemVector::isNextTo() const
+{
+    if(this->size() < 2)
+        return false;
+
+    LB_PolygonItem *polygon;
+    LB_BasicGraphicsItem* item = static_cast<LB_BasicGraphicsItem *>(first()->parentItem());
+    if(item) {
+        polygon = dynamic_cast<LB_PolygonItem *>(item);
+        if(!polygon)
+            return false;
+    }
+    else return false;
+
+    bool hasGap = false;
+    int index1,index2;
+    for(int i=0;i<this->size();++i) {
+        index1 = polygon->VertexIndex(operator[](i));
+        index2 = polygon->VertexIndex(operator[]((i+1)%size()));
+        if(qAbs(index1-index2) > 1 && qAbs(index1-index2) != polygon->Size()-1) {
+            if(hasGap)
+                return false;
+            else
+                hasGap = true;
+        }
+    }
+    return true;
+}
+
 QVector<bool> LB_PointItemVector::visible() const
 {
     QVector<bool> status;
