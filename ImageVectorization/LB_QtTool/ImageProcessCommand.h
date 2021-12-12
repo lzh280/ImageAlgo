@@ -15,8 +15,8 @@ public:
     virtual void redo() override;
 
 private:
-    QPixmap inputMap;
-    QPixmap outputMap;
+    QImage inputImg;
+    QImage outputImg;
 
     LB_ImageViewer *imgViewer;
 };
@@ -30,7 +30,7 @@ public:
     virtual void redo() override;
 
 private:
-    QPixmap inputMap;
+    QImage inputImg;
 
     LB_ImageViewer *imgViewer;
 };

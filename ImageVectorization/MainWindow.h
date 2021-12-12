@@ -77,7 +77,6 @@ private:
     void initFunction();
     void initDock();
     void loadArguments();
-    void showResult();
 
 };
 

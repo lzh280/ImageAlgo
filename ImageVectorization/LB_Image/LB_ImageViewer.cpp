@@ -59,8 +59,10 @@ void LB_ImageViewer::SetVertexVisible(bool ret)
     }
 }
 
-void LB_ImageViewer::SetPixmap(const QPixmap &map)
+void LB_ImageViewer::SetImage(const QImage &img)
 {
+    myImg = img;
+    QPixmap map = QPixmap::fromImage(img);
     if(!myPixmapItem) {
         myPixmapItem = myGraphicScene->addPixmap(map);
     }
@@ -95,14 +97,6 @@ void LB_ImageViewer::SetImagePolygons(const QVector<QPolygonF> &contours)
         myGraphicScene->addItem(item);
     }
     this->setDragMode(ScrollHandDrag);
-}
-
-QPixmap LB_ImageViewer::Pixmap() const
-{
-    if(myPixmapItem)
-        return myPixmapItem->pixmap();
-    else
-        return QPixmap();
 }
 
 void LB_ImageViewer::resizeEvent(QResizeEvent *event)

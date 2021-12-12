@@ -4,38 +4,38 @@
 
 ImageProcessCommand::ImageProcessCommand(const QImage &old, const QString &operation, LB_ImageViewer *viewer)
     :QUndoCommand(operation),
-      inputMap(QPixmap::fromImage(old)),
-      outputMap(viewer->Pixmap()),
+      inputImg(old),
+      outputImg(viewer->Image()),
       imgViewer(viewer)
 {    
 }
 
 void ImageProcessCommand::undo()
 {
-    imgViewer->SetPixmap(inputMap);
+    imgViewer->SetImage(inputImg);
 }
 
 void ImageProcessCommand::redo()
 {
-    imgViewer->SetPixmap(outputMap);
+    imgViewer->SetImage(outputImg);
 }
 
 
 AddImageCommand::AddImageCommand(LB_ImageViewer *viewer)
     :QUndoCommand(QObject::tr("Add Image")),
-      inputMap(viewer->Pixmap()),
+      inputImg(viewer->Image()),
       imgViewer(viewer)
 {
 }
 
 void AddImageCommand::undo()
 {
-    imgViewer->SetPixmap(QPixmap());
+    imgViewer->SetImage(QImage());
 }
 
 void AddImageCommand::redo()
 {
-    imgViewer->SetPixmap(inputMap);
+    imgViewer->SetImage(inputImg);
 }
 
 

@@ -72,6 +72,7 @@ void MainWindow::on_pushButton_openImg_clicked()
 
     // get the image, find the best threshold as well
     sourceImg.load(filename);
+    sourceImg = sourceImg.convertToFormat(QImage::Format_RGB32);
     sourceSize = sourceImg.size();
     BINARY_THRESHOLD = ThresholdDetect(sourceImg);
     ui->spinBox_threshold->setValue(BINARY_THRESHOLD);
@@ -119,7 +120,7 @@ void MainWindow::on_toolButton_sureImgSelect_clicked()
 
     resultImg = sourceImg;
     ui->graphicResult->ResetPolygons();
-    ui->graphicResult->SetPixmap(QPixmap::fromImage(resultImg));
+    ui->graphicResult->SetImage(resultImg);
 
     undoStack->clear();
     undoStack->push(new AddImageCommand(ui->graphicResult));
@@ -130,7 +131,7 @@ void MainWindow::on_toolButton_autoDone_clicked()
     if(!resultImg.isNull()) {
         QImage before = resultImg;
         resultImg = FindContours(resultImg);
-        showResult();
+        ui->graphicResult->SetImage(resultImg);
         undoStack->push(new ImageProcessCommand(before,tr("Auto Done"),ui->graphicResult));
         on_toolButton_generatePath_clicked();
         ui->stackedWidget_progress->setCurrentIndex(2);
@@ -146,9 +147,19 @@ void MainWindow::on_toolButton_imgGray_clicked()
         return;
     }
 
+    if(resultImg.format() == QImage::Format_Grayscale8) {
+        qWarning()<<tr("Image has changed into gray!");
+        return;
+    }
+
+    if(resultImg.depth() != 32) {
+        qWarning()<<tr("Image's depth is %1, not 32!").arg(resultImg.depth());
+        return;
+    }
+
     QImage before = resultImg;
     resultImg = Gray(resultImg);
-    showResult();
+    ui->graphicResult->SetImage(resultImg);
     undoStack->push(new ImageProcessCommand(before,tr("gray"),ui->graphicResult));
 }
 
@@ -159,9 +170,14 @@ void MainWindow::on_toolButton_imgBinary_clicked()
         return;
     }
 
+    if(resultImg.depth() != 32 && resultImg.depth() != 8) {
+        qWarning()<<tr("Image's depth is %1, not 32 or 8!").arg(resultImg.depth());
+        return;
+    }
+
     QImage before = resultImg;
     resultImg = Binary(resultImg,BINARY_THRESHOLD);
-    showResult();
+    ui->graphicResult->SetImage(resultImg);
     undoStack->push(new ImageProcessCommand(before,tr("binary"),ui->graphicResult));
 }
 
@@ -172,9 +188,14 @@ void MainWindow::on_toolButton_imgSharpen_clicked()
         return;
     }
 
+    if(resultImg.depth() != 32 && resultImg.depth() != 8) {
+        qWarning()<<tr("Image's depth is %1, not 32 or 8!").arg(resultImg.depth());
+        return;
+    }
+
     QImage before = resultImg;
     resultImg = Sharpen(resultImg);
-    showResult();
+    ui->graphicResult->SetImage(resultImg);
     undoStack->push(new ImageProcessCommand(before,tr("sharpen"),ui->graphicResult));
 }
 
@@ -185,9 +206,14 @@ void MainWindow::on_toolButton_imgMedianFilter_clicked()
         return;
     }
 
+    if(resultImg.depth() != 32 && resultImg.depth() != 8) {
+        qWarning()<<tr("Image's depth is %1, not 32 or 8!").arg(resultImg.depth());
+        return;
+    }
+
     QImage before = resultImg;
     resultImg = MedianFilter(resultImg,3);
-    showResult();
+    ui->graphicResult->SetImage(resultImg);
     undoStack->push(new ImageProcessCommand(before,tr("median filter"),ui->graphicResult));
 }
 
@@ -198,9 +224,14 @@ void MainWindow::on_toolButton_imgGaussionFilter_clicked()
         return;
     }
 
+    if(resultImg.depth() != 32 && resultImg.depth() != 8) {
+        qWarning()<<tr("Image's depth is %1, not 32 or 8!").arg(resultImg.depth());
+        return;
+    }
+
     QImage before = resultImg;
     resultImg = GaussFilter(resultImg);
-    showResult();
+    ui->graphicResult->SetImage(resultImg);
     undoStack->push(new ImageProcessCommand(before,tr("Gaussian filter"),ui->graphicResult));
 }
 
@@ -211,9 +242,14 @@ void MainWindow::on_toolButton_imgThining_clicked()
         return;
     }
 
+    if(resultImg.depth() != 32 && resultImg.depth() != 8) {
+        qWarning()<<tr("Image's depth is %1, not 32 or 8!").arg(resultImg.depth());
+        return;
+    }
+
     QImage before = resultImg;
     resultImg = Thinning(resultImg);
-    showResult();
+    ui->graphicResult->SetImage(resultImg);
     undoStack->push(new ImageProcessCommand(before,tr("thinning"),ui->graphicResult));
 }
 
@@ -224,9 +260,14 @@ void MainWindow::on_toolButton_imgFindContour_clicked()
         return;
     }
 
+    if(resultImg.depth() != 32 && resultImg.depth() != 8) {
+        qWarning()<<tr("Image's depth is %1, not 32 or 8!").arg(resultImg.depth());
+        return;
+    }
+
     QImage before = resultImg;
     resultImg = FindContours(resultImg);
-    showResult();
+    ui->graphicResult->SetImage(resultImg);
     undoStack->push(new ImageProcessCommand(before,tr("find contours"),ui->graphicResult));
 }
 
@@ -237,9 +278,14 @@ void MainWindow::on_toolButton_imgSobel_clicked()
         return;
     }
 
+    if(resultImg.depth() != 32 && resultImg.depth() != 8) {
+        qWarning()<<tr("Image's depth is %1, not 32 or 8!").arg(resultImg.depth());
+        return;
+    }
+
     QImage before = resultImg;
     resultImg = SobelContours(resultImg);
-    showResult();
+    ui->graphicResult->SetImage(resultImg);
     undoStack->push(new ImageProcessCommand(before,tr("sobel contours"),ui->graphicResult));
 }
 
@@ -250,9 +296,14 @@ void MainWindow::on_toolButton_imgCanny_clicked()
         return;
     }
 
+    if(resultImg.depth() != 32 && resultImg.depth() != 8) {
+        qWarning()<<tr("Image's depth is %1, not 32 or 8!").arg(resultImg.depth());
+        return;
+    }
+
     QImage before = resultImg;
     resultImg = CannyContours(resultImg);
-    showResult();
+    ui->graphicResult->SetImage(resultImg);
     undoStack->push(new ImageProcessCommand(before,tr("canny contours"),ui->graphicResult));
 }
 
@@ -265,6 +316,11 @@ void MainWindow::on_toolButton_generatePath_clicked()
 {
     if(resultImg.isNull()) {
         qWarning()<<tr("Image not open");
+        return;
+    }
+
+    if(resultImg.format() != QImage::Format_Mono) {
+        qWarning()<<tr("Contours haven't been extracted!");
         return;
     }
 
@@ -636,7 +692,7 @@ void MainWindow::on_actionReset_operation_triggered()
 
     undoStack->clear();
     ui->graphicResult->ResetPolygons();
-    ui->graphicResult->SetPixmap(QPixmap());
+    ui->graphicResult->SetImage(QImage());
     resultImg = QImage();
     ui->stackedWidget_progress->setCurrentIndex(0);
 }
@@ -724,7 +780,7 @@ void MainWindow::initDock()
     undoStack = new QUndoStack();
     connect(undoStack, &QUndoStack::indexChanged, this, [=](int index) {
         Q_UNUSED(index)
-        resultImg = ui->graphicResult->Pixmap().toImage();
+        resultImg = ui->graphicResult->Image();
     });
 
     QUndoView *aView = new QUndoView(undoStack);
@@ -782,10 +838,3 @@ void MainWindow::on_actionExample_triggered()
     exampleMenu->addAction(exam2);
     exampleMenu->exec(mapToGlobal(ui->toolBar_function->pos()+QPoint(200,40)));
 }
-
-void MainWindow::showResult()
-{
-    QPixmap tarmap = QPixmap::fromImage(resultImg);
-    ui->graphicResult->SetPixmap(tarmap);
-}
-

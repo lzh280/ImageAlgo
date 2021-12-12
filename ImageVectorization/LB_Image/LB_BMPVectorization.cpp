@@ -17,13 +17,20 @@ QVector<QPolygon> RadialSweepTracing(const QImage &img)
     QPoint lastP;
     int indexLast;
     QVector<QPoint> aDiscard;
+    // read the data directly for faster
+    uchar* lineData;
+    uchar uMask;
+    uchar val;
 
-    for(int i=0;i<borderImg.width();++i) {
-        for(int j=0;j<borderImg.height();++j) {
+    for(int y=0;y<img.height();++y) {
+        lineData = borderImg.scanLine(y);
+        for(int x=0;x<img.width();++x) {
             // only enter when foreground
-            if (0 == qRed(borderImg.pixel(i, j))) {
-                currP.setX(i);
-                currP.setY(j);
+            uMask = 0x80 >> (x % 8);
+            val = lineData[x/8] & uMask ? 1 : 0;
+            if (1 == val) {
+                currP.setX(x);
+                currP.setY(y);
                 lastP = INVALID_PNT;
                 const QPoint traceStart = currP;
 
@@ -47,8 +54,8 @@ QVector<QPolygon> RadialSweepTracing(const QImage &img)
                     for(int k=1;k<9;++k) {
                         aNeighbor = currP + neighbor[(k+indexLast)%8];
 
-                        if ((aNeighbor.x() >= 0) && (aNeighbor.x() < borderImg.width()) &&
-                                (aNeighbor.y() >= 0) && (aNeighbor.y() < borderImg.height())) {
+                        if ((aNeighbor.x() >= 0) && (aNeighbor.x() < img.width()) &&
+                                (aNeighbor.y() >= 0) && (aNeighbor.y() < img.height())) {
                             if(0 == qRed(borderImg.pixel(aNeighbor))) {
                                 if(nextP == INVALID_PNT) {
                                     nextP = aNeighbor;
@@ -76,7 +83,7 @@ QVector<QPolygon> RadialSweepTracing(const QImage &img)
 
                 // set the point that have been used as foreground to avoid re-use
                 for(int m=0;m<aDiscard.size();++m) {
-                    borderImg.setPixel(aDiscard[m],QColor(255,255,255).rgb());
+                    borderImg.setPixel(aDiscard[m],0);
                 }
             }
         }

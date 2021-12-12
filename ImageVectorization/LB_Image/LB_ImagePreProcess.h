@@ -10,7 +10,7 @@ namespace LB_Image
 template<typename T>
 QImage Convolution(const QImage &img, T *kernel[], const int &kernelSize);
 
-//! auto get the threshold to binary the image
+//! auto get the threshold to binary the image, only use when import a new image
 int ThresholdDetect(const QImage &img);
 
 //! auto get the high threshold of Canny method
@@ -24,7 +24,7 @@ QImage Scale(const QImage &img, const QSize &size);
 QImage Gray(const QImage &img);
 
 //! Binarization of image
-QImage Binary(const QImage &img, int threshold = -1);
+QImage Binary(const QImage &img, int threshold);
 
 //! median filtering
 QImage MedianFilter(const QImage &img, const int &winSize);

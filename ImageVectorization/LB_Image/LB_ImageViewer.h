@@ -20,12 +20,14 @@ public:
     void ResetPolygons();
     void SetContoursVisible(bool ret);
     void SetVertexVisible(bool ret);
-    void SetPixmap(const QPixmap &map);
+    void SetImage(const QImage &img);
     void SetImagePolygons(const QVector<QPolygonF>& contours);
     QVector<LB_PolygonItem*> GetPolygonItems() const {
         return myPolyItems;
     }
-    QPixmap Pixmap() const;
+    QImage Image() const {
+        return myImg;
+    }
 
 protected:
     virtual void resizeEvent(QResizeEvent * event) override;
@@ -35,6 +37,7 @@ private:
     QGraphicsPixmapItem *myPixmapItem;
     QVector<LB_PolygonItem*> myPolyItems;
     QGraphicsScene *myGraphicScene;
+    QImage myImg;
 
 signals:
     void pointSelected(const QPointF& pnt);

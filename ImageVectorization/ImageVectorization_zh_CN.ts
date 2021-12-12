@@ -66,98 +66,125 @@
         <translation>帮助</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="116"/>
-        <location filename="MainWindow.cpp" line="139"/>
-        <location filename="MainWindow.cpp" line="145"/>
-        <location filename="MainWindow.cpp" line="158"/>
-        <location filename="MainWindow.cpp" line="171"/>
-        <location filename="MainWindow.cpp" line="184"/>
-        <location filename="MainWindow.cpp" line="197"/>
-        <location filename="MainWindow.cpp" line="210"/>
+        <location filename="MainWindow.cpp" line="117"/>
+        <location filename="MainWindow.cpp" line="140"/>
+        <location filename="MainWindow.cpp" line="146"/>
+        <location filename="MainWindow.cpp" line="169"/>
+        <location filename="MainWindow.cpp" line="187"/>
+        <location filename="MainWindow.cpp" line="205"/>
         <location filename="MainWindow.cpp" line="223"/>
-        <location filename="MainWindow.cpp" line="236"/>
-        <location filename="MainWindow.cpp" line="249"/>
-        <location filename="MainWindow.cpp" line="267"/>
-        <location filename="MainWindow.cpp" line="361"/>
-        <location filename="MainWindow.cpp" line="381"/>
-        <location filename="MainWindow.cpp" line="469"/>
-        <location filename="MainWindow.cpp" line="633"/>
+        <location filename="MainWindow.cpp" line="241"/>
+        <location filename="MainWindow.cpp" line="259"/>
+        <location filename="MainWindow.cpp" line="277"/>
+        <location filename="MainWindow.cpp" line="295"/>
+        <location filename="MainWindow.cpp" line="318"/>
+        <location filename="MainWindow.cpp" line="417"/>
+        <location filename="MainWindow.cpp" line="437"/>
+        <location filename="MainWindow.cpp" line="525"/>
+        <location filename="MainWindow.cpp" line="689"/>
         <source>Image not open</source>
         <translation>未打开图片</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="682"/>
+        <location filename="MainWindow.cpp" line="151"/>
+        <source>Image has changed into gray!</source>
+        <translation>图片已经是灰度图！</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="156"/>
+        <source>Image&apos;s depth is %1, not 32!</source>
+        <translation>图片深度是%1，不是32！</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="174"/>
+        <location filename="MainWindow.cpp" line="192"/>
+        <location filename="MainWindow.cpp" line="210"/>
+        <location filename="MainWindow.cpp" line="228"/>
+        <location filename="MainWindow.cpp" line="246"/>
+        <location filename="MainWindow.cpp" line="264"/>
+        <location filename="MainWindow.cpp" line="282"/>
+        <location filename="MainWindow.cpp" line="300"/>
+        <source>Image&apos;s depth is %1, not 32 or 8!</source>
+        <translation>图片深度是%1，不是32或8！</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="323"/>
+        <source>Contours haven&apos;t been extracted!</source>
+        <translation>边缘未提取！</translation>
+    </message>
+    <message>
+        <location filename="MainWindow.cpp" line="738"/>
         <source>Selected( %1 , %2 )</source>
         <translation>选中( %1 , %2 )</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="687"/>
+        <location filename="MainWindow.cpp" line="743"/>
         <source>Move ( %1, %2 ) to ( %3, %4 )</source>
         <translation>移动 ( %1, %2 ) 到 ( %3, %4 )</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="698"/>
+        <location filename="MainWindow.cpp" line="754"/>
         <source>Convert to %1</source>
         <translation>转换为%1</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="711"/>
+        <location filename="MainWindow.cpp" line="767"/>
         <source>File</source>
         <translation>文件</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="711"/>
+        <location filename="MainWindow.cpp" line="767"/>
         <source>Preprocess</source>
         <translation>预处理</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="711"/>
+        <location filename="MainWindow.cpp" line="767"/>
         <source>Vectorization</source>
         <translation>矢量化</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="711"/>
+        <location filename="MainWindow.cpp" line="767"/>
         <source>Save</source>
         <translation>保存</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="715"/>
+        <location filename="MainWindow.cpp" line="771"/>
         <source>Select image</source>
         <translation>选择图片</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="715"/>
+        <location filename="MainWindow.cpp" line="771"/>
         <source>Operate image</source>
         <translation>处理图片</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="715"/>
+        <location filename="MainWindow.cpp" line="771"/>
         <source>Deal with path</source>
         <translation>处理路径</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="715"/>
+        <location filename="MainWindow.cpp" line="771"/>
         <source>Save result</source>
         <translation>保存结果</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="731"/>
+        <location filename="MainWindow.cpp" line="787"/>
         <source>&lt;empty&gt;</source>
         <translation>空白</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="732"/>
+        <location filename="MainWindow.cpp" line="788"/>
         <source>Operation record</source>
         <translation>操作历史</translation>
     </message>
     <message>
         <location filename="MainWindow.ui" line="225"/>
-        <location filename="MainWindow.cpp" line="747"/>
+        <location filename="MainWindow.cpp" line="803"/>
         <source>OK</source>
         <translation>确定</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="751"/>
+        <location filename="MainWindow.cpp" line="807"/>
         <source>Output</source>
         <translation>输出</translation>
     </message>
@@ -263,7 +290,7 @@
     </message>
     <message>
         <location filename="MainWindow.ui" line="279"/>
-        <location filename="MainWindow.cpp" line="134"/>
+        <location filename="MainWindow.cpp" line="135"/>
         <source>Auto Done</source>
         <translation>自动处理</translation>
     </message>
@@ -313,7 +340,7 @@
         <translation>彩色图转为灰度图</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="152"/>
+        <location filename="MainWindow.cpp" line="163"/>
         <source>gray</source>
         <translation>灰度化</translation>
     </message>
@@ -328,7 +355,7 @@
         <translation>转为黑白图</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="165"/>
+        <location filename="MainWindow.cpp" line="181"/>
         <source>binary</source>
         <translation>二值化</translation>
     </message>
@@ -343,7 +370,7 @@
         <translation>使图像前景边缘更清晰</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="178"/>
+        <location filename="MainWindow.cpp" line="199"/>
         <source>sharpen</source>
         <translation>锐化</translation>
     </message>
@@ -353,7 +380,7 @@
         <translation>有效去除图像的噪声</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="191"/>
+        <location filename="MainWindow.cpp" line="217"/>
         <source>median filter</source>
         <translation>中值滤波</translation>
     </message>
@@ -363,7 +390,7 @@
         <translation>通过模糊的方式顺滑图像</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="204"/>
+        <location filename="MainWindow.cpp" line="235"/>
         <source>Gaussian filter</source>
         <translation>高斯滤波</translation>
     </message>
@@ -373,7 +400,7 @@
         <translation>使二值图像更细</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="217"/>
+        <location filename="MainWindow.cpp" line="253"/>
         <source>thinning</source>
         <translation>细化</translation>
     </message>
@@ -383,7 +410,7 @@
         <translation>最常用且有效的边缘提取方法</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="230"/>
+        <location filename="MainWindow.cpp" line="271"/>
         <source>find contours</source>
         <translation>提取边缘</translation>
     </message>
@@ -393,7 +420,7 @@
         <translation>用于含噪声图像的边缘提取，备用方法</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="243"/>
+        <location filename="MainWindow.cpp" line="289"/>
         <source>sobel contours</source>
         <translation>Sobel边缘</translation>
     </message>
@@ -403,7 +430,7 @@
         <translation>用于边界弱的边缘提取，备用方法</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="256"/>
+        <location filename="MainWindow.cpp" line="307"/>
         <source>canny contours</source>
         <translation>Canny边缘</translation>
     </message>
@@ -594,12 +621,12 @@
         <translation>打开处理图标的示例视频</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="773"/>
+        <location filename="MainWindow.cpp" line="829"/>
         <source>linux logo</source>
         <translation>linux图标</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="777"/>
+        <location filename="MainWindow.cpp" line="833"/>
         <source>wechat logo</source>
         <translation>微信图标</translation>
     </message>
@@ -609,17 +636,17 @@
         <translation>关于</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="662"/>
+        <location filename="MainWindow.cpp" line="718"/>
         <source>This software is developed by Lieber.</source>
         <translation>该软件由Lieber开发。</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="663"/>
+        <location filename="MainWindow.cpp" line="719"/>
         <source>Contact me with: hawkins123h@163.com</source>
         <translation>联系方式： hawkins123h@163.com</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="666"/>
+        <location filename="MainWindow.cpp" line="722"/>
         <source>I Know</source>
         <translation>我已知晓</translation>
     </message>
@@ -629,14 +656,14 @@
         <translation>选择图片</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="365"/>
-        <location filename="MainWindow.cpp" line="385"/>
-        <location filename="MainWindow.cpp" line="473"/>
+        <location filename="MainWindow.cpp" line="421"/>
+        <location filename="MainWindow.cpp" line="441"/>
+        <location filename="MainWindow.cpp" line="529"/>
         <source>save result</source>
         <translation>保存结果</translation>
     </message>
     <message>
-        <location filename="MainWindow.cpp" line="473"/>
+        <location filename="MainWindow.cpp" line="529"/>
         <source>DXF(*.dxf)</source>
         <translation></translation>
     </message>
