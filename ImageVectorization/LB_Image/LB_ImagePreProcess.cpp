@@ -23,7 +23,7 @@ int ThresholdDetect(const QImage &img)
     // 1.get the pixel value
     uchar r,g,b;
     for(int i=0; i<height; i++) {
-        const uchar *line = img.scanLine(i);
+        const uchar *line = img.constScanLine(i);
         for(int j=0; j<width; j++) {
             if(img.depth() == 32) {
                 b = line[4*j];
@@ -93,14 +93,13 @@ void CannyThresholdDetec(const QImage &img, int &ThL, int &ThH)
     int Sum = 0;
 
     // 1.get the pixel value
-    const uchar *srcData = img.constBits();
-    int srcBPL = img.bytesPerLine();
     uchar g;
     for (int y = 0; y < height; y++)
     {
+        const uchar* line = img.constScanLine(y);
         for (int x = 0; x < width; x++)
         {
-            g = srcData[y*srcBPL + x];
+            g = line[x];
             F[g]++;
         }
     }
@@ -134,7 +133,7 @@ QImage Gray(const QImage &img)
 
     QImage grayImg(wid, hei, QImage::Format_Grayscale8);
     int grayBPL = grayImg.bytesPerLine();
-    uchar *grayData = new uchar[grayBPL*hei];
+    uchar* grayData = grayImg.bits();
 
     uchar r,g,b;
     for(int i=0;i<hei;i++) {
@@ -147,9 +146,6 @@ QImage Gray(const QImage &img)
             grayData[i*grayBPL+j] = (r * 11 + g * 16 + b * 5)/32;
         }
     }
-
-    memcpy(grayImg.bits(), grayData, grayBPL*hei);
-    delete[] grayData;
 
     return grayImg;
 }
@@ -213,7 +209,8 @@ QImage Binary(const QImage& img, int threshold)
     int wid = img.width();
     int hei = img.height();
     int lineBytes = grayImg.bytesPerLine();
-    uchar *binData = new uchar[lineBytes*hei];
+    QImage binaryImg(wid, hei, QImage::Format_Grayscale8);
+    uchar *binData = binaryImg.bits();
 
     uchar gray;
     for(int i=0;i<hei;i++) {
@@ -229,10 +226,6 @@ QImage Binary(const QImage& img, int threshold)
         }
     }
 
-    QImage binaryImg(wid, hei, QImage::Format_Grayscale8);
-    memcpy(binaryImg.bits(), binData, lineBytes*hei);
-    delete[] binData;
-
     return binaryImg;
 }
 
@@ -242,8 +235,6 @@ QImage Binary(const QImage& img, int threshold)
 //=======================================================================
 QImage MedianFilter(const QImage &img, const int &winSize)
 {
-    QImage filterImg (img.size(), img.format());
-
     int totalSize = winSize*winSize;
     int* rList = new int[totalSize];
     int* gList = new int[totalSize];
@@ -257,10 +248,11 @@ QImage MedianFilter(const QImage &img, const int &winSize)
 
     const uchar *srcData = img.constBits();
     int srcBPL = img.bytesPerLine();
-    uchar *filterData = new uchar[srcBPL*img.height()];
+    QImage filterImg (img.size(), img.format());
 
     for(int y=0;y<img.height();y++)
     {
+        uchar *filterData = filterImg.scanLine(y);
         for(int x=0;x<img.width();x++)
         {
             //select the middle value of gray, assign it to the middle pixel
@@ -318,12 +310,12 @@ QImage MedianFilter(const QImage &img, const int &winSize)
             midBVal = bList[totalSize/2];
 
             if(img.depth() == 32) {
-                filterData[y*srcBPL + x*4 + 2] = midRVal;
-                filterData[y*srcBPL + x*4 + 1] = midGVal;
-                filterData[y*srcBPL + x*4] = midBVal;
+                filterData[x*4 + 2] = midRVal;
+                filterData[x*4 + 1] = midGVal;
+                filterData[x*4] = midBVal;
             }
             else if(img.depth() == 8) {
-                filterData[y*srcBPL + x] = midRVal;
+                filterData[x] = midRVal;
             }
         }
     }
@@ -331,9 +323,6 @@ QImage MedianFilter(const QImage &img, const int &winSize)
     delete[] rList;
     delete[] gList;
     delete[] bList;
-
-    memcpy(filterImg.bits(), filterData, srcBPL*img.height());
-    delete[] filterData;
 
     return filterImg;
 }
@@ -396,9 +385,9 @@ QImage SobelContours(const QImage &img)
 
     int height = img.height();
     int width = img.width();
-    QImage contoursImage = img;
+    QImage grayImage = img;
     if(img.depth() == 32)
-        contoursImage = Gray(img);
+        grayImage = Gray(img);
 
     int gray = 0;
     double value_gx = 0;
@@ -406,12 +395,15 @@ QImage SobelContours(const QImage &img)
     int x_w = 0;
     int y_w = 0;
 
-    const int lineBytes = contoursImage.bytesPerLine();
-    const uchar *srcData = contoursImage.constBits();
+    const int lineBytes = grayImage.bytesPerLine();
+    const uchar *srcData = grayImage.constBits();
     uchar gv;
-    uchar* ctData = new uchar[lineBytes*height];
+    QImage ctImg(width, height, QImage::Format_Grayscale8);
+    uchar* ctData;
+
     for (int y=0; y<height; y++)
     {
+        ctData = ctImg.scanLine(y);
         for( int x=0; x<width; x++)
         {
             value_gx = 0;
@@ -432,18 +424,18 @@ QImage SobelContours(const QImage &img)
             // inverse the background and the foreground to set the background in white
             gray = qBound(0,int(255-gray),255);
 
-            ctData[y*lineBytes + x] = gray;
+            if (gray <= BINARY_THRESHOLD)
+                ctData[x] = 0;
+            else
+                ctData[x] = 255;
         }
     }
 
     delete [] Gy;
     delete [] Gx;
 
-    memcpy(contoursImage.bits(), ctData, lineBytes*height);
-    delete[] ctData;
-
-    contoursImage.convertTo(QImage::Format_Mono, Qt::MonoOnly);
-    return contoursImage;
+    ctImg.convertTo(QImage::Format_Mono, Qt::MonoOnly);
+    return ctImg;
 }
 
 //=======================================================================
@@ -456,10 +448,10 @@ QImage CannyContours(const QImage &img)
     const int width = img.width();
 
     // 1.Gauss filter
-    QImage contoursImage = img;
+    QImage grayImage = img;
     if(img.depth() == 32)
-        contoursImage = Gray(img);
-    contoursImage = GaussFilter(contoursImage);
+        grayImage = Gray(img);
+    grayImage = GaussFilter(grayImage);
 
     // 2.get the gradient of each pixel
     double *Gx = new double[9];
@@ -480,8 +472,8 @@ QImage CannyContours(const QImage &img)
     int x_w = 0;
     int y_w = 0;
 
-    const int lineBytes = contoursImage.bytesPerLine();
-    const uchar *srcData = contoursImage.constBits();
+    const int lineBytes = grayImage.bytesPerLine();
+    const uchar *srcData = grayImage.constBits();
     uchar gv;
     for (int y=0; y<height; y++)
     {
@@ -592,7 +584,7 @@ QImage CannyContours(const QImage &img)
     // 4.use high and low threshold to limit image
     int lowTh = 0;
     int highTh = 0;
-    CannyThresholdDetec(contoursImage,lowTh,highTh);
+    CannyThresholdDetec(grayImage,lowTh,highTh);
 
     int gray = 0;
     for (int y=0; y<height; y++)
@@ -637,16 +629,18 @@ QImage CannyContours(const QImage &img)
     }
 
     // 6.Remaining gray pixels becomes background and inverse the value
-    uchar* ctData = new uchar[lineBytes*height];
+    QImage ctImg(width, height, QImage::Format_Grayscale8);
+    uchar* line;
     for (int y=0; y<height; y++)
     {
+        line = ctImg.scanLine(y);
         for( int x=0; x<width; x++)
         {
             gray = 255 - gray_value[x+width*y];
             if(gray == 128)
                 gray = 255;
 
-            ctData[y*lineBytes + x] = gray;
+                line[x] = gray;
         }
     }
 
@@ -656,11 +650,8 @@ QImage CannyContours(const QImage &img)
     delete [] Gx;
     delete [] gray_value;
 
-    memcpy(contoursImage.bits(), ctData, lineBytes*height);
-    delete[] ctData;
-
-    contoursImage.convertTo(QImage::Format_Mono, Qt::MonoOnly);
-    return contoursImage;
+    ctImg.convertTo(QImage::Format_Mono, Qt::MonoOnly);
+    return ctImg;
 }
 
 //=======================================================================
@@ -680,7 +671,9 @@ QImage FindContours(const QImage &img)
     // Hollowing out the connected area
     const int lineBytes = binImg.bytesPerLine();
     const uchar *binData = binImg.constBits();
-    uchar* ctData = new uchar[lineBytes*height];
+
+    QImage ctImg(width, height, QImage::Format_Grayscale8);
+    uchar* ctData = ctImg.bits();
     memset(ctData, 255, lineBytes*height*sizeof(uchar));
 
     auto binVal = [binData, lineBytes](const int& x, const int& y) {
@@ -709,12 +702,8 @@ QImage FindContours(const QImage &img)
         }
     }
 
-    QImage contoursImage(img.size(), QImage::Format_Grayscale8);
-    memcpy(contoursImage.bits(), ctData, lineBytes*height);
-    delete[] ctData;
-
-    contoursImage.convertTo(QImage::Format_Mono, Qt::MonoOnly);
-    return contoursImage;
+    ctImg.convertTo(QImage::Format_Mono, Qt::MonoOnly);
+    return ctImg;
 }
 
 QImage Thinning(const QImage &img)
@@ -818,8 +807,6 @@ QImage Thinning(const QImage &img)
 template<typename T>
 QImage Convolution(const QImage &img, T *kernel[], const int &kernelSize)
 {
-    QImage targetImage (img.size(), img.format());
-
     int sumR = 0;
     int sumG = 0;
     int sumB = 0;
@@ -827,15 +814,18 @@ QImage Convolution(const QImage &img, T *kernel[], const int &kernelSize)
     int x_w = 0;
     int y_w = 0;
 
-    int wid = targetImage.width();
-    int hei = targetImage.height();
+    int wid = img.width();
+    int hei = img.height();
 
     int srcBPL = img.bytesPerLine();
     const uchar *srcData = img.constBits();
-    uchar* tarData = new uchar[srcBPL*hei];
+
+    QImage targetImage (wid, hei, img.format());
+    uchar* line;
     uchar r,g,b;
     for(int y=0; y<hei; y++)
     {
+        line = targetImage.scanLine(y);
         for(int x=0; x<wid; x++)
         {
             sumR = 0;
@@ -872,17 +862,15 @@ QImage Convolution(const QImage &img, T *kernel[], const int &kernelSize)
             sumB = qBound(0, sumB, 255);
 
             if(img.depth() == 32) {
-                tarData[y*srcBPL + x*4 + 2] = sumR;
-                tarData[y*srcBPL + x*4 + 1] = sumG;
-                tarData[y*srcBPL + x*4] = sumB;
+                line[x*4 + 2] = sumR;
+                line[x*4 + 1] = sumG;
+                line[x*4] = sumB;
             }
             else if(img.depth() == 8) {
-                tarData[y*srcBPL + x] = sumR;
+                line[x] = sumR;
             }
         }
     }
-    memcpy(targetImage.bits(), tarData, srcBPL*img.height());
-    delete[] tarData;
 
     return targetImage;
 }

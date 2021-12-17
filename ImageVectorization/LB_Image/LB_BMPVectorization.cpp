@@ -19,15 +19,13 @@ QVector<QPolygon> RadialSweepTracing(const QImage &img)
     QVector<QPoint> aDiscard;
     // read the data directly for faster
     uchar* lineData;
-    uchar uMask;
     uchar val;
 
     for(int y=0;y<img.height();++y) {
         lineData = borderImg.scanLine(y);
         for(int x=0;x<img.width();++x) {
             // only enter when foreground
-            uMask = 0x80 >> (x % 8);
-            val = lineData[x/8] & uMask ? 1 : 0;
+            val = (lineData[x >> 3] >> (~x & 7)) & 1;
             if (1 == val) {
                 currP.setX(x);
                 currP.setY(y);
@@ -56,7 +54,7 @@ QVector<QPolygon> RadialSweepTracing(const QImage &img)
 
                         if ((aNeighbor.x() >= 0) && (aNeighbor.x() < img.width()) &&
                                 (aNeighbor.y() >= 0) && (aNeighbor.y() < img.height())) {
-                            if(0 == qRed(borderImg.pixel(aNeighbor))) {
+                            if(1 == borderImg.pixelIndex(aNeighbor)) {
                                 if(nextP == INVALID_PNT) {
                                     nextP = aNeighbor;
                                 }
