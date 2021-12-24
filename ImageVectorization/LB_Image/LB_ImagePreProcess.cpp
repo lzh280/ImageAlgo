@@ -75,6 +75,9 @@ int ThresholdDetect(const QImage &img)
         }
     }
 
+    if(threshold == 0)
+        threshold = 128;
+
     return threshold;
 }
 
